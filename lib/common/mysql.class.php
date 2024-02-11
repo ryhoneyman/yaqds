@@ -307,7 +307,7 @@ class MySQL extends Base
        return $rc;
     }
 
-    public function error()
+    public function lastError()
     {
        $lastErrno = (is_null($this->lastErrno)) ? mysqli_errno($this->resource) : $this->lastErrno;
        $lastError = (is_null($this->lastError)) ? mysqli_error($this->resource) : $this->lastError;
