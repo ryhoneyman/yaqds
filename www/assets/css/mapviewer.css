@@ -1,0 +1,34 @@
+.arrow {
+   marker-end: url(#head);
+   fill: none;
+   stroke: black;
+   stroke-width: $arrowSize;
+}
+.grid {
+   marker-end: url(#head);
+   fill: none;
+   stroke: lightblue;
+   stroke-width: $arrowSize;
+   stroke-dasharray: 4;
+   animation: dash 5s infinite linear;
+}
+@keyframes dash {
+   to {
+      stroke-dashoffset: -50;
+   }
+}
+
+.spawninfo {
+   stroke: red;
+   stroke-width: '2';
+    fill: red;
+}
+
+.spawninfo:hover{
+   opacity: .5 !important;
+   transform: scale(3);
+   transform-box: fill-box;
+   transform-origin: center;
+   transition: all .3s;
+}
+
