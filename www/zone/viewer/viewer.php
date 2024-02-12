@@ -10,7 +10,7 @@ $main = new Main(array(
    'sendHeaders'    => true,
    'database'       => true,
    'input'          => true,
-   'html'           => false,
+   'html'           => true,
    'adminlte'       => true,
    'constants'      => true,
    'data'           => true,
@@ -18,12 +18,14 @@ $main = new Main(array(
 ));
 
 $input = $main->obj('input');
+$html  = $main->obj('html');
 
 $currentExpansion = $main->constants->currentExpansion();
 
 $zoneName  = $input->get('zone','alphanumeric') ?: 'hateplane';
 $zoneFloor = $input->get('floor','numeric,dash');
 $zoneCeil  = $input->get('ceil','numeric,dash');
+$zoneLayer = $input->get('layer','alphanumeric');
 $ignoreXpn = ($input->isDefined('ignoreXpn')) ? true : false;
 
 $zoneInfo = $main->data->getZoneInfoByName($zoneName);
@@ -42,9 +44,22 @@ $svgDefs = array(
    "<marker id='head' orient='auto' markerWidth='3' markerHeight='4' refX='0.1' refY='2'> <path d='M0,0 V4 L2,2 Z' fill='black'/></marker>",
 );
 
-$mapZoneName = $zoneInfo['map_file_name'] ?: $zoneName;
+$zoneMapData = $main->constants->getZoneMapData($zoneName);
+$zoneMapFile = $zoneInfo['map_file_name'] ?: $zoneMapData['file'] ?: $zoneName;
 
-$mapSVG      = $main->map->generateSVGMap($mapZoneName,$zoneFloor,$zoneCeil,array('defs' => $svgDefs, 'constants' => $main->constants));
+$layerSelect = array('all' => 'Everything');
+$layerData   = $zoneMapData['layers'];
+
+if ($layerData) {
+   foreach ($layerData as $layerId => $layerInfo) { $layerSelect[$layerId] = $layerInfo['label']; }
+   
+   if ($zoneLayer) {
+      $zoneFloor = $layerData[$zoneLayer]['floor']; 
+      $zoneCeil  = $layerData[$zoneLayer]['ceil']; 
+   }
+}
+
+$mapSVG      = $main->map->generateSVGMap($zoneMapFile,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
 $spawnData   = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
 $spawnGrids  = $main->data->getSpawnGridsByZoneName($zoneName) ?: array();
 $spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids);
@@ -55,7 +70,19 @@ $svgLabels = array_merge($spawnLabels['headings'],$spawnLabels['spawns'],$spawnL
 // Add in our labels to the map SVG
 array_splice($mapSVG,-1,0,$svgLabels);
 
-print "<div class='text-xl'><a href='/zone/viewer/'><i class='fa fa-reply'></i></a> ".$zoneInfo['long_name']."</div>\n".
+$selectOpts = array('class' => 'form-control gear', 'script' => 'onchange="autoChange(this.value);"');
+
+print "<div class='mb-1'>".
+      "<div class='text-xl d-inline-block align-middle'><a class='mr-3' href='/zone/viewer/'><i class='fa fa-reply'></i></a> ".$zoneInfo['long_name']."</div>".
+      "<div class='ml-3 d-inline-block align-middle'>".
+      (($layerData) ? 
+         $html->startForm().
+         $html->select('layer',$layerSelect,$zoneLayer,$selectOpts).
+         (($ignoreXpn) ? $html->inputHidden('ignoreXpn',$ignoreXpn) : '').
+         $html->inputHidden('zone',$zoneName).
+         $html->endForm() : '').
+      "</div>".
+      "</div>\n".
       "<div data-zoom-on-wheel data-pan-on-drag style='width:75vw; height:75vh; overflow-y:hidden; overflow-x:hidden; background:#ffffff;'>\n".
       implode("",$mapSVG)."\n".
       "</div>\n";
