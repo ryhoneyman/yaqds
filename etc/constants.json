@@ -39,8 +39,36 @@
         "5.6":  { "id": "pop" },
         "5.9":  { "id": "pop" }
     },
-    "zone.map.overrides": {
-        "nektulos":  { "file": "nektulos_original" },
-        "lavastorm": { "file": "lavastorm_original" }
+    "zone.map": {
+        "airplane": {
+            "layers": {
+                "island1": { "label": "1st Island - Thunder Spirits", "floor": -900, "ceil": -500 },
+                "island2": { "label": "2nd Island - Azaracks", "floor": -500, "ceil": -150 },
+                "island3": { "label": "3rd Island - Gorgalosk / Island 1.5 - Noble Dojorn", "floor": -150, "ceil": 100 },
+                "island4": { "label": "4th Island - Pegasi", "floor": 100, "ceil": 400 },
+                "island5": { "label": "5th Island - Spirocs", "floor": 400, "ceil": 750 },
+                "island6": { "label": "6th Island - Wasps", "floor": 750, "ceil": 1000 },
+                "island7": { "label": "7th Island - Drakes", "floor": 1000, "ceil": 1252 },
+                "island8": { "label": "8th Island - Vesshan", "floor": 1250, "ceil": 1400 }
+            }
+        },
+        "guktop": {
+            "layers": {
+                "top": { "label": "Top", "floor": -50, "ceil": null },
+                "bottom": { "label": "Bottom", "floor": null, "ceil": -50 }
+            }
+        },
+        "hateplane": {
+            "layers": {
+                "firstfloor": { "label": "First Floor", "floor": null, "ceil": 100 },
+                "secondfloor": { "label": "Second Floor", "floor": 100, "ceil": null }
+            }
+        },
+        "nektulos": { 
+            "file": "nektulos_original" 
+        },
+        "lavastorm": { 
+            "file": "lavastorm_original" 
+        }
     }
 }

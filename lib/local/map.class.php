@@ -19,17 +19,8 @@ class Map extends Base
       parent::__construct($debug,$options);
    }
 
-   function generateSVGMap($zoneName, $zoneFloor = null, $zoneCeil = null, $options = null)
+   function generateSVGMap($zoneFile, $zoneFloor = null, $zoneCeil = null, $options = null)
    {
-      $zoneFile  = $zoneName;
-      $constants = $options['constants'] ?: null;
-
-      // Constants class will have information about map file overrides, where the zone short name is not the current file name
-      if (!is_null($constants)) {
-         $zoneOverrides = $constants->getZoneMapOverrides($zoneName);
-         if ($zoneOverrides['file']) { $zoneFile = $zoneOverrides['file']; }
-      }
-
       $mapRawData = file_get_contents(APP_CONFIGDIR."/maps/$zoneFile.txt");
       $mapData    = explode("\n",$mapRawData);
    

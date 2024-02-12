@@ -22,11 +22,11 @@ class Constants extends ConstantsBase
       return $return;
    }
 
-   public function getZoneMapOverrides($zoneName = null)
+   public function getZoneMapData($zoneName = null)
    {
-      $overrides = $this->fetch('zone.map.overrides');
+      $mapData = $this->fetch('zone.map');
 
-      return ((is_null($zoneName)) ? $overrides : $overrides[$zoneName]);
+      return ((is_null($zoneName)) ? $mapData : $mapData[$zoneName]);
    }
 }
 ?>
