@@ -34,8 +34,6 @@ if ($ignoreXpn) { $currentExpansion = null; }
 
 include 'ui/header.php';
 
-//print "<div class='mb-2'><a class='text-danger' href='/map/viewer/'>Back</a></div>\n";
-
 print "<link rel='stylesheet' href='/assets/css/mapviewer.css?t={$main->now}'/>\n";
 print "<script src='/assets/js/mapviewer.js?t={$main->now}'></script>\n";
 print "<script src='/assets/js/svg-pan-zoom-container.js'></script>\n";
@@ -46,7 +44,7 @@ $svgDefs = array(
 
 $mapZoneName = $zoneInfo['map_file_name'] ?: $zoneName;
 
-$mapSVG      = $main->map->generateSVGMap($mapZoneName,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
+$mapSVG      = $main->map->generateSVGMap($mapZoneName,$zoneFloor,$zoneCeil,array('defs' => $svgDefs, 'constants' => $main->constants));
 $spawnData   = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
 $spawnGrids  = $main->data->getSpawnGridsByZoneName($zoneName) ?: array();
 $spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids);
@@ -57,7 +55,7 @@ $svgLabels = array_merge($spawnLabels['headings'],$spawnLabels['spawns'],$spawnL
 // Add in our labels to the map SVG
 array_splice($mapSVG,-1,0,$svgLabels);
 
-print "<div class='text-xl'>".$zoneInfo['long_name']."</div>\n".
+print "<div class='text-xl'><a href='/zone/viewer/'><i class='fa fa-reply'></i></a> ".$zoneInfo['long_name']."</div>\n".
       "<div data-zoom-on-wheel data-pan-on-drag style='width:75vw; height:75vh; overflow-y:hidden; overflow-x:hidden; background:#ffffff;'>\n".
       implode("",$mapSVG)."\n".
       "</div>\n";
