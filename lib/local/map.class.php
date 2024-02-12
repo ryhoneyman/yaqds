@@ -21,7 +21,16 @@ class Map extends Base
 
    function generateSVGMap($zoneName, $zoneFloor = null, $zoneCeil = null, $options = null)
    {
-      $mapRawData = file_get_contents(APP_CONFIGDIR."/maps/$zoneName.txt");
+      $zoneFile  = $zoneName;
+      $constants = $options['constants'] ?: null;
+
+      // Constants class will have information about map file overrides, where the zone short name is not the current file name
+      if (!is_null($constants)) {
+         $zoneOverrides = $constants->getZoneMapOverrides($zoneName);
+         if ($zoneOverrides['file']) { $zoneFile = $zoneOverrides['file']; }
+      }
+
+      $mapRawData = file_get_contents(APP_CONFIGDIR."/maps/$zoneFile.txt");
       $mapData    = explode("\n",$mapRawData);
    
       $svgLayers = array('defs' => array(), 'active' => array(), 'inactive' => array(), 'gridLine' => array(), 'gridNum' => array());
