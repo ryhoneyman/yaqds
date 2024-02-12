@@ -3,8 +3,8 @@ include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
 $main = new Main(array(
-   'debugLevel'     => 9,
-   'errorReporting' => true,
+   'debugLevel'     => 0,
+   'errorReporting' => false,
    'sessionStart'   => true,
    'memoryLimit'    => null,
    'sendHeaders'    => true,
