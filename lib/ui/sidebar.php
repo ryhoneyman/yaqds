@@ -14,8 +14,8 @@
 
 <?php
 
-print insertHeader('MAPS').
-      insertEntry('fa-map-marked-alt','/map/viewer/','Map Viewer').
+print insertHeader('ZONES').
+      insertEntry('fa-map-marked-alt','/zone/viewer/','Zone Viewer').
       insertSpacer().
       insertEntry('fa-comment-lines','/notes/history/','Patch Notes').
       '';
