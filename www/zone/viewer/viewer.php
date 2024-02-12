@@ -22,11 +22,12 @@ $html  = $main->obj('html');
 
 $currentExpansion = $main->constants->currentExpansion();
 
-$zoneName  = $input->get('zone','alphanumeric') ?: 'hateplane';
-$zoneFloor = $input->get('floor','numeric,dash');
-$zoneCeil  = $input->get('ceil','numeric,dash');
-$zoneLayer = $input->get('layer','alphanumeric');
-$ignoreXpn = ($input->isDefined('ignoreXpn')) ? true : false;
+$zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
+$zoneFloor   = $input->get('floor','numeric,dash');
+$zoneCeil    = $input->get('ceil','numeric,dash');
+$zoneLayer   = $input->get('layer','alphanumeric');
+$zonePathing = $input->get('pathing','alphanumeric') ?: 'disabled';
+$ignoreXpn   = ($input->isDefined('ignoreXpn')) ? true : false;
 
 $zoneInfo = $main->data->getZoneInfoByName($zoneName);
 
@@ -61,7 +62,7 @@ if ($layerData) {
 
 $mapSVG      = $main->map->generateSVGMap($zoneMapFile,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
 $spawnData   = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
-$spawnGrids  = $main->data->getSpawnGridsByZoneName($zoneName) ?: array();
+$spawnGrids  = (preg_match('/^enable/i',$zonePathing)) ? $main->data->getSpawnGridsByZoneName($zoneName) ?: array() : array();
 $spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids);
 
 // Order the labels for SVG last render on top
@@ -75,12 +76,16 @@ $selectOpts = array('class' => 'form-control gear', 'script' => 'onchange="autoC
 print "<div class='mb-1'>".
       "<div class='text-xl d-inline-block align-middle'><a class='mr-3' href='/zone/viewer/'><i class='fa fa-reply'></i></a> ".$zoneInfo['long_name']."</div>".
       "<div class='ml-3 d-inline-block align-middle'>".
-      (($layerData) ? 
-         $html->startForm().
-         $html->select('layer',$layerSelect,$zoneLayer,$selectOpts).
-         (($ignoreXpn) ? $html->inputHidden('ignoreXpn',$ignoreXpn) : '').
-         $html->inputHidden('zone',$zoneName).
-         $html->endForm() : '').
+      $html->startForm().
+      "<div class='d-inline-block'>".
+      (($layerData) ?  $html->select('layer',$layerSelect,$zoneLayer,$selectOpts) : '').
+      "</div>".
+      "<div class='d-inline-block'>".
+      $html->select('pathing',array('enabled' => 'Pathing Enabled (slower)', 'disabled' => 'Pathing Disabled'),$zonePathing,$selectOpts).
+      "</div>".
+      (($ignoreXpn) ? $html->inputHidden('ignoreXpn',$ignoreXpn) : '').
+      $html->inputHidden('zone',$zoneName).
+      $html->endForm().
       "</div>".
       "</div>\n".
       "<div data-zoom-on-wheel data-pan-on-drag style='width:75vw; height:75vh; overflow-y:hidden; overflow-x:hidden; background:#ffffff;'>\n".
