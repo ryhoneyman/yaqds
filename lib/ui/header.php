@@ -13,7 +13,7 @@
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 
-  <title><?php print 'Yet Another Quarm Database Sites: '.($main->title() ?: 'Project Quarm Information'); ?></title>
+  <title><?php print 'Yet Another Quarm Database Site: '.($main->title() ?: 'Project Quarm Information'); ?></title>
 <!-- REQUIRED SCRIPTS -->
 <!-- jQuery -->
 <script src="/assets/alte/current/plugins/jquery/jquery.min.js"></script>
