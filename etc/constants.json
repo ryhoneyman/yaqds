@@ -1,21 +1,11 @@
 {
     "currentExpansion": 1.3,
     "expansionInfo": {
-       "classic": {
-          "name": "EverQuest Classic"
-       },
-       "kunark": {
-          "name": "The Ruins of Kunark"
-       },
-       "velious": {
-          "name": "The Scars of Velious"
-       },
-       "luclin": {
-          "name": "The Shadows of Luclin"
-       },
-       "pop": {
-          "name": "The Planes of Power"
-       }
+       "classic": { "name": "EverQuest Classic" },
+       "kunark": { "name": "The Ruins of Kunark" },
+       "velious": { "name": "The Scars of Velious" },
+       "luclin": { "name": "The Shadows of Luclin" },
+       "pop": { "name": "The Planes of Power" }
     },
     "expansions": {
         "1":    { "id": "classic" },
@@ -70,5 +60,37 @@
         "lavastorm": { 
             "file": "lavastorm_original" 
         }
+    },
+    "resists": {
+        "type": {
+            "0": { "label": "None" },
+            "1": { "label": "Magic" },
+            "2": { "label": "Fire" },
+            "3": { "label": "Cold" },
+            "4": { "label": "Poison" },
+            "5": { "label": "Disease" }
+        }
+    },
+    "spells": {
+        "effect": {
+            "0": { "label": "CurrentHP" }
+        }
+    },
+    "classes": {
+        "1":  { "label": "Warrior" },
+        "2":  { "label": "Cleric" },
+        "3":  { "label": "Paladin" },
+        "4":  { "label": "Ranger" },
+        "5":  { "label": "Shadowknight" },
+        "6":  { "label": "Druid" },
+        "7":  { "label": "Monk" },
+        "8":  { "label": "Bard" },
+        "9":  { "label": "Rogue" },
+        "10": { "label": "Shaman" },
+        "11": { "label": "Necromancer" },
+        "12": { "label": "Wizard" },
+        "13": { "label": "Magician" },
+        "14": { "label": "Enchanter" },
+        "15": { "label": "Beastlord" }
     }
 }
