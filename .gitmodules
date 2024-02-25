@@ -1,0 +1,3 @@
+[submodule "lwplib"]
+	path = lwplib
+	url = https://github.com/ryhoneyman/lwplib.git
