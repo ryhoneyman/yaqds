@@ -1,0 +1,2 @@
+### First time lwplib init on destination
+git submodule update --init --recursive
