@@ -1,4 +1,8 @@
 {
+    "defines": {
+        "SPELL_EFFECT_COUNT": 12,
+        "SPELL_NO_EFFECT_ID": 254
+    },
     "currentExpansion": 1.3,
     "expansionInfo": {
        "classic": { "name": "EverQuest Classic" },
@@ -92,5 +96,7 @@
         "13": { "label": "Magician" },
         "14": { "label": "Enchanter" },
         "15": { "label": "Beastlord" }
+    },
+    "spells": {
     }
 }
