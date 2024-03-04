@@ -44,6 +44,6 @@ class Main extends MainBase
          $this->map = $this->obj('map');
       }
 
+      return true;
    }
 }
-?>

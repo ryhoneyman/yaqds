@@ -29,4 +29,3 @@ class Constants extends ConstantsBase
       return ((is_null($zoneName)) ? $mapData : $mapData[$zoneName]);
    }
 }
-?>
