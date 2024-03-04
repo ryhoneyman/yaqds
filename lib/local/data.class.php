@@ -7,6 +7,7 @@ include_once 'common/base.class.php';
 class Data extends Base
 {
    protected $version  = 1.0;
+   protected $db       = null;
 
    //===================================================================================================
    // Description: Creates the class object
@@ -120,4 +121,3 @@ class Data extends Base
       return ((is_a($this->db,'MySQL') && $this->db->isConnected()) ? true : false);
    }
 }
-?>
