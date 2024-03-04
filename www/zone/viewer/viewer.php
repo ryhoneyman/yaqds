@@ -27,6 +27,7 @@ $zoneFloor   = $input->get('floor','numeric,dash');
 $zoneCeil    = $input->get('ceil','numeric,dash');
 $zoneLayer   = $input->get('layer','alphanumeric');
 $zonePathing = $input->get('pathing','alphanumeric') ?: 'disabled';
+$zoneSearch  = $input->get('search','all') ?: null;
 $ignoreXpn   = ($input->isDefined('ignoreXpn')) ? true : false;
 
 $zoneInfo = $main->data->getZoneInfoByName($zoneName);
@@ -63,7 +64,7 @@ if ($layerData) {
 $mapSVG      = $main->map->generateSVGMap($zoneMapFile,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
 $spawnData   = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
 $spawnGrids  = (preg_match('/^enable/i',$zonePathing)) ? $main->data->getSpawnGridsByZoneName($zoneName) ?: array() : array();
-$spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids);
+$spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids,array('search' => $zoneSearch));
 
 // Order the labels for SVG last render on top
 $svgLabels = array_merge($spawnLabels['headings'],$spawnLabels['spawns'],$spawnLabels['paths']);
@@ -108,25 +109,39 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
    $entityRadius = 5;
    $textSize     = 12;
    $arrowSize    = floor($entityRadius / 5) + 1;
+
+   $searchName = $options['search'] ?: null;
+
+   $spawns = array();
+   $grids  = array();
    
    foreach ($spawnData as $keyId => $entryInfo) {
       $entityX = -$entryInfo['x'];
       $entityY = -$entryInfo['y'];
       $entityZ = $entryInfo['z'];
       $spawnXY = sprintf("%d_%d",$entityX,$entityY);
+      $entityLvl = $entryInfo['level'];
+      $groupId = $entryInfo['sgID'];
       $gridId  = $entryInfo['gridID'];
    
       $entityName = str_replace(array('#','_'),array('',' '),$entryInfo['name']);
    
       if ((!is_null($zoneFloor) && $entityZ < $zoneFloor) || (!is_null($zoneCeil) && $entityZ > $zoneCeil)) { continue; }
    
+      $spawns[$spawnXY]['chance.total'] += $entryInfo['chance'];
+
+      if (!is_null($searchName)) {
+         if (!preg_match("~$searchName~i",$entityName)) { continue; }
+         $entityRadius = 15;
+      }
+
       $headingXY = $main->map->getXYFromHeading($entityRadius+2,$entryInfo['heading']);
    
       $arrowX1 = $entityX + $headingXY['x'];
       $arrowY1 = $entityY - $headingXY['y'];
       $arrowX2 = $entityX - $headingXY['x'];
       $arrowY2 = $entityY + $headingXY['y'];
-   
+
       $spawns[$spawnXY]['pos'] = array(
          'x' => $entityX,
          'y' => $entityY,
@@ -135,28 +150,34 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
          'ax2' => $arrowX2,
          'ay2' => $arrowY2,
       );
-      $spawns[$spawnXY]['chance.total'] += $entryInfo['chance'];
-      $spawns[$spawnXY]['spawn'][] = array('chance' => $entryInfo['chance'], 'name' => $entityName);
+
+      $spawns[$spawnXY]['spawn'][] = array('chance' => $entryInfo['chance'], 'name' => $entityName." (L$entityLvl) [$groupId/$gridId]");
    
-      if ($gridId) {
-         $return['paths'][] = sprintf("<g data-grid='%s' style='visibility:hidden'>",$spawnXY);
+      if ($gridId && !$grids[$gridId] && is_array($spawnGrids[$gridId])) {
+         $grids[$gridId] = array(sprintf("<g data-grid='%s' style='visibility:hidden'>",$spawnXY));
 
          $startX = $entityX;
          $startY = $entityY;
 
-         if (is_array($spawnGrids[$gridId])) { 
-            foreach ($spawnGrids[$gridId] as $wpNumber => $wpInfo) {
-               $waypointX = -$wpInfo['x'];
-               $waypointY = -$wpInfo['y'];
+         foreach ($spawnGrids[$gridId] as $wpNumber => $wpInfo) {
+            $waypointX = -$wpInfo['x'];
+            $waypointY = -$wpInfo['y'];
    
-               $return['paths'][] = sprintf("<path class='grid' d='M %d %d %d %d'/>\n",$startX,$startY,$waypointX,$waypointY);
-        
-               $startX = $waypointX;
-               $startY = $waypointY;
-            }
+            $grids[$gridId][] = sprintf("<path class='grid' d='M %d %d %d %d'/>",$startX,$startY,$waypointX,$waypointY);
+       
+            $startX = $waypointX;
+            $startY = $waypointY;
          }
 
-         $return['paths'][] = "</g>";
+         $grids[$gridId][] = "</g>\n";
+
+         $return['paths'][$gridId] = $pathList;
+      }
+   }
+
+   if (is_array($grids)) {
+      foreach ($grids as $gridId => $gridSVG) {
+         $return['paths'][] = implode('',$gridSVG);
       }
    }
    
