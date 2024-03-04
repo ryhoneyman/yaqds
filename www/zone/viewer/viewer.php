@@ -170,8 +170,6 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
          }
 
          $grids[$gridId][] = "</g>\n";
-
-         $return['paths'][$gridId] = $pathList;
       }
    }
 
