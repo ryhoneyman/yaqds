@@ -2,13 +2,13 @@
    marker-end: url(#head);
    fill: none;
    stroke: black;
-   stroke-width: $arrowSize;
+   stroke-width: 8;
 }
 .grid {
    marker-end: url(#head);
    fill: none;
    stroke: lightblue;
-   stroke-width: $arrowSize;
+   stroke-width: 8;
    stroke-dasharray: 4;
    animation: dash 5s infinite linear;
 }
