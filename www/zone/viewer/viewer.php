@@ -8,19 +8,19 @@ $main = new Main(array(
    'sessionStart'   => true,
    'memoryLimit'    => null,
    'sendHeaders'    => true,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
    'database'       => true,
-   'input'          => true,
-   'html'           => true,
+   'input'          => false,
+   'html'           => false,
    'adminlte'       => true,
-   'constants'      => true,
-   'data'           => true,
+   'data'           => APP_CONFIGDIR.'/global.json',
    'map'            => true,
 ));
 
 $input = $main->obj('input');
 $html  = $main->obj('html');
 
-$currentExpansion = $main->constants->currentExpansion();
+$currentExpansion = $main->data->currentExpansion();
 
 $zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
 $zoneFloor   = $input->get('floor','numeric,dash');
@@ -46,7 +46,7 @@ $svgDefs = array(
    "<marker id='head' orient='auto' markerWidth='3' markerHeight='4' refX='0.1' refY='2'> <path d='M0,0 V4 L2,2 Z' fill='black'/></marker>",
 );
 
-$zoneMapData = $main->constants->getZoneMapData($zoneName);
+$zoneMapData = $main->data->getZoneMapData($zoneName);
 $zoneMapFile = $zoneInfo['map_file_name'] ?: $zoneMapData['file'] ?: $zoneName;
 
 $layerSelect = array('all' => 'Everything');
