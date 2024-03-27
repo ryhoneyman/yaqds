@@ -8,6 +8,7 @@ $main = new Main(array(
    'sessionStart'   => true,
    'memoryLimit'    => null,
    'sendHeaders'    => true,
+   'dbConfigDir'    => APP_CONFIGDIR,
    'fileDefine'     => APP_CONFIGDIR.'/defines.json',
    'database'       => true,
    'input'          => false,
