@@ -4,7 +4,7 @@
 
 include_once 'common/base.class.php';
 
-class Map extends Base
+class Map extends LWPLib\Base
 {
    protected $version  = 1.0;
 
