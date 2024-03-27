@@ -8,12 +8,12 @@ $main = new Main(array(
    'sessionStart'   => true,
    'memoryLimit'    => null,
    'sendHeaders'    => true,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
    'database'       => true,
    'input'          => false,
    'html'           => false,
    'adminlte'       => true,
-   'constants'      => true,
-   'data'           => true,
+   'data'           => APP_CONFIGDIR.'/global.json',
 ));
 
 include 'ui/header.php';
@@ -22,8 +22,8 @@ print "<style>.vcolumns { column-gap:20px; column-count:5; }</style>\n";
 
 $alte = $main->obj('adminlte');
 
-$currentExpansion = $main->constants->currentExpansion();
-$expansionList    = $main->constants->expansionList();
+$currentExpansion = $main->data->currentExpansion();
+$expansionList    = $main->data->expansionList();
 
 $zoneData = $main->data->getZones('short_name',array('short_name','long_name','canbind','cancombat','canlevitate','castoutdoor','expansion'));
 
