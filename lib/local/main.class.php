@@ -4,12 +4,11 @@
 
 include_once 'common/mainbase.class.php';
 
-class Main extends MainBase
+class Main extends LWPLib\MainBase
 {
    public $userId         = null;
    public $hashTypes      = null;
    public $currentVersion = '1.0.0';
-   public $constants      = null;
    public $data           = null;
    public $map            = null;
 
@@ -29,13 +28,8 @@ class Main extends MainBase
    {
       parent::initialize($options);
 
-      if ($options['constants']) {
-         if (!$this->buildClass('constants','Constants',null,'local/constants.class.php')) { exit; }
-         $this->constants = $this->obj('constants');
-      }
-
       if ($options['data']) {
-         if (!$this->buildClass('data','Data',array('db' => $this->db()),'local/data.class.php')) { exit; }
+         if (!$this->buildClass('data','Data',array('db' => $this->db(), 'file' => $options['data']),'local/data.class.php')) { exit; }
          $this->data = $this->obj('data');
       }
    
