@@ -21,9 +21,9 @@ class Data extends LWPLib\Base
    {
       parent::__construct($debug,$options);
 
-      if ($options['db']) { $this->db = $options['db']; }
+      if ($this->ifOption('db')) { $this->db = $options['db']; }
 
-      if ($options['file'] && is_file($options['file'])) { 
+      if ($this->ifOption('file') && is_file($options['file'])) { 
          $this->file     = $options['file']; 
          $this->fileData = json_decode(file_get_contents($this->file),true);
       }
@@ -45,6 +45,51 @@ class Data extends LWPLib\Base
       return $return;
    }
 
+   public function getLootTableEntriesById($lootTableId)
+   {
+      $this->debug(8,"called");
+
+      $return = array();
+
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      $entryList = $this->db->bindQuery("SELECT *, concat(loottable_id,'^',lootdrop_id) as id FROM loottable_entries WHERE loottable_id = ?",'i',array($lootTableId),array('index' => 'id'));
+
+   }
+
+   public function getLootDropEntriesById($lootDropId)  
+   {
+      $this->debug(8,"called");
+
+      $return = array();
+
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      $entryList = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0");
+
+   }
+
+   public function getLootTableList()
+   {
+      $this->debug(8,"called");
+
+      $return = array();
+
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      $npcLootTables = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0");
+
+      foreach ($npcLootTables as $entry => $entryInfo) {
+         list($name,$lootTableId) = explode("^",$entry);
+         $return[] = array(
+            'name'         => $this->cleanName($name),
+            'loottable_id' => $lootTableId,
+         );
+      }
+
+      return $return;
+   }
+
    public function getZoneMapData($zoneName = null)
    {
       $mapData = $this->fetch('zone.map');
@@ -60,7 +105,7 @@ class Data extends LWPLib\Base
 
       if (!preg_match('/^\w+$/',$zoneName)) { $this->error('invalid zoneName provided'); return false; }
 
-      return $this->db->query("SELECT * FROM zone WHERE short_name = '$zoneName'",array('multi' => false));
+      return $this->db->query("SELECT * FROM zone WHERE short_name = '$zoneName'",array('single' => true));
    }
 
    public function getZones($keyId = null, $columns = null, $expansion = null)
@@ -83,7 +128,7 @@ class Data extends LWPLib\Base
                ((is_null($expansion)) ? '' : "WHERE expansion <= $expansion").
                '';
 
-      return $this->db->query($query,array('keyid' => $keyId));
+      return $this->db->query($query,array('index' => $keyId));
    }
 
    public function getSpawnGridsByZoneName($zoneName)
@@ -101,7 +146,7 @@ class Data extends LWPLib\Base
                "LEFT JOIN zone z ON z.zoneidnumber = ge.zoneid \n".
                "WHERE z.short_name = '$zoneName'";
 
-      $gridList = $this->db->query($query,array('keyid' => 'keyid'));
+      $gridList = $this->db->query($query,array('index' => 'keyid'));
    
       if (!$gridList) { return $return; }
    
@@ -146,6 +191,11 @@ class Data extends LWPLib\Base
       return $this->db->query($query);
    }
 
+   public function cleanName($name)
+   {
+      return preg_replace("/[^a-z0-9']+/i",' ',$name);
+   }
+
    public function fetch($name)
    {
       return $this->fileData[$name];
@@ -153,6 +203,6 @@ class Data extends LWPLib\Base
 
    public function databaseAvail()
    {
-      return ((is_a($this->db,'MySQL') && $this->db->isConnected()) ? true : false);
+      return ((is_callable(array($this->db,'isConnected')) && $this->db->isConnected()) ? true : false);
    }
 }
