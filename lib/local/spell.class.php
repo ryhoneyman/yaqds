@@ -3,7 +3,7 @@
 
 include_once 'common/base.class.php';
 
-class Spell extends Base
+class Spell extends LWPLib\Base
 {
    protected $version   = 1.0;
    protected $data      = array();
@@ -68,7 +68,35 @@ class Spell extends Base
          case 103: $result = $updownSign * ($uBase + ($casterLevel * 2)); break;
          case 104: $result = $updownSign * ($uBase + ($casterLevel * 3)); break;
          case 105: $result = $updownSign * ($uBase + ($casterLevel * 4)); break;
-         case 107: $result = '';
+         case 107: 
+         case 108: 
+         case 120:
+         case 122: {
+            $ticDiff    = 0;
+            $resultMult = array(107 => 1, 108 => 2, 120 => 5, 122 => 12);
+
+            if ($ticsRemaining > 0) {
+               $ticDiff = $this->calculateBuffDurationFormula($casterLevel,$this->buffDurationFormula(),$this->buffDuration()) - ($ticsRemaining - 1);
+
+               if ($ticDiff < 0) { $ticDiff = 0; }
+            }
+            
+            $result = $updownSign * ($uBase - (($resultMult[$formula] ?: 1) * $ticDiff));
+
+            break;
+         }
+         case 109: $result = $updownSign * ($uBase + ($casterLevel / 4)); break;
+         case 110: $result = $updownSign * ($uBase + ($casterLevel / 6)); break;
+         case 111: $result = $updownSign * ($uBase + (6 * ($casterLevel - 16))); break;
+         case 112: $result = $updownSign * ($uBase + (8 * ($casterLevel - 24))); break;
+         case 113: $result = $updownSign * ($uBase + (10 * ($casterLevel - 34))); break;
+         case 114: $result = $updownSign * ($uBase + (15 * ($casterLevel - 44))); break;
+         case 115: $result = $uBase; if ($casterLevel > 15) { $result += 7 * ($casterLevel - 15); } break;
+         case 116: $result = $uBase; if ($casterLevel > 24) { $result += 10 * ($casterLevel - 24); } break;
+         case 117: $result = $uBase; if ($casterLevel > 34) { $result += 13 * ($casterLevel - 34); } break;
+         case 118: $result = $uBase; if ($casterLevel > 44) { $result += 20 * ($casterLevel - 44); } break;
+         case 119: $result = $uBase + ($casterLevel / 8); break;
+         case 121: $result = $uBase + ($casterLevel / 3); break;
       }
 
       $origResult = $result;
@@ -149,7 +177,7 @@ class Spell extends Base
       if (!$this->valid) { return false; }
 
       $slotInfo = $this->getSlotInfo($slotNumber);
-      $effectId = $slotInfo['effectid'];
+      $effectId = $slotInfo['id'];
       $return   = false;
 
       switch ($effectId)
@@ -222,10 +250,11 @@ class Spell extends Base
       if ($this->data['effectid'.$slotNumber] == SE_Blank) { return null; }
 
       $return = array(
-         'base'     => $this->data['base'.$slotNumber],
-         'max'      => $this->data['max'.$slotNumber],
-         'formula'  => $this->data['formula'.$slotNumber], 
-         'effectId' => $this->data['effectid'.$slotNumber],
+         'base'    => $this->data['effect_base_value'.$slotNumber],
+         'max'     => $this->data['max'.$slotNumber],
+         'limit'   => $this->data['effect_limit_value'.$slotNumber],
+         'formula' => $this->data['formula'.$slotNumber], 
+         'id'      => $this->data['effectid'.$slotNumber],
       );
 
       return $return;

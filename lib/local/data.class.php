@@ -4,10 +4,12 @@
 
 include_once 'common/base.class.php';
 
-class Data extends Base
+class Data extends LWPLib\Base
 {
    protected $version  = 1.0;
    protected $db       = null;
+   protected $file     = null;
+   protected $fileData = null;
 
    //===================================================================================================
    // Description: Creates the class object
@@ -20,6 +22,34 @@ class Data extends Base
       parent::__construct($debug,$options);
 
       if ($options['db']) { $this->db = $options['db']; }
+
+      if ($options['file'] && is_file($options['file'])) { 
+         $this->file     = $options['file']; 
+         $this->fileData = json_decode(file_get_contents($this->file),true);
+      }
+   }
+
+   public function currentExpansion() { return $this->fetch('currentExpansion'); }
+
+   public function expansionList() 
+   { 
+      $expansions    = $this->fetch('expansions'); 
+      $expansionInfo = $this->fetch('expansionInfo');
+
+      $return = array();
+
+      foreach ($expansions as $expansionId => $expansionData) {
+         $return[$expansionId] = array('data' => $expansionData, 'info' => $expansionInfo[$expansionData['id']]);
+      }
+
+      return $return;
+   }
+
+   public function getZoneMapData($zoneName = null)
+   {
+      $mapData = $this->fetch('zone.map');
+
+      return ((is_null($zoneName)) ? $mapData : $mapData[$zoneName]);
    }
 
    public function getZoneInfoByName($zoneName)
@@ -114,6 +144,11 @@ class Data extends Base
                "ORDER BY sg.id, s2.x, s2.y, s2.z";
       
       return $this->db->query($query);
+   }
+
+   public function fetch($name)
+   {
+      return $this->fileData[$name];
    }
 
    public function databaseAvail()
