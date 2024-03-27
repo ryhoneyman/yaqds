@@ -1,0 +1,96 @@
+{
+    "currentExpansion": 1.3,
+    "expansionInfo": {
+       "classic": { "name": "EverQuest Classic" },
+       "kunark": { "name": "The Ruins of Kunark" },
+       "velious": { "name": "The Scars of Velious" },
+       "luclin": { "name": "The Shadows of Luclin" },
+       "pop": { "name": "The Planes of Power" }
+    },
+    "expansions": {
+        "1":    { "id": "classic" },
+        "1.3":  { "id": "classic" },
+        "1.6":  { "id": "classic" },
+        "1.9":  { "id": "classic" },
+        "2":    { "id": "kunark" },
+        "2.3":  { "id": "kunark" },
+        "2.6":  { "id": "kunark" },
+        "2.9":  { "id": "kunark" },
+        "3":    { "id": "velious" },
+        "3.3":  { "id": "velious" },
+        "3.6":  { "id": "velious" },
+        "3.9":  { "id": "velious" },
+        "4":    { "id": "luclin" },
+        "4.3":  { "id": "luclin" },
+        "4.6":  { "id": "luclin" },
+        "4.9":  { "id": "luclin" },
+        "5":    { "id": "pop" },
+        "5.3":  { "id": "pop" },
+        "5.6":  { "id": "pop" },
+        "5.9":  { "id": "pop" }
+    },
+    "zone.map": {
+        "airplane": {
+            "layers": {
+                "island1": { "label": "1st Island - Thunder Spirits", "floor": -900, "ceil": -500 },
+                "island2": { "label": "2nd Island - Azaracks", "floor": -500, "ceil": -150 },
+                "island3": { "label": "3rd Island - Gorgalosk / Island 1.5 - Noble Dojorn", "floor": -150, "ceil": 100 },
+                "island4": { "label": "4th Island - Pegasi", "floor": 100, "ceil": 400 },
+                "island5": { "label": "5th Island - Spirocs", "floor": 400, "ceil": 750 },
+                "island6": { "label": "6th Island - Wasps", "floor": 750, "ceil": 1000 },
+                "island7": { "label": "7th Island - Drakes", "floor": 1000, "ceil": 1252 },
+                "island8": { "label": "8th Island - Vesshan", "floor": 1250, "ceil": 1400 }
+            }
+        },
+        "guktop": {
+            "layers": {
+                "top": { "label": "Top", "floor": -50, "ceil": null },
+                "bottom": { "label": "Bottom", "floor": null, "ceil": -50 }
+            }
+        },
+        "hateplane": {
+            "layers": {
+                "firstfloor": { "label": "First Floor", "floor": null, "ceil": 100 },
+                "secondfloor": { "label": "Second Floor", "floor": 100, "ceil": null }
+            }
+        },
+        "nektulos": { 
+            "file": "nektulos_original" 
+        },
+        "lavastorm": { 
+            "file": "lavastorm_original" 
+        }
+    },
+    "resists": {
+        "type": {
+            "0": { "label": "None" },
+            "1": { "label": "Magic" },
+            "2": { "label": "Fire" },
+            "3": { "label": "Cold" },
+            "4": { "label": "Poison" },
+            "5": { "label": "Disease" }
+        }
+    },
+    "spells": {
+        "effect": {
+            "0": { "label": "CurrentHP" }
+        }
+    },
+    "classes": {
+        "1":  { "label": "Warrior" },
+        "2":  { "label": "Cleric" },
+        "3":  { "label": "Paladin" },
+        "4":  { "label": "Ranger" },
+        "5":  { "label": "Shadowknight" },
+        "6":  { "label": "Druid" },
+        "7":  { "label": "Monk" },
+        "8":  { "label": "Bard" },
+        "9":  { "label": "Rogue" },
+        "10": { "label": "Shaman" },
+        "11": { "label": "Necromancer" },
+        "12": { "label": "Wizard" },
+        "13": { "label": "Magician" },
+        "14": { "label": "Enchanter" },
+        "15": { "label": "Beastlord" }
+    }
+}
