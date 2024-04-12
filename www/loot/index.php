@@ -38,7 +38,14 @@ if ($sample) { $iterations = 1; }
 
 $npcLootTableList = $main->data->getNpcLootTableList(array('sort' => true));
 
+
+
 include 'ui/header.php';
+
+print "<style>\n".
+      ".select2-results__option { line-height:1.0; }\n".
+      ".select2-container--default .select2-results>.select2-results__options { max-height: 350px; }\n".
+      "</style>\n";
 
 $npcList = array();
 foreach ($npcLootTableList['data'] as $index => $data) { $npcList[$data['hash']] = sprintf("%s (%d)",$data['name'],$data['loottable_id']); }
@@ -219,6 +226,10 @@ else if ($analyze) {
    printf("\n");
    printf("</pre>\n");
 }
+
+print "<script type='text/javascript'>\n".
+      "   $('#npc').select2();\n".
+      "</script>\n";
 
 include 'ui/footer.php';
 
