@@ -122,20 +122,24 @@ while (!$done) {
 
    $stats['kills']++;
 
-   foreach ($lootResults['meta'] as $metaKey => $metaCount) {
-    if (!isset($stats['meta'][$metaKey])) { $stats['meta'][$metaKey] = 0; }
-      $stats['meta'][$metaKey] += $metaCount;
+   if (isset($lootResults['meta']) && is_array($lootResults['meta'])) {
+      foreach ($lootResults['meta'] as $metaKey => $metaCount) {
+         if (!isset($stats['meta'][$metaKey])) { $stats['meta'][$metaKey] = 0; }
+         $stats['meta'][$metaKey] += $metaCount;
+      }
    }
    
-   foreach ($lootResults['table'] as $tableId => $tableLoot) {
-      if (!isset($stats['table'][$tableId]['total'])) { $stats['table'][$tableId]['total'] = 0; }
-      $stats['table'][$tableId]['total'] += $tableLoot['total'];
+   if (isset($lootResults['table']) && is_array($lootResults['table'])) {
+      foreach ($lootResults['table'] as $tableId => $tableLoot) {
+         if (!isset($stats['table'][$tableId]['total'])) { $stats['table'][$tableId]['total'] = 0; }
+         $stats['table'][$tableId]['total'] += $tableLoot['total'];
 
-      if (!isset($tableLoot['item'])) { continue; }
+         if (!isset($tableLoot['item'])) { continue; }
 
-      foreach ($tableLoot['item'] as $itemName => $itemCount) { 
-         if (!isset($stats['table'][$tableId]['item'][$itemName])) { $stats['table'][$tableId]['item'][$itemName] = 0; }
-         $stats['table'][$tableId]['item'][$itemName] += $itemCount;
+         foreach ($tableLoot['item'] as $itemName => $itemCount) { 
+            if (!isset($stats['table'][$tableId]['item'][$itemName])) { $stats['table'][$tableId]['item'][$itemName] = 0; }
+            $stats['table'][$tableId]['item'][$itemName] += $itemCount;
+         }
       }
    }
    
