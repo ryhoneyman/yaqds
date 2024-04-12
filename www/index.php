@@ -4,14 +4,18 @@ include_once 'local/main.class.php';
 
 $main = new Main(array(
    'debugLevel'     => 0,
+   'debugType'      => DEBUG_HTML,
    'errorReporting' => false,
    'sessionStart'   => true,
    'memoryLimit'    => null,
    'sendHeaders'    => true,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
    'database'       => true,
-   'input'          => false,
-   'html'           => false,
-   'adminlte'       => false,
+   'input'          => true,
+   'html'           => true,
+   'adminlte'       => true,
+   'data'           => APP_CONFIGDIR.'/global.json',
 ));
 
 include 'ui/header.php';
