@@ -16,6 +16,8 @@
 
 print insertHeader('ZONES').
       insertEntry('fa-map-marked-alt','/zone/viewer/','Zone Viewer').
+      insertHeader('NPCS').
+      insertEntry('fa-gem','/loot/','Loot Viewer').
       insertSpacer().
       insertEntry('fa-comment-lines','/notes/history/','Patch Notes').
       '';
