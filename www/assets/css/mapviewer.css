@@ -2,13 +2,13 @@
    marker-end: url(#head);
    fill: none;
    stroke: black;
-   stroke-width: 5;
+   stroke-width: 2;
 }
 .grid {
    marker-end: url(#head);
    fill: none;
    stroke: lightblue;
-   stroke-width: 7;
+   stroke-width: 3;
    stroke-dasharray: 4;
    animation: dash 5s infinite linear;
 }
@@ -20,7 +20,7 @@
 
 .spawninfo {
    stroke: red;
-   stroke-width: '2';
+   stroke-width: 2;
     fill: red;
 }
 
