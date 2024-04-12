@@ -54,14 +54,13 @@ print $alte->displayCard($alte->displayRow(
          $html->startForm().
          "<div class='input-group' style='width:fit-content;'>".    
          $html->select('npc',$npcList,$npcHash).
-         $html->submit('analyze','Analyze Chances').
-         $html->submit('sample','Simulate Drops').
-         
+         "<div class='ml-2'>".$html->submit('analyze','Analyze Chances')."</div>".
+         "<div class='ml-2'>".$html->submit('sample','Simulate Drops',array('class' => 'btn-wide btn btn-success'))."</div>".
+         "<div class='ml-2 mt-2 align-items-center'>".$html->checkbox('expansion','current',$expansion)."use current expansion</div>".
          "</div>".
-         "<div class='mt-2 align-items-center'>".$html->checkbox('expansion','current',$expansion)."use current expansion</div>".
          $html->endForm(),
-         array('container' => 'col-4')
-      ),array('container' => 'col-4'));
+         array('container' => 'col-6')
+      ),array('container' => 'col-6'));
 
 $lootTables = array();
 $itemLookup = array();
