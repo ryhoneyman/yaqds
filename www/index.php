@@ -34,6 +34,7 @@ include 'ui/header.php';
 <?php
 
 print infoBox('fa-map-marked-alt','bg-warning','/zone/viewer/','Zone Viewer','Load zone maps to view terrain and spawn data','new');
+print infoBox('fa-gem','bg-primary','/loot/','Loot Viewer','Simulate loot drops from NPCs','new');
 
 ?>
 
