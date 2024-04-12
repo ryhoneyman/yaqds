@@ -55,6 +55,7 @@ class Data extends LWPLib\Base
 
       $entryList = $this->db->bindQuery("SELECT *, concat(loottable_id,'^',lootdrop_id) as id FROM loottable_entries WHERE loottable_id = ?",'i',array($lootTableId),array('index' => 'id'));
 
+      return $entryList;
    }
 
    public function getLootDropEntriesById($lootDropId)  
@@ -65,11 +66,17 @@ class Data extends LWPLib\Base
 
       if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
 
-      $entryList = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0");
+      $entryList = $this->db->bindQuery("SELECT lde.item_id, i.name as item_name, lde.chance, lde.multiplier, ".
+                                        "lde.min_expansion as drop_min_expansion, lde.max_expansion as drop_max_expansion, ".
+                                        "i.min_expansion as item_min_expansion, i.max_expansion as item_max_expansion, ". 
+                                        "concat(lde.lootdrop_id,'^',lde.item_id) as id ". 
+                                        "FROM lootdrop_entries lde LEFT JOIN items i on lde.item_id = i.id ". 
+                                        "WHERE lootdrop_id = ?",'i',array($lootDropId),array('index' => 'id'));
 
+      return $entryList;
    }
 
-   public function getLootTableList()
+   public function getNpcLootTableList($options = null)
    {
       $this->debug(8,"called");
 
@@ -77,15 +84,27 @@ class Data extends LWPLib\Base
 
       if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
 
-      $npcLootTables = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0");
+      $npcLootTables = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0 and level >= 10");
 
       foreach ($npcLootTables as $entry => $entryInfo) {
          list($name,$lootTableId) = explode("^",$entry);
-         $return[] = array(
-            'name'         => $this->cleanName($name),
+
+         $cleanName = $this->cleanName($name);
+
+         $index = sprintf("%s.%d",strtolower($cleanName),$lootTableId);
+         $hash  = hash("crc32",$index);
+
+         $return['data'][$index] = array(
+            'hash'         => $hash,
+            'raw_name'     => $name,
+            'name'         => $cleanName,
             'loottable_id' => $lootTableId,
          );
+
+         $return['lookup'][$hash] = $index;
       }
+
+      if (array_key_exists('sort',$options) && $options['sort']) { ksort($return['data']); }
 
       return $return;
    }
@@ -193,7 +212,7 @@ class Data extends LWPLib\Base
 
    public function cleanName($name)
    {
-      return preg_replace("/[^a-z0-9']+/i",' ',$name);
+      return preg_replace('/_/',' ',preg_replace("/[^a-z0-9\'_]+/i",'',$name));
    }
 
    public function fetch($name)
