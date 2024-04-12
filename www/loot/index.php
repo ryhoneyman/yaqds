@@ -26,6 +26,11 @@ $npcHash    = $input->get('npc','alphanumeric');
 $analyze    = $input->isDefined('analyze') ? true : false;
 $sample     = $input->isDefined('sample') ? true : false;
 $iterations = $input->get('iterations','numeric');
+$expansion  = $input->get('expansion','alphanumeric');
+
+$useCurrentExpansion = (preg_match('/^current$/i',$expansion)) ? true : false;
+
+$main->var('useExpansion',($useCurrentExpansion) ? $main->data->currentExpansion() : ((preg_match('/^[\d\.]+$/',$expansion)) ? $expansion : 0));
 
 if ($iterations <= 0 || $iterations > 10000) { $iterations = 10000; }
 
@@ -44,7 +49,9 @@ print $alte->displayCard($alte->displayRow(
          $html->select('npc',$npcList,$npcHash).
          $html->submit('analyze','Analyze Chances').
          $html->submit('sample','Simulate Drops').
+         
          "</div>".
+         "<div class='mt-2 align-items-center'>".$html->checkbox('expansion','current',$expansion)."use current expansion</div>".
          $html->endForm(),
          array('container' => 'col-4')
       ),array('container' => 'col-4'));
@@ -162,7 +169,13 @@ if ($sample) {
       $lootTableItems = $tableLootEntry['item'] ?: array();
 
       foreach ($lootTableItems as $itemName => $itemCount) { 
-         printf("%s\n",$itemName);
+         $itemInfo       = $itemLookup[$tableId][$itemName] ?: array();
+         $minExpansion   = $itemInfo['min_expansion'];
+         $maxExpansion   = $itemInfo['max_expansion'];
+         $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("<b class='text-primary'>expansion(%s-%s)</b>",$minExpansion,$maxExpansion);
+
+         printf("%s %s\n",$itemName,$itemExpansion);
+
          $dropCount++;
       }
    }
@@ -195,9 +208,9 @@ else if ($analyze) {
          $itemInfo       = $itemLookup[$tableId][$itemName] ?: array();
          $minExpansion   = $itemInfo['min_expansion'];
          $maxExpansion   = $itemInfo['max_expansion'];
-         $itemExpansion  = sprintf("%s-%s",$minExpansion,$maxExpansion);
+         $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("<b class='text-primary'>expansion(%s-%s)</b>",$minExpansion,$maxExpansion);
 
-         printf("  %5.1f%% %s dropped(%d) relativeTableChance(%1.1f%%) expansion(%s)\n",$globalPercent,$itemName,$itemCount,$perKillPercent,$itemExpansion);
+         printf("  %5.1f%% %s dropped(%d) relativeTableChance(%1.1f%%) %s\n",$globalPercent,$itemName,$itemCount,$perKillPercent,$itemExpansion);
       }
 
       printf("\n");
@@ -295,8 +308,7 @@ function calculateLootTable($main, $lootTableEntry) {
 function calculateLootDrop($main, $counter, $lootTableEntry)
 {
    $return           = array('meta' => array('nolimit' => 0, 'mindrop' => 0, 'random1' => 0, 'random2' => 0));
-   $currentExpansion = $main->data->currentExpansion();
-   $currentExpansion = 0;
+   $currentExpansion = $main->var('useExpansion');
    $counter          = sprintf("%2d",$counter);
 
    if (!$lootTableEntry) { return false; }
