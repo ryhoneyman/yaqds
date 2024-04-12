@@ -42,6 +42,7 @@ include 'ui/header.php';
 print "<link rel='stylesheet' href='/assets/css/mapviewer.css?t={$main->now}'/>\n";
 print "<script src='/assets/js/mapviewer.js?t={$main->now}'></script>\n";
 print "<script src='/assets/js/svg-pan-zoom-container.js'></script>\n";
+print "<style>.gridScalar { stroke-width:5; }\n.spawninfoScalar { stroke-width: 10; }</style>\n";
 
 $svgDefs = array(
    "<marker id='head' orient='auto' markerWidth='3' markerHeight='4' refX='0.1' refY='2'> <path d='M0,0 V4 L2,2 Z' fill='black'/></marker>",
@@ -62,10 +63,20 @@ if ($layerData) {
    }
 }
 
-$mapSVG      = $main->map->generateSVGMap($zoneMapFile,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
-$spawnData   = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
-$spawnGrids  = (preg_match('/^enable/i',$zonePathing)) ? $main->data->getSpawnGridsByZoneName($zoneName) ?: array() : array();
-$spawnLabels = generateSpawnLabels($main,$spawnData,$spawnGrids,array('search' => $zoneSearch));
+$mapSVG       = $main->map->generateSVGMap($zoneMapFile,$zoneFloor,$zoneCeil,array('defs' => $svgDefs));
+$spawnData    = $main->data->getMapSpawnInfoByZoneName($zoneName,$zoneFloor,$zoneCeil,$currentExpansion) ?: array();
+$spawnGrids   = (preg_match('/^enable/i',$zonePathing)) ? $main->data->getSpawnGridsByZoneName($zoneName) ?: array() : array();
+$mapWidth     = $main->map->svgWidth;
+$mapHeight    = $main->map->svgHeight;
+$entityRadius = ($mapWidth < 1000) ? 3 : (($mapWidth < 2000) ? 5 : (($mapWidth < 5000) ? 10 : 15));
+$arrowSize    = floor($entityRadius / 2);
+$gridSize     = floor($entityRadius / 2); 
+$spawnLabels  = generateSpawnLabels($main,$spawnData,$spawnGrids,array('search' => $zoneSearch, 'entityRadius' => $entityRadius));
+
+print "<style>\n". 
+      ".gridS  { stroke-width: $gridSize;}\n".
+      ".arrowS { stroke-width: $arrowSize;}\n".
+      "</style>\n";
 
 // Order the labels for SVG last render on top
 $svgLabels = array_merge($spawnLabels['headings'],$spawnLabels['spawns'],$spawnLabels['paths']);
@@ -106,12 +117,9 @@ include 'ui/footer.php';
 function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
 {
    $return = array('spawns' => array(), 'paths' => array(), 'headings' => array());
-   
-   $entityRadius = 5;
-   $textSize     = 12;
-   $arrowSize    = floor($entityRadius / 5) + 1;
 
-   $searchName = $options['search'] ?: null;
+   $entityRadius = $options['entityRadius'];
+   $searchName   = $options['search'] ?: null;
 
    $spawns = array();
    $grids  = array();
@@ -164,7 +172,7 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
             $waypointX = -$wpInfo['x'];
             $waypointY = -$wpInfo['y'];
    
-            $grids[$gridId][] = sprintf("<path class='grid' d='M %d %d %d %d'/>",$startX,$startY,$waypointX,$waypointY);
+            $grids[$gridId][] = sprintf("<path class='grid gridS' d='M %d %d %d %d'/>",$startX,$startY,$waypointX,$waypointY);
        
             $startX = $waypointX;
             $startY = $waypointY;
@@ -192,7 +200,7 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
          $entityList = implode('<br>',$entityNames);
          $spawnPos   = $spawnInfo['pos'];
 
-         $return['headings'][] = sprintf("<path class='arrow' d='M %d %d %d %d'/>",$spawnPos['ax1'],$spawnPos['ay1'],$spawnPos['ax2'],$spawnPos['ay2']);
+         $return['headings'][] = sprintf("<path class='arrow arrowS' d='M %d %d %d %d'/>",$spawnPos['ax1'],$spawnPos['ay1'],$spawnPos['ax2'],$spawnPos['ay2']);
          $return['spawns'][]   = sprintf("<circle class='spawninfo' data-spawn='$spawnXY' data-spawninfo='$entityList' r='%d' cx='%d' cy='%d'></circle>\n",
                                          $entityRadius,$spawnPos['x'],$spawnPos['y']);
       }

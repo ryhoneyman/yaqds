@@ -6,7 +6,9 @@ include_once 'common/base.class.php';
 
 class Map extends LWPLib\Base
 {
-   protected $version  = 1.0;
+   protected $version   = 1.0;
+   public    $svgWdith  = null;
+   public    $svgHeight = null;
 
    //===================================================================================================
    // Description: Creates the class object
@@ -103,6 +105,9 @@ class Map extends LWPLib\Base
          $svgLayers['gridNum'],
          $svgLayers['active'],
          array("</svg>"));
+
+      $this->svgWidth  = $svgWidth;
+      $this->svgHeight = $svgHeight;
    
       return $svg;
    }
