@@ -12,6 +12,18 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.0.1',
+      'datetime' => '2024-04-12 14:30 UTC',
+      'changes' => array(
+         'system' => array(),
+         'frontend' => array(
+            'Added Loot Viewer'
+         ),
+         'backend'  => array(),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.0.0',
       'datetime' => '2024-02-09 19:00 UTC',
       'changes' => array(
@@ -22,7 +34,7 @@ $versionList = array(
          'backend'  => array(),
          'library'  => array(),
       ),
-   ),
+   ), 
 );
 
 $notesDisplay = '';
