@@ -1,0 +1,475 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$iterations = 1;
+
+$forceAction = 1;
+
+if ($forceAction == 1) {
+   $main->var('forced.rollSuccess',true);
+   $main->var('forced.rollAllowed',true);
+   $main->var('forced.dropChance',0);
+}
+else if ($forceAction == 2) { 
+   $main->var('forced.rollSuccess',false);
+   $main->var('forced.rollAllowed',false);
+   $main->var('forced.dropChance',100);
+}
+else {
+   $main->var('forced.rollSuccess',false);
+   $main->var('forced.rollAllowed',true);
+   $main->var('forced.dropChance',false);
+}
+
+$main->var('useExpansion',0);
+
+$mainStats = array();
+
+$npcLootTableList = $main->data->getNpcLootTableList(array('sort' => true));
+
+foreach (array(1,2) as $forceAction) {
+   if ($forceAction == 1) {
+      $main->var('forced.rollSuccess',true);
+      $main->var('forced.rollAllowed',true);
+      $main->var('forced.dropChance',0);
+      $actionLabel = 'max';
+   }
+   else if ($forceAction == 2) { 
+      $main->var('forced.rollSuccess',false);
+      $main->var('forced.rollAllowed',false);
+      $main->var('forced.dropChance',100);
+      $actionLabel = 'min';
+   }
+
+   foreach ($npcLootTableList['data'] as $npcIndex => $npcLootTableData) {
+      $lootTables = array();
+      $itemLookup = array();
+
+      $lootTableId      = $npcLootTableData['loottable_id'];
+      $lootTableEntries = $main->data->getLootTableEntriesById($lootTableId);
+
+      //print json_encode($lootTableEntries,JSON_PRETTY_PRINT)."\n\n";
+
+      $lootTables['npc_name']     = $npcLootTableData['name'];
+      $lootTables['tableEntries'] = $lootTableEntries;
+
+      foreach ($lootTableEntries as $tableId => $entryData) {
+         $dropEntries = $main->data->getLootDropEntriesById($entryData['lootdrop_id']);
+         $lootTables['tableEntries'][$tableId]['dropEntries'] = $dropEntries;
+
+         if (!isset($mainStats['table'][$tableId])) { 
+            $mainStats['table'][$tableId] = $entryData; 
+            $mainStats['table'][$tableId]['drop.entry.count'] = count($dropEntries ?: array());
+         }
+
+         foreach ($dropEntries as $lootEntry) {
+            $itemName         = $lootEntry['item_name'];
+            $dropMinExpansion = $lootEntry['drop_min_expansion'];
+            $dropMaxExpansion = $lootEntry['drop_max_expansion'];
+            $itemMinExpansion = $lootEntry['item_min_expansion'];
+            $itemMaxExpansion = $lootEntry['item_max_expansion'];  
+            $itemChance       = $lootEntry['chance'];
+            $minExpansion     = calculateExpansion('min',$dropMinExpansion,$itemMinExpansion);
+            $maxExpansion     = calculateExpansion('max',$dropMaxExpansion,$itemMaxExpansion);
+
+            if ($itemChance == 0 && $actionLabel == 'max') { $mainStats['table'][$tableId]['drop.entry.nochance.count']++; }
+
+            //printf("%s drops(%s-%s) allowed(%s-%s) using(%s-%s)\n",
+            //       $itemName,$dropMinExpansion,$dropMaxExpansion,$itemMinExpansion,$itemMaxExpansion,$minExpansion,$maxExpansion);
+
+            $itemLookup[$tableId][$itemName] = [
+               'min_expansion' => $minExpansion,
+               'max_expansion' => $maxExpansion,
+            ]; 
+         } 
+      }
+
+      $npc   = $lootTables['npc_name'];
+      $stats = checkLoot($main,$lootTables);
+
+      //print json_encode($stats,JSON_PRETTY_PRINT)."\n\n";
+
+      $statTables = $stats['table'];
+      $dropCount  = 0;
+
+      foreach ($statTables as $tableId => $tableLootEntry) {
+         $lootTableItems = $tableLootEntry['item'] ?: array();
+
+         $mainStats['table'][$tableId]["actual.$actionLabel.drops"] = $tableLootEntry['total'];
+
+         foreach ($lootTableItems as $itemName => $itemCount) { 
+            $itemInfo       = $itemLookup[$tableId][$itemName] ?: array();
+            $minExpansion   = $itemInfo['min_expansion'];
+            $maxExpansion   = $itemInfo['max_expansion'];
+            $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("expansion(%s-%s)",$minExpansion,$maxExpansion);
+
+            //printf("%dx %s %s\n",$itemCount,$itemName,$itemExpansion);
+
+            $dropCount++;
+         }
+      }
+
+      //if ($dropCount == 0) { print "None\n"; }
+   }
+}
+
+print json_encode($mainStats,JSON_PRETTY_PRINT)."\n\n";
+
+?>
+<?php
+
+function checkLoot($main, $npcLootTable)
+{
+   $return = array('meta' => array());
+
+   if (!$npcLootTable || !$npcLootTable['tableEntries']) { return null; }
+
+   $tableEntries = $npcLootTable['tableEntries'];
+
+   $main->debug->trace(9,"Found ".count($tableEntries)." table entries");
+
+   foreach ($tableEntries as $tableId => $lootTableEntry) {
+      $lootResults = calculateLootTable($main,$lootTableEntry);
+      $totalCount  = 0;
+
+      //print "<pre class=text-white>\n"; print json_encode($lootResults,JSON_PRETTY_PRINT); print "</pre>\n";
+
+      $return['table'][$tableId] = array();
+
+      foreach ($lootResults['meta'] as $metaKey => $metaValue) { 
+         if (!isset($return['meta'][$metaKey])) { $return['meta'][$metaKey] = 0; }
+         $return['meta'][$metaKey] += is_array($metaValue) ? array_sum($metaValue) : $metaValue;
+      }
+
+      foreach ($lootResults['item'] as $itemName => $itemList) { 
+         $itemCount = is_array($itemList) ? count($itemList) : $itemList;
+         $totalCount += $itemCount;
+
+         if (!isset($return['table'][$tableId]['item'][$itemName])) { $return['table'][$tableId]['item'][$itemName] = 0; }
+
+         $return['table'][$tableId]['item'][$itemName] += $itemCount;
+      }
+    
+      if (!isset($return['table'][$tableId]['total'])) { $return['table'][$tableId]['total'] = 0; }
+
+      $return['table'][$tableId]['total'] += $totalCount;
+   }
+
+   return $return;
+}
+
+function calculateLootTable($main, $lootTableEntry) {
+   $return = array();
+
+   if (!$lootTableEntry) { return false; }
+
+   $multiplierCount    = 0;
+   $tableMultiplier    = $lootTableEntry['multiplier'];
+   $tableMultiplierMin = $lootTableEntry['multiplier_min'];
+
+   for ($multiplier = 1; $multiplier <= $tableMultiplier; $multiplier++) {
+      $tableChance = $lootTableEntry['probability'];
+      $dropChance  = 0;
+      $dropForced  = false;
+
+      if ($tableChance > 0 && $tableChance < 100 && $multiplierCount >= $tableMultiplierMin) {
+         $dropChance = randFloat(0,100);
+         if (is_int($main->var('forced.dropChance'))) { $dropChance = $main->var('forced.dropChance'); }
+      }
+      else if ($multiplierCount < $tableMultiplierMin) {
+         $dropChance = 0;
+         $dropForced = true;
+      }
+
+      $doDrop = ($tableChance != 0 && ($tableChance == 100 || $dropChance <= $tableChance)) ? true : false;
+
+      $main->debug->trace(9,"*** Checking loot table entry at multiplier($multiplier) with probability($tableChance): dropForced(".json_encode($dropForced).") dropChance($dropChance) doDrop(".json_encode($doDrop).")");
+
+      if ($dropForced) { $main->debug->trace(9,"*** Have not met the minimum multiplier requirements, forcing loot drop"); }
+
+      if ($doDrop) {
+         $main->debug->trace(9,"*** Beginning loot drop calculations");
+         $lootResults = calculateLootDrop($main,$multiplier,$lootTableEntry);
+         if ($lootResults) { $return = array_merge_recursive($return,$lootResults); }
+      }
+
+      $multiplierCount++;
+   }
+
+   return $return;
+}
+
+function calculateLootDrop($main, $counter, $lootTableEntry)
+{
+   $return           = array('meta' => array('nolimit' => 0, 'mindrop' => 0, 'random1' => 0, 'random2' => 0));
+   $currentExpansion = $main->var('useExpansion');
+   $counter          = sprintf("%2d",$counter);
+
+   if (!$lootTableEntry) { return false; }
+
+   $dropLimit   = $lootTableEntry['droplimit'];
+   $minDrop     = $lootTableEntry['mindrop'];
+   $lootEntries = $lootTableEntry['dropEntries'];
+   $entryCount  = count($lootEntries);
+
+   if (count($lootEntries) == 0) { return false; } 
+
+   if ($dropLimit == 0 && $minDrop == 0) {
+      $main->debug->trace(9,"$counter: *** No droplimit or mindrop was specified, process all list items");
+      $return['meta']['nolimit']++;
+ 
+      foreach ($lootEntries as $lootEntry) {
+        $itemName       = $lootEntry['item_name'];
+        $itemChance     = $lootEntry['chance'];
+        $itemMultiplier = $lootEntry['multiplier'];
+
+         if (!validExpansion($currentExpansion,$lootEntry['drop_min_expansion'],$lootEntry['drop_max_expansion']) ||
+             !validExpansion($currentExpansion,$lootEntry['item_min_expansion'],$lootEntry['item_max_expansion'])) { 
+            $main->debug->trace(9,"$counter: !!! Expansion not valid for $itemName");
+            continue; 
+         }
+
+         checkLootMultiplier($main,$counter,$lootEntry,$return,0,true);
+      }
+
+      return $return;
+   }
+
+   if ($entryCount > 100 && $dropLimit == 0) { 
+      $dropLimit = 10; 
+      $main->debug->trace(9,"$counter: *** Loot entries exceeded limit of 100 with no drop limit, force drop limit to $dropLimit");
+   }
+
+   if ($dropLimit < $minDrop) { 
+      $main->debug->trace(9,"$counter: *** Drop limit ($dropLimit) was less than minimum drops ($minDrop), force drop limit to $minDrop");
+      $dropLimit = $minDrop;
+   }
+
+   $rollTotalActual = 0;
+   $rollTotal       = 0;
+   $activeItemList  = false;
+
+   $main->debug->trace(9,"$counter: ### Calculating");
+
+   foreach ($lootEntries as $lootEntry) {
+      $itemName       = $lootEntry['item_name'];
+      $itemChance     = $lootEntry['chance'];
+      $itemMultiplier = $lootEntry['multiplier'];
+
+      if (!validExpansion($currentExpansion,$lootEntry['drop_min_expansion'],$lootEntry['drop_max_expansion']) ||
+          !validExpansion($currentExpansion,$lootEntry['item_min_expansion'],$lootEntry['item_max_expansion'])) { 
+             $main->debug->trace(9,"$counter: !!! Expansion not valid for $itemName");
+             continue; 
+      }
+
+      //$main->debug->trace(9,"$counter: *** $itemName adding $itemChance to total");
+
+      $rollTotalActual += $itemChance;
+      $activeItemList = true;
+   }
+
+   $main->debug->trace(9,"$counter: *** Roll total for table = $rollTotalActual");
+   $rollTotal = max($rollTotalActual,100);
+
+   if (!$activeItemList) { return null; }
+
+   $main->debug->trace(9,"$counter: ### Phase 1 - Guaranteed minimum drops");
+
+   if ($minDrop > 0) { $return['meta']['mindrop']++; }
+
+   for ($drop = 0; $drop < $minDrop; $drop++) {
+      $roll = randFloat(0,$rollTotalActual);
+
+      $main->debug->trace(9,"$counter: @@@ Rolling for drop(".($drop+1).") minDrop($minDrop): $roll out of $rollTotalActual");
+
+      foreach ($lootEntries as $lootEntry) {
+         $itemName       = $lootEntry['item_name'];
+         $itemChance     = $lootEntry['chance'];
+         $itemMultiplier = $lootEntry['multiplier'];
+
+         if (!validExpansion($currentExpansion,$lootEntry['drop_min_expansion'],$lootEntry['drop_max_expansion']) ||
+             !validExpansion($currentExpansion,$lootEntry['item_min_expansion'],$lootEntry['item_max_expansion'])) { 
+                $main->debug->trace(9,"$counter: !!! Expansion not valid for $itemName");
+                continue; 
+         }
+
+         $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
+
+         if ($roll < $itemChance) {
+            addLootDrop($main,$counter,$itemName,$return); 
+
+            $itemMultiplier = max($itemMultiplier,1);
+
+            if ($itemMultiplier > 1) { $main->debug->trace(9,"$counter: *** Checking multiplier on $itemName ($itemMultiplier)"); }
+
+            checkLootMultiplier($main,$counter,$lootEntry,$return);
+
+            break;
+         }
+         else { $roll -= $itemChance; }
+      }
+   }
+
+   $main->debug->trace(9,"$counter: ### Phase 2 - Random drops to limit");
+
+   if (($dropLimit - $minDrop) == 1) {
+      $return['meta']['random1']++;
+
+      $main->debug->trace(9,"$counter: *** Roll one extra drop, dropLimit($dropLimit) minDrop($minDrop)");
+
+      $roll = randFloat(0,$rollTotal);
+
+      $main->debug->trace(9,"$counter: @@@ Rolling: $roll out of $rollTotal");
+
+      foreach ($lootEntries as $lootEntry) {
+         $itemName       = $lootEntry['item_name'];
+         $itemChance     = $lootEntry['chance'];
+         $itemMultiplier = $lootEntry['multiplier'];
+
+         if (!validExpansion($currentExpansion,$lootEntry['drop_min_expansion'],$lootEntry['drop_max_expansion']) ||
+             !validExpansion($currentExpansion,$lootEntry['item_min_expansion'],$lootEntry['item_max_expansion'])) { 
+                $main->debug->trace(9,"$counter: !!! Expansion not valid for $itemName");
+                continue; 
+         }
+
+         $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
+
+         if ($main->var('forced.rollSuccess') || ($roll < $itemChance && $main->var('forced.rollAllowed'))) {  
+            addLootDrop($main,$counter,$itemName,$return);
+            checkLootMultiplier($main,$counter,$lootEntry,$return);
+
+            break;
+         }
+         else { $roll -= $itemChance; }
+      }
+   }
+   else if ($dropLimit > $minDrop) {
+      $return['meta']['random2']++;
+
+      $main->debug->trace(9,"$counter: *** Roll 2 or more extra drops, dropLimit($dropLimit) minDrop($minDrop)");
+
+      $dropCount    = $minDrop;
+      $lootList     = array_values($lootEntries);  // provide an integer indexed array
+      $itemPosition = array_rand($lootList);
+
+      $main->debug->trace(9,"$counter: *** Starting at random list position($itemPosition)");
+      
+      for ($loops = 0; $loops < $entryCount; $loops++) {
+         if ($dropCount >= $dropLimit) { 
+            $main->debug->trace(9,"$counter: *** Reached the drop limit, dropCount($dropCount) dropLimit($dropLimit)");
+            break; 
+         }
+
+         $lootEntry      = $lootList[$itemPosition];
+         $itemName       = $lootEntry['item_name'];
+         $itemChance     = $lootEntry['chance'];
+         $itemMultiplier = $lootEntry['multiplier'];
+
+         if (validExpansion($currentExpansion,$lootEntry['drop_min_expansion'],$lootEntry['drop_max_expansion']) &&
+             validExpansion($currentExpansion,$lootEntry['item_min_expansion'],$lootEntry['item_max_expansion'])) { 
+            $roll = randFloat(0,100);
+
+            $main->debug->trace(9,"$counter: @@@ Rolling for entry position($itemPosition): $roll out of 100");
+            $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
+
+            if ($main->var('forced.rollSuccess') || ($roll <= $itemChance && $main->var('forced.rollAllowed'))) { 
+               addLootDrop($main,$counter,$itemName,$return); 
+               checkLootMultiplier($main,$counter,$lootEntry,$return);
+               $dropCount++;
+            }
+         }
+
+         $itemPosition++;
+
+         if ($itemPosition >= $entryCount) { $itemPosition = 0; }
+      }
+   }
+
+   $main->debug->trace(9,"$counter: ### Done");
+
+   return $return;
+}
+
+function checkLootMultiplier($main, $counter, $lootEntry, &$return, $startAt = 1, $addLoot = false)
+{
+   $itemName       = $lootEntry['item_name'];
+   $itemChance     = $lootEntry['chance'];
+   $itemMultiplier = $lootEntry['multiplier'];
+
+   $itemMultiplier = max($itemMultiplier,$startAt);
+
+   if ($itemMultiplier >= $startAt) { $main->debug->trace(9,"$counter: *** Checking multiplier on $itemName ($itemMultiplier)"); }
+
+   $lootAdded = false;
+
+   for ($multiplier = $startAt; $multiplier < $itemMultiplier; ++$multiplier) {
+      $roll = randFloat(0,100);
+
+      $main->debug->trace(9,"$counter: @@@ Rolling for multiplier($multiplier) on $itemName: $roll out of 100");
+      $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
+
+      if ($main->var('forced.rollSuccess') || ($roll <= $itemChance && $main->var('forced.rollAllowed'))) { 
+         if ($addLoot && !$lootAdded) { 
+            addLootDrop($main,$counter,$itemName,$return); 
+            $lootAdded = true;
+         }
+      }
+   }
+}
+
+function addLootDrop($main, $counter, $itemName, &$return)
+{
+    $main->debug->trace(9,"$counter: $$$ Loot drop assigned: $itemName");
+
+    if (!isset($return['item'][$itemName])) { $return['item'][$itemName] = 0; }
+
+    $return['meta']['itemCount']++;
+
+    $return['item'][$itemName]++;
+}
+
+function validExpansion($currentExpansion, $minExpansion, $maxExpansion)
+{
+   if ($currentExpansion == 0) { return true; }
+
+   return (($minExpansion == 0 || ($currentExpansion >= $minExpansion && $currentExpansion < $maxExpansion)) ? true : false);
+}
+
+function calculateExpansion($type, $dropExpansion, $itemExpansion)
+{
+   if ($dropExpansion == 0 && $itemExpansion == 0) { return 0; }
+
+   if ($dropExpansion == 0) { return $itemExpansion; }
+   if ($itemExpansion == 0) { return $dropExpansion; }
+
+   if (preg_match('/^min$/i',$type))      { return max($dropExpansion,$itemExpansion); }
+   else if (preg_match('/^max$/i',$type)) { return min($dropExpansion,$itemExpansion); }
+
+   return null;
+}
+
+function randFloat($min, $max, $precision = 5)
+{
+   return sprintf("%.".$precision."f",$min + (lcg_value() * ($max - $min)));
+}
+
+
+?>
