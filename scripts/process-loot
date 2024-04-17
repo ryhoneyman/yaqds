@@ -1,0 +1,84 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$data      = json_decode(file_get_contents('/home/game/output.json'),true);
+$tableList = $data['table'];
+$counts    = array();
+
+foreach ($tableList as $tableId => $tableData) {
+   $counts['total']['count']++;
+   $multiplier     = $tableData['multiplier'];
+   $multiplierMin  = $tableData['multiplier_min'];
+   $probability    = $tableData['probability'];
+   $dropCount      = $tableData['drop.entry.count'];
+   $dropNoChance   = $tableData['drop.entry.nochance.count'];
+   $dropLimit      = $tableData['droplimit'];
+   $minDrop        = $tableData['mindrop'];
+   $actualMaxDrops = $tableData['actual.max.drops'];
+   $actualMinDrops = $tableData['actual.min.drops'];
+
+   if ($dropLimit < $minDrop)        { $dropLimit = $minDrop; }
+   if ($multiplierMin > $multiplier) { $multiplierMin = $multiplier; }
+
+   if ($dropLimit == 0 && $minDrop == 0) { 
+      $counts['no.limit.or.min']['count']++;
+      $predictedMaxDrops = $multiplier * $dropCount;
+      $predictedMinDrops = 0;
+
+      if ($predictedMaxDrops != $actualMaxDrops) { printf("Max drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMaxDrops,$actualMaxDrops); $counts['no.limit.or.min']['miss']++; }
+      if ($predictedMinDrops != $actualMinDrops) { printf("Min drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMinDrops,$actualMinDrops); $counts['no.limit.or.min']['miss']++; }
+   }
+   else if ($dropCount == 0 || ($dropNoChance == $dropCount)) {
+      $counts['no.drops']['count']++;
+      $predictedMaxDrops = 0;
+      $predictedMinDrops = 0;
+
+      if ($predictedMaxDrops != $actualMaxDrops) { printf("Max drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMaxDrops,$actualMaxDrops); $counts['no.drops']['miss']++; }
+      if ($predictedMinDrops != $actualMinDrops) { printf("Min drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMinDrops,$actualMinDrops); $counts['no.drops']['miss']++; }
+   }
+   else if ($dropLimit > 0 && $minDrop == 0) {
+      $counts['limit.no.min']['count']++;
+      $predictedMaxDrops = $multiplier * min($dropLimit,$dropCount);
+      $predictedMinDrops = 0;
+
+      if ($predictedMaxDrops != $actualMaxDrops) { printf("Max drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMaxDrops,$actualMaxDrops); $counts['limit.no.min']['miss']++; }
+      if ($predictedMinDrops != $actualMinDrops) { printf("Min drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMinDrops,$actualMinDrops); $counts['limit.no.min']['miss']++; }
+   }
+   else {
+      $counts['limit.and.min']['count']++;
+
+      $predictedMaxDrops = $multiplier * $dropLimit;
+      $predictedMinDrops = ($probability == 100) ? ($multiplier * $minDrop) : (($multiplierMin > 0) ? $multiplierMin : 0);
+
+      if ($predictedMaxDrops != $actualMaxDrops) { printf("Max drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMaxDrops,$actualMaxDrops); $counts['limit.and.min']['miss']++; }
+      if ($predictedMinDrops != $actualMinDrops) { printf("Min drop miss on %s! predicted(%d) actual(%d)\n",$tableId,$predictedMinDrops,$actualMinDrops); $counts['limit.and.min']['miss']++; }
+   }
+   //else {
+   //   $counts['unknown']['count']++;
+   //   printf("%s: %s\n",$tableId,json_encode(array_diff_key($tableData,array_flip(array('loottable_id','lootdrop_id','id')))));
+   //}
+}
+
+
+
+print "\n".json_encode($counts,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n\n";
+
+?>
