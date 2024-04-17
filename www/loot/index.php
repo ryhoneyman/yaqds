@@ -38,24 +38,6 @@ if ($sample) { $iterations = 1; }
 
 $npcLootTableList = $main->data->getNpcLootTableList(array('sort' => true));
 
-$forceAction = false;
-
-if ($forceAction == 1) {
-   $main->var('forced.rollSuccess',true);
-   $main->var('forced.rollAllowed',true);
-   $main->var('forced.dropChance',0);
-}
-else if ($forceAction == 2) { 
-   $main->var('forced.rollSuccess',false);
-   $main->var('forced.rollAllowed',false);
-   $main->var('forced.dropChance',100);
-}
-else {
-   $main->var('forced.rollSuccess',false);
-   $main->var('forced.rollAllowed',true);
-   $main->var('forced.dropChance',false);
-}
-
 include 'ui/header.php';
 
 print "<style>\n".
@@ -291,7 +273,6 @@ function calculateLootTable($main, $lootTableEntry) {
 
       if ($tableChance > 0 && $tableChance < 100 && $multiplierCount >= $tableMultiplierMin) {
          $dropChance = randFloat(0,100);
-         if (is_int($main->var('forced.dropChance'))) { $dropChance = $main->var('forced.dropChance'); }
       }
       else if ($multiplierCount < $tableMultiplierMin) {
          $dropChance = 0;
@@ -451,7 +432,7 @@ function calculateLootDrop($main, $counter, $lootTableEntry)
 
          $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
 
-         if ($main->var('forced.rollSuccess') || ($roll < $itemChance && $main->var('forced.rollAllowed'))) {  
+         if ($roll < $itemChance) {  
             addLootDrop($main,$counter,$itemName,$return);
             checkLootMultiplier($main,$counter,$lootEntry,$return);
 
@@ -489,7 +470,7 @@ function calculateLootDrop($main, $counter, $lootTableEntry)
             $main->debug->trace(9,"$counter: @@@ Rolling for entry position($itemPosition): $roll out of 100");
             $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
 
-            if ($main->var('forced.rollSuccess') || ($roll <= $itemChance && $main->var('forced.rollAllowed'))) { 
+            if ($roll <= $itemChance) { 
                addLootDrop($main,$counter,$itemName,$return); 
                checkLootMultiplier($main,$counter,$lootEntry,$return);
                $dropCount++;
@@ -525,7 +506,7 @@ function checkLootMultiplier($main, $counter, $lootEntry, &$return, $startAt = 1
       $main->debug->trace(9,"$counter: @@@ Rolling for multiplier($multiplier) on $itemName: $roll out of 100");
       $main->debug->trace(9,"$counter: *** Checking $itemName: $roll < $itemChance");
 
-      if ($main->var('forced.rollSuccess') || ($roll <= $itemChance && $main->var('forced.rollAllowed'))) { 
+      if ($roll <= $itemChance) { 
          if ($addLoot && !$lootAdded) { 
             addLootDrop($main,$counter,$itemName,$return); 
             $lootAdded = true;
