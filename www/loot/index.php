@@ -73,11 +73,11 @@ if ($npcHash && $npcLootTableList['lookup'][$npcHash]) {
 
    //print "<pre class='text-white'>\n";
 
-   foreach ($lootTableEntries as $index => $entryData) {
+   foreach ($lootTableEntries as $tableId => $entryData) {
       $dropEntries = $main->data->getLootDropEntriesById($entryData['lootdrop_id']);
-      $lootTables['tableEntries'][$index]['dropEntries'] = $dropEntries;
+      $lootTables['tableEntries'][$tableId]['dropEntries'] = $dropEntries;
 
-      foreach ($dropEntries as $lootEntry) {
+      foreach ($dropEntries as $id => $lootEntry) {
          $itemName         = $lootEntry['item_name'];
          $dropMinExpansion = $lootEntry['drop_min_expansion'];
          $dropMaxExpansion = $lootEntry['drop_max_expansion'];
@@ -89,20 +89,22 @@ if ($npcHash && $npcLootTableList['lookup'][$npcHash]) {
          //printf("%s drops(%s-%s) allowed(%s-%s) using(%s-%s)\n",
          //       $itemName,$dropMinExpansion,$dropMaxExpansion,$itemMinExpansion,$itemMaxExpansion,$minExpansion,$maxExpansion);
 
-         $itemLookup[$index][$itemName] = [
+         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['min_expansion'] = $minExpansion;
+         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['max_expansion'] = $maxExpansion;
+
+         $itemLookup[$tableId][$itemName] = [
             'min_expansion' => $minExpansion,
             'max_expansion' => $maxExpansion,
          ]; 
       }
    }
 
-   //print "</pre>\n";
+   //print "</pre>\n"; 
 }
 
 if ($main->debug->level() >= 8) {
    print "<pre class='text-white'>\n".json_encode($lootTables,JSON_PRETTY_PRINT)."</pre>\n";
 }
-
 
 $npc     = $lootTables['npc_name'];
 $done    = false;
@@ -148,8 +150,7 @@ if ($main->debug->level() >= 9) {
 if ($sample) {
    $statTables = $stats['table'];
 
-   printf("<pre class='text-white'>\n");
-   printf("<b class='text-green'>Sample loot results for <u>%s</u>:</b>\n\n",$npc);
+   $lootDisplay = "<pre class='text-white'>\n";
 
    $dropCount = 0;
 
@@ -162,16 +163,42 @@ if ($sample) {
          $maxExpansion   = $itemInfo['max_expansion'];
          $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("<b class='text-primary'>expansion(%s-%s)</b>",$minExpansion,$maxExpansion);
 
-         printf("%dx %s %s\n",$itemCount,$itemName,$itemExpansion);
+         $lootDisplay .= sprintf("%dx %s %s\n",$itemCount,$itemName,$itemExpansion);
 
          $dropCount++;
       }
    }
 
-   if ($dropCount == 0) { print "None\n"; }
+   if ($dropCount == 0) { $lootDisplay .= "None\n"; }
 
-   printf("\n");
-   printf("</pre>\n");
+   $lootDisplay .= "</pre>\n";
+
+   print $alte->displayCard($alte->displayRow(
+            $lootDisplay,
+            array('container' => 'col-6')
+         ),array('container' => 'col-6', 'title' => sprintf("Simulated loot results for %s",$npc), 'card' => 'card-warning'));
+
+   $lootTableEntries = $lootTables['tableEntries'] ?: array();
+   $lootTableCount   = count($lootTableEntries);
+
+   $explanation = "<div class='mb-4'>This mob has ".$lootTableCount." loot table".(($lootTableCount != 1) ? 's' : '').":</div>";
+
+   $lootTableColumns = array('loottable_id','lootdrop_id','id','dropEntries');
+   $lootDropColumns  = array('item_id','item_name','chance','multiplier','min_expansion','max_expansion');
+
+   foreach ($lootTableEntries as $tableId => $tableData) {
+      $explanation .= $alte->displayCard($alte->displayRow(
+                        $html->table(array(array_diff_key($tableData,array_flip($lootTableColumns))),null,array('table.class' => 'table text-green text-bold')).
+                        $html->table($tableData['dropEntries'],$lootDropColumns,array('table.class' => 'table table-striped small')).
+                        "<div class='mt-2 text-lightblue'>".describeLootScenario($tableData)."</div>",
+                        array('container' => 'col-12')
+                      ),array('container' => 'col-12', 'title' => sprintf("<span class='text-warning'>TableID %s, DropID %s</span>",$tableData['loottable_id'],$tableData['lootdrop_id']), 'card' => 'card-secondary'));              
+   }
+
+   print $alte->displayCard($alte->displayRow(
+      $explanation,
+      array('container' => 'col-6')
+   ),array('container' => 'col-6', 'title' => 'Explanation', 'card' => 'card-purple'));
 }
 else if ($analyze) {
    $totalKills = $stats['kills'];
@@ -216,6 +243,62 @@ include 'ui/footer.php';
 
 ?>
 <?php
+
+function describeLootScenario($tableData)
+{
+   $multiplier     = $tableData['multiplier'];
+   $multiplierMin  = $tableData['multiplier_min'];
+   $probability    = $tableData['probability'];
+   $dropEntries    = $tableData['dropEntries'] ?: array();
+   $dropCount      = count($dropEntries);
+   $dropNoChance   = array_count_values(array_column($dropEntries,'chance'))["0"];
+   $dropLimit      = $tableData['droplimit'];
+   $minDrop        = $tableData['mindrop'];
+
+   $return = '';
+
+   if ($dropLimit < $minDrop)        { $dropLimit = $minDrop; }
+   if ($multiplierMin > $multiplier) { $multiplierMin = $multiplier; }
+
+   if ($dropLimit == 0 && $minDrop == 0) { 
+      $maxDrops = $multiplier * $dropCount;
+      $minDrops = 0;
+
+      $return = "When no drop limit or minimum drop is set in the loot table, there's no guarantee that something will drop, and the ".
+                "maximum amount of drops will be multiplier ($multiplier) times number of drop items ($dropCount).";
+   }
+   else if ($dropCount == 0 || ($dropNoChance == $dropCount)) {
+      $maxDrops = 0;
+      $minDrops = 0;
+
+      $return = ($dropCount == 0) ? "This loot table references a drop list that is blank or has item that do not exist in the selected expansion.  Therefore, no drops will occur." :
+                                    "This loot table contains a drop list with items that do not have any chance to drop, so no drops can occur.";
+   }
+   else if ($dropLimit > 0 && $minDrop == 0) {
+      $maxDrops = $multiplier * min($dropLimit,$dropCount);
+      $minDrops = 0;
+
+      $return = "When drop limit is greater than 0 and the minimum drop is 0, there's no guarantee that something will drop, and the maximum amount of drops will be ".
+                " multiplier ($multiplier) times the lesser between drop limit ($dropLimit) and the number of drop items ($dropCount).";
+   }
+   else {
+      $maxDrops = $multiplier * $dropLimit;
+      $minDrops = ($probability == 100) ? ($multiplier * $minDrop) : (($multiplierMin > 0) ? $multiplierMin : 0);
+
+      $return = ($probability == 100) ? "This table will set minimum drops to multiplier ($multiplier) times minimum drop ($minDrop) due to probability at 100%." :
+                ((($multiplierMin > 0)) ? "This table will have minimum drops equal to multiplier_min ($multiplierMin)." : "This table has no guaranteed drops.");
+
+      $return .= " The maximum amount of drops is multiplier ($multiplier) times drop limit ($dropLimit).";
+
+      if ($minDrops > 0 && $minDrops < $maxDrops) { 
+         $return .= " There is a $probability% chance of additional drops after the guaranteed $minDrops drop".(($minDrops != 1) ? 's' :'')."."; 
+      }
+   }
+
+   $return .= " The result of this table produces ".(($minDrops == $maxDrops) ? "$minDrops drop".(($minDrops != 1) ? 's' : '') : "$minDrops to $maxDrops drops").".";
+
+   return $return;
+}
 
 function checkLoot($main, $npcLootTable)
 {
