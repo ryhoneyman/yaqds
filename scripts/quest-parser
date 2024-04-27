@@ -1,0 +1,36 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 9,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+if (!$main->buildClass('qp','QuestParser',null,'local/questparser.class.php')) { exit; }
+
+$qp = $main->obj('qp');
+
+$questFile = APP_BASEDIR.'/quarmquests/akanon/Manik_Compolten.lua';
+
+$qp->load(file_get_contents($questFile));
+
+$qp->removeWhitespace();
+
+$qp->extractFunctions();
+
+var_dump($qp->showQuest(),$qp->showFunctions());
+
+?>

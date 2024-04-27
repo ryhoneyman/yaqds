@@ -1,0 +1,64 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 9,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+if (!$main->buildClass('attack','Attack',null,'local/attack.class.php')) { exit; }
+if (!$main->buildClass('monster','Entity',null,'local/entity.class.php')) { exit; }
+if (!$main->buildClass('player','Entity',null,'local/entity.class.php')) { exit; }
+
+$monster = $main->obj('monster');
+$player  = $main->obj('player');
+$attack  = $main->obj('attack');
+
+$monster->name('Monster');
+$monster->buildNpc(1,0,CLASS_WARRIOR);   // level, accuracy, class (all from db) - everything is a static calculation
+
+$playerLevel = 50;
+$playerStats = $playerLevel * 5;
+$playerStats = 0;
+
+$player->name('Player');
+$player->isPlayer(true);
+$player->class(CLASS_WARRIOR);
+$player->level($playerLevel);
+//$player->defense($playerStats);
+$player->defense(200);
+$player->offense($playerStats);
+$player->agi(75);
+$player->primaryHitSkillValue($playerStats);
+
+$attacker = $monster;
+$defender = $player;
+
+$maxAttempts = 10000;
+$stats       = [];
+
+for ($attempt = $maxAttempts; $attempt > 0; $attempt--) {
+   $registerHit = $attack->avoidanceCheck($attacker,$defender);
+   $stats[(($registerHit) ? 'hit' : 'miss')]++;
+}
+
+printf("ATTACKER %s: level(%d) class(%s) accuracy(%1.1f) offense(%d) primaryHitSkillValue(%d)\n",
+       $attacker->name(),$attacker->level(),$attacker->class(),$attacker->accuracy(),$attacker->offense(),$attacker->primaryHitSkillValue());
+printf("DEFENDER %s: level(%d) class(%s) agi(%d) defense(%d)\n",
+       $defender->name(),$defender->level(),$defender->class(),$defender->agi(),$defender->defense());
+printf("%s -> %s (hit:%1.1f%%)\n",$attacker->name(),$defender->name(),$stats['hit']/$maxAttempts*100);
+
+?>
