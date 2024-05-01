@@ -21,7 +21,7 @@
    <footer class="main-footer">
       <strong>Everquest &copy; Daybreak Games / Site designed and maintained by Icestorm</strong> 
       <div class="float-right d-none d-sm-inline-block">
-         <b>Version</b> <?php print $main->currentVersion; ?>
+         <?php print "<b class='text-yellow'>Version:</b> ".$main->currentVersion.", <b class='text-primary'>Database:</b> ".$main->quarmDb; ?>
       </div>
    </footer>
 </div>
