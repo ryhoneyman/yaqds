@@ -52,11 +52,6 @@
    fill: orange;
 }
 
-@keyframes spin {
-   from { transform: scale(4,4) rotate(0deg); }
-   to   { transform: scale(4,4) rotate(359deg); }
- }
-
 .gridScalar { 
    stroke-width:5; 
 }
