@@ -1,3 +1,7 @@
+.svg {
+   background-image: url('/images/mapbg.jpg');
+}
+
 .arrow {
    marker-end: url(#head);
    fill: none;
@@ -24,11 +28,40 @@
     fill: red;
 }
 
+.spawninfoSearch {
+   stroke: black;
+   fill: orange;
+}
+
+.spawninfoClicked {
+   stroke: black;
+   fill: blue;
+}
+
 .spawninfo:hover{
    opacity: .5 !important;
    transform: scale(3);
    transform-box: fill-box;
    transform-origin: center;
    transition: all .3s;
+}
+
+.crosshair {
+   animation: spin 5s linear infinite;
+   stroke: black;
+   fill: orange;
+}
+
+@keyframes spin {
+   from { transform: scale(4,4) rotate(0deg); }
+   to   { transform: scale(4,4) rotate(359deg); }
+ }
+
+.gridScalar { 
+   stroke-width:5; 
+}
+
+.spawninfoScalar { 
+   stroke-width: 10; 
 }
 

@@ -191,7 +191,8 @@ class Data extends LWPLib\Base
 
       $query = "SELECT concat(se.spawngroupID,'.',se.npcID,'.',s2.x,'.',s2.y) as keyid, z.short_name, z.zoneidnumber as zoneID, nt.name, nt.level, sg.id as sgID, \n".
                "       nt.id as npcID, s2.min_expansion as spawnMinEx, s2.max_expansion as spawnMaxEx, se.min_expansion as entryMinEx, se.max_expansion as entryMaxEx, \n".
-               "       se.chance, s2.x, s2.y, s2.z, s2.heading, s2.pathgrid as gridID \n".
+               "       se.chance, s2.x, s2.y, s2.z, s2.heading, s2.pathgrid as gridID, sg.name as sgName, sg.min_x as sgMinX, sg.min_y as sgMinY, ". 
+               "       sg.max_x as sgMaxX, sg.max_y as sgMaxY \n".
                "FROM spawn2 s2 \n".
                "LEFT JOIN spawngroup sg ON s2.spawngroupID = sg.id \n".
                "LEFT JOIN spawnentry se ON se.spawngroupID = sg.id \n".
