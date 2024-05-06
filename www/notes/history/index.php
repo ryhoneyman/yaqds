@@ -12,6 +12,26 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.1.0',
+      'datetime' => '2024-05-06 02:00 UTC',
+      'changes' => array(
+         'system' => array(
+         ),
+         'frontend' => array(
+            'Map Viewer: Major performance improvements',
+            'Map Viewer: Target search capability',
+            'Map Viewer: Corrected display of coordinates',
+            'Map Viewer: Added background, line/label adjustments',
+            'Map Viewer: Roambox enabled',
+            'Map Viewer: Corrected spawn grids for certain zones',
+            'Map Viewer: Support for multiple group spawn at same location',
+            'Map Viewer: Click added to pin/unpin pathing for group'
+         ),
+         'backend'  => array(),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.0.2',
       'datetime' => '2024-05-01 11:30 UTC',
       'changes' => array(

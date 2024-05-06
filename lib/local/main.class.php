@@ -8,7 +8,7 @@ class Main extends LWPLib\MainBase
 {
    public $userId         = null;
    public $hashTypes      = null;
-   public $currentVersion = '1.0.2';
+   public $currentVersion = '1.1.0';
    public $quarmDb        = '20240415-2251';
    public $data           = null;
    public $map            = null;
