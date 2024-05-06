@@ -73,6 +73,11 @@ class Map extends LWPLib\Base
                                            $lineX1,$lineY1,$lineX2,$lineY2,$lineR,$lineG,$lineB,$strokeWidth);
          }
       }
+
+      $svgProp['minX'] -= $markUnits;
+      $svgProp['minY'] -= $markUnits;
+      $svgProp['maxX'] += $markUnits;
+      $svgProp['maxY'] += $markUnits;
    
       $svgWidth  = $svgProp['maxX'] - $svgProp['minX'];
       $svgHeight = $svgProp['maxY'] - $svgProp['minY'];
@@ -82,15 +87,21 @@ class Map extends LWPLib\Base
    
       $xMark = $startXAt;
       while ($xMark < $svgProp['maxX']) {
-         $svgLayers['gridLine'][] = sprintf("<line x1='%d' y1='%d' x2='%d' y2='%d' stroke='rgb(%d,%d,%d)' stroke-width='%d'/>\n",$xMark,$svgProp['minY'],$xMark,$svgProp['maxY'],200,200,200,2);
-         $svgLayers['gridNum'][]  = sprintf("<text x=%d y=%d fill='grey' style='font-weight:bold;font-size:20px;'>%d</text>",$xMark+5,$svgProp['minY']+20,$xMark);
+         $lineLabel = ceil(-$xMark / $markUnits) * $markUnits;
+         $lineColor = ($lineLabel % 1000 == 0) ? "200,150,150" : "200,200,200";
+
+         $svgLayers['gridLine'][] = sprintf("<line x1='%d' y1='%d' x2='%d' y2='%d' stroke='rgb(%s)' stroke-width='%d'/>\n",$xMark,$svgProp['minY'],$xMark,$svgProp['maxY'],$lineColor,2);
+         $svgLayers['gridNum'][]  = sprintf("<text x=%d y=%d fill='grey' style='font-weight:bold;font-size:20px;'>%d</text>\n",$xMark+5,$svgProp['minY']+15,$lineLabel);
          $xMark += $markUnits;
       }
    
       $yMark = $startYAt;
       while ($yMark < $svgProp['maxY']) {
-         $svgLayers['gridLine'][] = sprintf("<line x1='%d' y1='%d' x2='%d' y2='%d' stroke='rgb(%d,%d,%d)' stroke-width='%d'/>\n",$svgProp['minX'],$yMark,$svgProp['maxX'],$yMark,200,200,200,2);
-         $svgLayers['gridNum'][]  = sprintf("<text x=%d y=%d fill='grey' style='font-weight:bold;font-size:20px;'>%d</text>",$svgProp['maxX']+0,$yMark-5,$yMark);
+         $lineLabel = ceil(-$yMark / $markUnits) * $markUnits;
+         $lineColor = ($lineLabel % 1000 == 0) ? "200,150,150" : "200,200,200";
+
+         $svgLayers['gridLine'][] = sprintf("<line x1='%d' y1='%d' x2='%d' y2='%d' stroke='rgb(%s)' stroke-width='%d'/>\n",$svgProp['minX'],$yMark,$svgProp['maxX'],$yMark,$lineColor,2);
+         $svgLayers['gridNum'][]  = sprintf("<text x=%d y=%d fill='grey' style='font-weight:bold;font-size:20px;'>%d</text>\n",$svgProp['maxX']-$markUnits+15,$yMark-5,$lineLabel);
          $yMark += $markUnits;
       }
 
