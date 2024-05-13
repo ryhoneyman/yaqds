@@ -23,14 +23,14 @@ if (!$main->buildClass('qp','QuestParser',null,'local/questparser.class.php')) {
 
 $qp = $main->obj('qp');
 
-$questFile = APP_BASEDIR.'/quarmquests/akanon/Manik_Compolten.lua';
+$questFile = APP_BASEDIR.'/quarm/quests/current/akanon/Manik_Compolten.lua';
+//$questFile = APP_BASEDIR.'/quarm/quests/current/erudnext/Sea_King.lua';
+//$questFile = APP_BASEDIR.'/quarm/quests/current/firiona/Captain_Nealith.lua';
+$questFile = 'test.lua';
+//$questFile = 'test.code';
 
 $qp->load(file_get_contents($questFile));
 
-$qp->removeWhitespace();
-
-$qp->extractFunctions();
-
-var_dump($qp->showQuest(),$qp->showFunctions());
+print "\n".json_encode($qp->showFunctions(),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n\n";
 
 ?>
