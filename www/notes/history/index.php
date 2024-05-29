@@ -12,6 +12,20 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.2.0',
+      'datetime' => '2024-05-29 13:00 UTC',
+      'changes' => array(
+         'system' => array(
+            'Loaded 20240529-0146 database (pre-Kunark drop)'
+         ),
+         'frontend' => array(),
+         'backend'  => array(
+            'Forced Kunark expansion release ahead of PQ Kunark open'
+         ),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.1.0',
       'datetime' => '2024-05-06 02:00 UTC',
       'changes' => array(
