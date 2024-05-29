@@ -22,7 +22,7 @@ $main = new Main(array(
 $input = $main->obj('input');
 $html  = $main->obj('html');
 
-$currentExpansion = $main->data->currentExpansion();
+$currentExpansion = $main->data->forceExpansion() ?: $main->data->currentExpansion();
 
 $zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
 $zoneFloor   = $input->get('floor','numeric,dash');
