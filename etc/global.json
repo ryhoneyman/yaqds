@@ -1,11 +1,11 @@
 {
     "currentExpansion": 1.9,
     "expansionInfo": {
-       "classic": { "name": "EverQuest Classic" },
-       "kunark": { "name": "The Ruins of Kunark" },
-       "velious": { "name": "The Scars of Velious" },
-       "luclin": { "name": "The Shadows of Luclin" },
-       "pop": { "name": "The Planes of Power" }
+       "classic": { "name": "EverQuest Classic", "release": 1 },
+       "kunark": { "name": "The Ruins of Kunark", "release": 2 },
+       "velious": { "name": "The Scars of Velious", "release": 3 },
+       "luclin": { "name": "The Shadows of Luclin", "release": 4 },
+       "pop": { "name": "The Planes of Power", "release": 5 }
     },
     "expansions": {
         "1":    { "id": "classic" },
