@@ -23,7 +23,7 @@ print "<style>.vcolumns { column-gap:20px; column-count:5; }</style>\n";
 
 $alte = $main->obj('adminlte');
 
-$currentExpansion = $main->data->currentExpansion();
+$currentExpansion = $main->data->forceExpansion() ?: $main->data->currentExpansion();
 $expansionList    = $main->data->expansionList();
 
 $zoneData = $main->data->getZones('short_name',array('short_name','long_name','canbind','cancombat','canlevitate','castoutdoor','expansion'));

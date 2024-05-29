@@ -29,6 +29,12 @@ class Data extends LWPLib\Base
       }
    }
 
+   public function forceExpansion() 
+   { 
+      $expansionInfo = $this->fetch('expansionInfo');
+      return $expansionInfo['kunark']['release'];
+   }
+
    public function currentExpansion() { return $this->fetch('currentExpansion'); }
 
    public function expansionList() 
