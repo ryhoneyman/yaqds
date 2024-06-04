@@ -1,7 +1,3 @@
-.svg {
-   background-image: url('/images/mapbg.jpg');
-}
-
 .arrow {
    marker-end: url(#head);
    fill: none;
