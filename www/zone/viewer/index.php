@@ -68,5 +68,3 @@ foreach ($zoneList as $expansionNumber => $expansionZones) {
 }
 
 include 'ui/footer.php';
-
-?>
