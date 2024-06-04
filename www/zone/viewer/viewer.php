@@ -30,6 +30,7 @@ $zoneCeil    = $input->get('ceil','numeric,dash');
 $zoneLayer   = $input->get('layer','alphanumeric');
 $zonePathing = $input->get('pathing','alphanumeric') ?: 'enabled';
 $npcSearch   = $input->get('search','all') ?: null;
+$bgControl   = $input->get('bg','alphanumeric') ?: 'default';
 $ignoreXpn   = ($input->isDefined('ignoreXpn')) ? true : false;
 
 $zoneData = $main->data->getZones('short_name',array('short_name','long_name','expansion'));
@@ -38,6 +39,8 @@ $zoneInfo = $main->data->getZoneInfoByName($zoneName);
 if (!$zoneInfo) { $main->redirect('/map/viewer/'); }
 
 if ($ignoreXpn) { $currentExpansion = null; }
+
+$bgCSS = (preg_match('/^default$/',$bgControl)) ? "background-image: url('/images/mapbg.jpg');" : "background-color: $bgControl;";
 
 include 'ui/header.php';
 
@@ -48,6 +51,7 @@ print "<script src='/assets/js/svg-pan-zoom-container.js'></script>\n";
 print "<style>\n".
       ".select2-results__option { line-height:1.0; }\n".
       ".select2-container--default .select2-results>.select2-results__options { max-height: 350px; }\n".
+      ".svg { $bgCSS }\n".
       "</style>\n";
 
 $svgDefs = array(
@@ -128,6 +132,9 @@ print "<div class='mb-1'>".
       "</div>".
       "<div class='d-inline-block align-top'style='width:fit-content;'>".
       $html->select('search',$npcSelect,$npcSearch,$selectOpts).
+      "</div>".
+      "<div class='d-inline-block align-top'style='width:fit-content;'>".
+      $html->select('bg',['default' => 'Default Background', 'white' => 'White Background'],$bgControl,$selectOpts).
       "</div>".
       //"<div class='d-inline-block align-top'>".
       //$html->select('pathing',array('enabled' => 'Pathing Enabled (slower)', 'disabled' => 'Pathing Disabled'),$zonePathing,$selectOpts).
