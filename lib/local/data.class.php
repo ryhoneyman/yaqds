@@ -90,13 +90,19 @@ class Data extends LWPLib\Base
 
       if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
 
-      $npcLootTables = $this->db->query("SELECT distinct(concat(nt.name,'^',nt.loottable_id,'^',s2.zone,'^',s2.min_expansion,'-',s2.max_expansion,'^',se.min_expansion,'-',se.max_expansion)) as entry FROM npc_types nt LEFT JOIN spawnentry se ON nt.id = se.npcID LEFT JOIN spawn2 s2 ON se.spawngroupID = s2.spawngroupID WHERE nt.loottable_id > 0 and nt.level >= 10");
+      //$npcLootTables = $this->db->query("SELECT distinct(concat(nt.name,'^',nt.loottable_id,'^',s2.zone,'^',s2.min_expansion,'-',s2.max_expansion,'^',se.min_expansion,'-',se.max_expansion)) as entry FROM npc_types nt LEFT JOIN spawnentry se ON nt.id = se.npcID LEFT JOIN spawn2 s2 ON se.spawngroupID = s2.spawngroupID WHERE nt.loottable_id > 0 and nt.level >= 10");
+      
+      $npcLootTables = $this->db->query("SELECT id, nt_name, nt_loottable_id, s2_zone, s2_min_expansion, s2_max_expansion, se_min_expansion, se_max_expansion FROM yaqds_npc_loottable WHERE nt_level >= 10");
 
       foreach ($npcLootTables as $entry => $entryInfo) {
-         list($name,$lootTableId,$zone,$s2Exp,$seExp) = explode("^",$entry);
-         list($s2MinExp,$s2MaxExp) = explode('-',$s2Exp);
-         list($seMinExp,$seMaxExp) = explode('-',$seExp);
-
+         $name        = $entryInfo['nt_name'];
+         $lootTableId = $entryInfo['nt_loottable_id'];
+         $zone        = $entryInfo['s2_zone'];
+         $s2MinExp    = $entryInfo['s2_min_expansion'];
+         $s2MaxExp    = $entryInfo['s2_max_expansion'];
+         $seMinExp    = $entryInfo['se_min_expansion'];
+         $seMaxExp    = $entryInfo['se_max_expansion'];
+         
          list($minExp,$maxExp) = explode('-',$this->calculateExpansion($s2MinExp,$s2MaxExp,$seMinExp,$seMaxExp));
 
          $cleanName = $this->cleanName($name);
