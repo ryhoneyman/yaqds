@@ -90,22 +90,32 @@ class Data extends LWPLib\Base
 
       if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
 
-      $npcLootTables = $this->db->query("SELECT distinct(concat(name,'^',loottable_id)) as entry FROM npc_types WHERE loottable_id > 0 and level >= 10");
+      $npcLootTables = $this->db->query("SELECT distinct(concat(nt.name,'^',nt.loottable_id,'^',s2.zone,'^',s2.min_expansion,'-',s2.max_expansion,'^',se.min_expansion,'-',se.max_expansion)) as entry FROM npc_types nt LEFT JOIN spawnentry se ON nt.id = se.npcID LEFT JOIN spawn2 s2 ON se.spawngroupID = s2.spawngroupID WHERE nt.loottable_id > 0 and nt.level >= 10");
 
       foreach ($npcLootTables as $entry => $entryInfo) {
-         list($name,$lootTableId) = explode("^",$entry);
+         list($name,$lootTableId,$zone,$s2Exp,$seExp) = explode("^",$entry);
+         list($s2MinExp,$s2MaxExp) = explode('-',$s2Exp);
+         list($seMinExp,$seMaxExp) = explode('-',$seExp);
+
+         list($minExp,$maxExp) = explode('-',$this->calculateExpansion($s2MinExp,$s2MaxExp,$seMinExp,$seMaxExp));
 
          $cleanName = $this->cleanName($name);
 
          $index = sprintf("%s.%d",strtolower($cleanName),$lootTableId);
          $hash  = hash("crc32",$index);
 
-         $return['data'][$index] = array(
-            'hash'         => $hash,
-            'raw_name'     => $name,
-            'name'         => $cleanName,
-            'loottable_id' => $lootTableId,
-         );
+         if (!isset($return['data'][$index])) {
+            $return['data'][$index] = array(
+               'hash'          => $hash,
+               'raw_name'      => $name,
+               'name'          => $cleanName,
+               'min_expansion' => $minExp,
+               'max_expansion' => $maxExp,
+               'loottable_id'  => $lootTableId,
+            );
+         }
+
+         $return['data'][$index]['zone'][$zone] = true;
 
          $return['lookup'][$hash] = $index;
       }
@@ -220,6 +230,15 @@ class Data extends LWPLib\Base
    public function cleanName($name)
    {
       return preg_replace('/_/',' ',preg_replace("/[^a-z0-9\'_]+/i",'',$name));
+   }
+
+   public function calculateExpansion($s2Min = 0, $s2Max = 0, $seMin = 0, $seMax = 0)
+   {
+      $format = '%1.1f-%1.1f';
+
+      if ($s2Min == 0 && $s2Max == 0) { return sprintf($format,$seMin,$seMax); }
+
+      return sprintf($format,$s2Min,$s2Max);
    }
 
    public function fetch($name)

@@ -46,7 +46,13 @@ print "<style>\n".
       "</style>\n";
 
 $npcList = array();
-foreach ($npcLootTableList['data'] as $index => $data) { $npcList[$data['hash']] = sprintf("%s (%d)",$data['name'],$data['loottable_id']); }
+foreach ($npcLootTableList['data'] as $index => $data) { 
+   ksort($data['zone']);
+
+   $zoneList = implode('/',array_keys($data['zone']));
+   $lootExp  = ($data['min_expansion'] != 0 || $data['max_expansion'] != 0) ? sprintf("%1.1f-%1.1f; ",$data['min_expansion'],$data['max_expansion']) : '';
+   $npcList[$data['hash']] = sprintf("%s (%s%s)",$data['name'],$lootExp,$zoneList); 
+}
 
 print $alte->displayCard($alte->displayRow(
          $html->startForm().
