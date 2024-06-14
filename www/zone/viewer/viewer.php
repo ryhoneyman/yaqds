@@ -22,6 +22,8 @@ $main = new Main(array(
 $input = $main->obj('input');
 $html  = $main->obj('html');
 
+$main->title('Zone Viewer');
+
 $currentExpansion = $main->data->forceExpansion() ?: $main->data->currentExpansion();
 
 $zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
