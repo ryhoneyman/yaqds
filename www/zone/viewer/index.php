@@ -17,6 +17,8 @@ $main = new Main(array(
    'data'           => APP_CONFIGDIR.'/global.json',
 ));
 
+$main->title('Zone Viewer');
+
 include 'ui/header.php';
 
 print "<style>.vcolumns { column-gap:20px; column-count:5; }</style>\n";

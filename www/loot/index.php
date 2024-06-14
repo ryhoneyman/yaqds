@@ -22,6 +22,8 @@ $input = $main->obj('input');
 $html  = $main->obj('html');
 $alte  = $main->obj('adminlte');
 
+$main->title('Loot Viewer');
+
 $npcHash    = $input->get('npc','alphanumeric');
 $analyze    = $input->isDefined('analyze') ? true : false;
 $sample     = $input->isDefined('sample') ? true : false;
