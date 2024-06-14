@@ -1,0 +1,72 @@
+{
+    "default": {
+        "changed": {
+            "@state@": "{{STATE}}",
+            "@key@": "{{objectKey}}/{{objectValue}}",
+            "@info@": "{{objectInfo}}",
+            "@changes@": "{{OBJECTCHANGES}}"
+        }
+    },
+    "table": {
+        "spawn2": {
+            "default": ["STATE","spawnGroupId","npcNameList","zoneName","location","respawnTime","pathGrid","enabled","minExpansion","maxExpansion"]
+        },
+        "npc_types": {
+            "default": ["STATE","npcId","npcName","spawnGroupIdList","zoneNameList"]
+        },
+        "items": {
+            "default": ["STATE","itemId","itemName","minExpansion","maxExpansion"]
+        },
+        "zone": {
+            "default": ["STATE","zoneIdNumber","zoneName","zoneLongName","expansion","minLevel","zoneExpMultiplier","reducedSpawnTimers","canBind","outdoor","dungeon"]
+        },
+        "zone_points": {
+            "default": ["STATE","zonePointId","zoneName","zonePointNumber","targetZoneName","targetY","targetX","targetZ"]
+        },
+        "merchantlist": {
+            "default": ["STATE","itemId","itemName","merchantId","npcNameList","zoneNameList"]
+        },
+        "grid_entries": {
+            "default": ["STATE","gridId","zoneId","gridNumber","zoneName"]
+        },
+        "spawngroup": {
+            "default": ["STATE","spawnGroupId","spawnGroupName","npcNameList","zoneNameList"]
+        },
+        "spawnentry": {
+            "default": ["STATE","spawnGroupId","spawnGroupName","npcId","npcName"]
+        },
+        "object": {
+            "default": ["STATE","itemId","itemName","zoneId","zoneName","posY","posX","posZ"]
+        },
+        "lootdrop": {
+            "default": ["STATE","lootdropId","lootdropName","npcNameList","itemNameList"]
+        },
+        "lootdrop_entries": {
+            "default": ["STATE","itemId","itemName","lootdropId","loottableIdList","npcNameList","dropChance"]
+        },
+        "loottable": {
+            "default": ["STATE","loottableId","loottableName","npcNameList","itemNameList"]
+        },
+        "loottable_entries": {
+            "default": ["STATE","lootdropId","loottableId","npcNameList","itemNameList"]
+        },
+        "doors": {
+            "default": ["STATE","doorId","doorType","zoneName","posY","posX","posZ"]
+        },
+        "traps": {
+            "default": ["STATE","trapId","zoneName","posY","posX","posZ","trapChance","radius","impact"]
+        },
+        "fishing": {
+            "default": ["STATE","zoneId","zoneName","itemId","itemName","skillLevel","catchChance"]
+        },
+        "tradeskill_recipe": {
+            "default": ["STATE","recipeId","recipeName","tradeskillId","skillNeeded","trivial","noFail","notes","quest","enabled"]
+        },
+        "tradeskill_recipe_entries": {
+            "default": ["STATE","recipeEntryId","recipeId","recipeName","itemId","itemName","recipeEntryType","recipeEntryCount"]
+        },
+        "ground_spawns": {
+            "default": ["STATE","zoneId","zoneName","itemId","itemName","location","respawnTime","comment"]
+        }
+    }
+}
