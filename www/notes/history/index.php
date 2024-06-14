@@ -12,6 +12,18 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.3.0',
+      'datetime' => '2024-06-14 20:30 UTC',
+      'changes' => array(
+         'system' => array(),
+         'frontend' => array(
+            'Added Database Changes (used to perform enriched database differentials)'
+         ),
+         'backend'  => array(),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.2.0',
       'datetime' => '2024-05-29 13:00 UTC',
       'changes' => array(
