@@ -41,7 +41,7 @@ include 'ui/header.php';
 print $alte->displayCard($alte->displayRow(
     $html->startForm().
     "<div class='input-group' style='width:fit-content;'>".    
-    $html->select('oldDate',$pulldown,'20240419').
+    $html->select('oldDate',$pulldown,'20240415').
     $html->select('newDate',$pulldown,'20240529').
     "</div>".
     $html->endForm(),
