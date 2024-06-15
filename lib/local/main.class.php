@@ -25,6 +25,13 @@ class Main extends LWPLib\MainBase
       $this->var('title',$name);
    }
 
+   public function pageDescription($description = null)
+   {
+      if (is_null($description)) { return $this->var('pageDescription'); }
+
+      $this->var('pageDescription',$description);
+   }
+
    public function initialize($options)
    {
       parent::initialize($options);

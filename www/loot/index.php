@@ -23,6 +23,7 @@ $html  = $main->obj('html');
 $alte  = $main->obj('adminlte');
 
 $main->title('Loot Viewer');
+$main->pageDescription('Simulate and analyze loot drops from NPCs');
 
 $npcHash    = $input->get('npc','alphanumeric');
 $analyze    = $input->isDefined('analyze') ? true : false;

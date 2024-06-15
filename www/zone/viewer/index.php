@@ -18,6 +18,7 @@ $main = new Main(array(
 ));
 
 $main->title('Zone Viewer');
+$main->pageDescription('Load zone maps to view terrain and spawn data');
 
 include 'ui/header.php';
 

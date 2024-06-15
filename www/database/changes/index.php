@@ -23,6 +23,7 @@ $html  = $main->obj('html');
 $alte  = $main->obj('adminlte');
 
 $main->title('Database Changes');
+$main->pageDescription('Perform enriched database differentials between data sets');
 
 $diffOldDate = '20240419';
 $diffNewDate = '20240529';

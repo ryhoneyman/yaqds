@@ -9,11 +9,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="description" content="Yet Another Quarm Database Site offers informative resources for players of Project Quarm.">
+  <meta name="description" content="<?php print ($main->pageDescription() ?: 'Yet Another Quarm Database Site offers informative resources for players of Project Quarm.');?>">
+  <meta name="image" content="">
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 
-  <title><?php print 'Yet Another Quarm Database Site: '.($main->title() ?: 'Project Quarm Information'); ?></title>
+  <title><?php print 'YAQDS :: '.($main->title() ?: 'Project Quarm Information'); ?></title>
 <!-- REQUIRED SCRIPTS -->
 <!-- jQuery -->
 <script src="/assets/alte/current/plugins/jquery/jquery.min.js"></script>
