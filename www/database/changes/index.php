@@ -49,7 +49,7 @@ print $alte->displayCard($alte->displayRow(
  ),array('title' => 'Choose two dates to compare (statically set for now)', 'container' => 'col-xl-9 col-12'));
 
 printf("<h5>Enriched database differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
-       $pulldown['20240419'],$pulldown['20240529']);
+       $pulldown['20240415'],$pulldown['20240529']);
 
 foreach ($diff['modifiedTables'] as $tableName => $stateList) {
     if (is_string($formats['table'][$tableName]['default'])) { continue; }
