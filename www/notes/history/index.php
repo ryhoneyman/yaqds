@@ -7,6 +7,7 @@ $main = new Main(array(
 ));
 
 $main->title('Patch Notes History');
+$main->pageDescription('History and content for patch releases');
 
 include 'ui/header.php';
 

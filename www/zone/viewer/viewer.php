@@ -40,6 +40,8 @@ $zoneInfo = $main->data->getZoneInfoByName($zoneName);
 
 if (!$zoneInfo) { $main->redirect('/map/viewer/'); }
 
+$main->pageDescription('Map and spawn data for: '.$zoneInfo['long_name']);
+
 if ($ignoreXpn) { $currentExpansion = null; }
 
 $bgCSS = (preg_match('/^default$/',$bgControl)) ? "background-image: url('/images/mapbg.jpg');" : "background-color: $bgControl;";
