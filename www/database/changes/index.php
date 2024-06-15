@@ -25,11 +25,11 @@ $alte  = $main->obj('adminlte');
 $main->title('Database Changes');
 $main->pageDescription('Perform enriched database differentials between data sets');
 
-$diffOldDate = '20240419';
+$diffOldDate = '20240415';
 $diffNewDate = '20240529';
 
 $pulldown = [
-    '20240419' => '2024-04-19',
+    '20240415' => '2024-04-15',
     '20240529' => '2024-05-29 (latest)',
 ];
 
@@ -86,7 +86,10 @@ foreach ($diff['modifiedTables'] as $tableName => $stateList) {
         $objectChanges = [];
 
         foreach ($rowData['after'] as $changeKey => $newValue) {
-            $objectChanges[] = sprintf("<small class='badge badge-secondary'>%s</small><small>(%s -> %s)</small>",$changeKey,$rowData['before'][$changeKey],$newValue);
+            // If we have a translated entry, skip this raw entry and use that one instead
+            if ($rowData['after']['_'.$changeKey]) { continue; }
+
+            $objectChanges[] = sprintf("<small class='badge badge-secondary'>%s</small><small>(%s -> %s)</small>",ltrim($changeKey,'_'),$rowData['before'][$changeKey],$newValue);
         }
 
         $rowData['OBJECTCHANGES'] = implode(' ',$objectChanges);
