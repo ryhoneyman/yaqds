@@ -28,13 +28,28 @@ $main->pageDescription('Perform enriched database differentials between data set
 $diffOldDate = '20240419';
 $diffNewDate = '20240529';
 
+$pulldown = [
+    '20240419' => '2024-04-19',
+    '20240529' => '2024-05-29 (latest)',
+];
+
 $diff    = json_decode(file_get_contents(sprintf("%s/database/diffs/diff.%s.%s.json",APP_CONFIGDIR,$diffOldDate,$diffNewDate)),true);
 $formats = json_decode(file_get_contents('display.format.json'),true);
 
 include 'ui/header.php';
 
-printf("<h4>Enriched database differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h4><br>",
-       date('Y-m-d',strtotime($diffOldDate)),date('Y-m-d',strtotime($diffNewDate)));
+print $alte->displayCard($alte->displayRow(
+    $html->startForm().
+    "<div class='input-group' style='width:fit-content;'>".    
+    $html->select('oldDate',$pulldown,'20240419').
+    $html->select('newDate',$pulldown,'20240529').
+    "</div>".
+    $html->endForm(),
+    array('container' => 'col-xl-9 col-12')
+ ),array('title' => 'Choose two dates to compare (statically set for now)', 'container' => 'col-xl-9 col-12'));
+
+printf("<h5>Enriched database differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
+       $pulldown['20240419'],$pulldown['20240529']);
 
 foreach ($diff['modifiedTables'] as $tableName => $stateList) {
     if (is_string($formats['table'][$tableName]['default'])) { continue; }
@@ -82,10 +97,14 @@ foreach ($diff['modifiedTables'] as $tableName => $stateList) {
     $changesHeader = preg_replace_callback('/@(?<key>\S+?)@/','badgeReplace',"<tr><th>".implode("</td><td>",array_keys($formats['default']['changed'] ?: []))."</th></tr>\n");
     $changesTable  = ($changes) ? sprintf("<table class='table table-sm table-striped' border=0>\n%s\n%s</table>",$changesHeader,implode('',$changes)) : '';
 
+    $sectionTitle = sprintf("<span class='text-lime'>%s</span> (%d added, %d removed, %d changed)",$tableName,$stateList['added'],$stateList['removed'],$stateList['changed']);
+
+
     print $alte->displayCard($alte->displayRow(
         $addsRemovesTable.$changesTable,
         array('container' => 'col-xl-9 col-12')
-    ),array('container' => 'col-xl-9 col-12', 'title' => $tableName, 'card' => 'card-secondary collapsed-card', 'tools' => "<button type='button' class='btn btn-tool' data-card-widget='collapse' data-expand-icon='fa-caret-down' data-collapse-icon='fa-caret-up'><i class='fa fa-caret-down'></i></button>"));
+    ),array('container' => 'col-xl-9 col-12', 'title' => $sectionTitle, 'card' => 'card-secondary collapsed-card', 'extra' => "data-card-widget='collapse'", 
+            'tools' => "<button type='button' class='btn btn-tool' data-card-widget='collapse' data-expand-icon='fa-caret-down' data-collapse-icon='fa-caret-up'><i class='fa fa-caret-down'></i></button>"));
 }
 
 include 'ui/footer.php';
