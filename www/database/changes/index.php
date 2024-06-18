@@ -28,29 +28,37 @@ $main->pageDescription('Perform enriched database differentials between data set
 $diffValue = $input->get('diff','numeric,dash') ?: null;
 $download  = $input->get('download','alphanumeric') ?: null;
 
-$databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
-$diffAvailable = $databaseInfo['diffs'];
-$dbLabels      = $databaseInfo['labels'];
+$databaseInfo     = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
+$formats          = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/display.format.json'),true);
+$diffsList        = $databaseInfo['diffs'];
+$diffAvailable    = array_merge($diffsList['releases'],$diffsList['sequential']);
+$dbLabels         = $databaseInfo['labels'];
+$dbDiffDir        = sprintf("%s/database/changes/diffs",APP_CONFIGDIR);
+$dbDiffFileFormat = "diff.%s.%s.json";
 
 if (!in_array($diffValue,$diffAvailable)) { $diffValue = end($diffAvailable); }
 
 $pulldown = [];
-foreach ($diffAvailable as $diffDates) {
-    list($oldDate,$newDate) = explode('-',$diffDates);
-    $pulldown[sprintf("%s-%s",$oldDate,$newDate)] = sprintf("%s ---> %s",$dbLabels[$oldDate],$dbLabels[$newDate]);
+foreach ($diffsList as $diffSection => $diffDatesList) {
+    foreach ($diffDatesList as $diffDates) {
+        list($oldDate,$newDate) = explode('-',$diffDates);
+
+        if (!file_exists(sprintf("%s/%s",$dbDiffDir,sprintf($dbDiffFileFormat,$oldDate,$newDate)))) { continue; }
+
+        $pulldown[ucfirst($diffSection)][sprintf("%s-%s",$oldDate,$newDate)] = sprintf("%s ---> %s",$dbLabels[$oldDate],$dbLabels[$newDate]);
+    }
 }
 
 list($diffOldDate,$diffNewDate) = explode('-',$diffValue);
 
-$diffFileName = sprintf("diff.%s.%s.json",$diffOldDate,$diffNewDate);
+$diffFileName = sprintf($dbDiffFileFormat,$diffOldDate,$diffNewDate);
 
 if ($download) {
     header("Location: https://github.com/ryhoneyman/yaqds/raw/main/etc/database/changes/diffsgz/$diffFileName.gz");
     exit;
 }
 
-$diff    = json_decode(file_get_contents(sprintf("%s/database/changes/diffs/$diffFileName",APP_CONFIGDIR)),true);
-$formats = json_decode(file_get_contents(sprintf("%s/database/changes/display.format.json",APP_CONFIGDIR)),true);
+$diff = json_decode(file_get_contents(sprintf("%s/%s",$dbDiffDir,$diffFileName)),true);
 
 include 'ui/header.php';
 
