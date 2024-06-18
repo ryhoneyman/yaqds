@@ -7,7 +7,7 @@ $main = new Main(array(
    'debugType'      => DEBUG_HTML,
    'errorReporting' => false,
    'sessionStart'   => true,
-   'memoryLimit'    => '512M',
+   'memoryLimit'    => '256M',
    'sendHeaders'    => true,
    'dbConfigDir'    => APP_CONFIGDIR,
    'fileDefine'     => APP_CONFIGDIR.'/defines.json',
@@ -25,34 +25,49 @@ $alte  = $main->obj('adminlte');
 $main->title('Database Changes');
 $main->pageDescription('Perform enriched database differentials between data sets');
 
-$diffOldDate = '20240529';
-$diffNewDate = '20240618';
+$diffValue = $input->get('diff','numeric,dash') ?: null;
+$download  = $input->get('download','alphanumeric') ?: null;
 
-$pulldown = [
-    '20231001' => '2023-10-01 (official release)',
-    '20240317' => '2024-03-17',
-    '20240415' => '2024-04-15',
-    '20240529' => '2024-05-29',
-    '20240618' => '2024-06-18 (latest)',
-];
+$databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
+$diffAvailable = $databaseInfo['diffs'];
+$dbLabels      = $databaseInfo['labels'];
 
-$diff    = json_decode(file_get_contents(sprintf("%s/database/diffs/diff.%s.%s.json",APP_CONFIGDIR,$diffOldDate,$diffNewDate)),true);
-$formats = json_decode(file_get_contents('display.format.json'),true);
+if (!in_array($diffValue,$diffAvailable)) { $diffValue = end($diffAvailable); }
+
+$pulldown = [];
+foreach ($diffAvailable as $diffDates) {
+    list($oldDate,$newDate) = explode('-',$diffDates);
+    $pulldown[sprintf("%s-%s",$oldDate,$newDate)] = sprintf("%s ---> %s",$dbLabels[$oldDate],$dbLabels[$newDate]);
+}
+
+list($diffOldDate,$diffNewDate) = explode('-',$diffValue);
+
+$diffFileName = sprintf("diff.%s.%s.json",$diffOldDate,$diffNewDate);
+
+if ($download) {
+    header("Location: https://github.com/ryhoneyman/yaqds/raw/main/etc/database/changes/diffsgz/$diffFileName.gz");
+    exit;
+}
+
+$diff    = json_decode(file_get_contents(sprintf("%s/database/changes/diffs/$diffFileName",APP_CONFIGDIR)),true);
+$formats = json_decode(file_get_contents(sprintf("%s/database/changes/display.format.json",APP_CONFIGDIR)),true);
 
 include 'ui/header.php';
+
+$selectOpts = array('class' => 'form-control gear', 'script' => 'onchange="autoChange(this.value);"');
 
 print $alte->displayCard($alte->displayRow(
     $html->startForm().
     "<div class='input-group' style='width:fit-content;'>".    
-    $html->select('oldDate',$pulldown,$diffOldDate).
-    $html->select('newDate',$pulldown,$diffNewDate).
+    $html->select('diff',$pulldown,$diffValue,$selectOpts).
+    $html->submit('download','Download',array('class' => 'btn-wide btn btn-success')).
     "</div>".
     $html->endForm(),
-    array('container' => 'col-xl-9 col-12')
- ),array('title' => 'Choose two dates to compare (statically set for now)', 'container' => 'col-xl-9 col-12'));
+    array('container' => 'col-xl-12 col-12')
+ ),array('title' => 'Choose a differential set to compare', 'container' => 'col-xl-12 col-12'));
 
-printf("<h5>Enriched database differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
-       $pulldown[$diffOldDate],$pulldown[$diffNewDate]);
+printf("<h5>Differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
+       $dbLabels[$diffOldDate],$dbLabels[$diffNewDate]);
 
 ksort($diff['modifiedTables']);
 
