@@ -21,7 +21,7 @@
             "default": ["STATE","id","name","spawnGroupIdList","zoneNameList"]
         },
         "items": {
-            "default": ["STATE","itemId","itemName","minExpansion","maxExpansion"]
+            "default": ["STATE","id","Name","min_expansion","max_expansion"]
         },
         "zone": {
             "default": ["STATE","zoneidnumber","short_name","long_name","expansion","min_level","zemPercent","reducedspawntimers","canbind","outdoor","dungeon"]
