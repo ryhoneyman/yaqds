@@ -1,0 +1,14 @@
+{
+    "labels": {
+        "20231001": "2023-10-01 (Classic 1.0, Launch)",
+        "20240317": "2024-03-17 (Classic 1.6, release, The Hole)",
+        "20240415": "2024-04-15 (Classic 1.6, patch II)",
+        "20240529": "2024-05-29 (Classic 1.9, release, Early Access Kunark)",
+        "20240618": "2024-06-18 (Classic 1.9, patch II, latest)"
+    },
+    "diffs": [
+        "20240317-20240415",
+        "20240415-20240529",
+        "20240529-20240618"
+    ]
+}
