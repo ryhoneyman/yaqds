@@ -115,8 +115,8 @@ foreach ($diff['modifiedTables'] as $tableName => $stateList) {
 
     print $alte->displayCard($alte->displayRow(
         $addsRemovesTable.$changesTable,
-        array('container' => 'col-xl-9 col-12')
-    ),array('container' => 'col-xl-9 col-12', 'title' => $sectionTitle, 'card' => 'card-secondary collapsed-card', 'extra' => "data-card-widget='collapse'", 
+        array('container' => 'col-xl-12 col-12')
+    ),array('container' => 'col-xl-12 col-12', 'title' => $sectionTitle, 'card' => 'card-secondary collapsed-card', 'extra' => "data-card-widget='collapse'", 
             'tools' => "<button type='button' class='btn btn-tool' data-card-widget='collapse' data-expand-icon='fa-caret-down' data-collapse-icon='fa-caret-up'><i class='fa fa-caret-down'></i></button>"));
 }
 
