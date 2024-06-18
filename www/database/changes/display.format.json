@@ -1,5 +1,11 @@
 {
-    "default": {
+    "labels": {
+        "grid": {
+            "type": "wander",
+            "type2": "pause"
+        }
+    },
+    "global": {
         "changed": {
             "@state@": "{{STATE}}",
             "@key@": "{{objectKey}}/{{objectValue}}",
@@ -9,64 +15,97 @@
     },
     "table": {
         "spawn2": {
-            "default": ["STATE","spawnGroupId","npcNameList","zoneName","location","respawnTime","pathGrid","enabled","minExpansion","maxExpansion"]
+            "default": ["STATE","spawngroupID","npcNameList","zone","location","respawntime","pathgrid","enabled","min_expansion","max_expansion"]
         },
         "npc_types": {
-            "default": ["STATE","npcId","npcName","spawnGroupIdList","zoneNameList"]
+            "default": ["STATE","id","name","spawnGroupIdList","zoneNameList"]
         },
         "items": {
             "default": ["STATE","itemId","itemName","minExpansion","maxExpansion"]
         },
         "zone": {
-            "default": ["STATE","zoneIdNumber","zoneName","zoneLongName","expansion","minLevel","zoneExpMultiplier","reducedSpawnTimers","canBind","outdoor","dungeon"]
+            "default": ["STATE","zoneidnumber","short_name","long_name","expansion","min_level","zemPercent","reducedspawntimers","canbind","outdoor","dungeon"]
         },
         "zone_points": {
-            "default": ["STATE","zonePointId","zoneName","zonePointNumber","targetZoneName","targetY","targetX","targetZ"]
+            "default": ["STATE","id","zone","number","targetZoneName","target_y","target_x","target_z"]
         },
         "merchantlist": {
-            "default": ["STATE","itemId","itemName","merchantId","npcNameList","zoneNameList"]
+            "default": ["STATE","id","itemName","merchantId","npcNameList","zoneNameList"]
         },
         "grid_entries": {
-            "default": ["STATE","gridId","zoneId","gridNumber","zoneName"]
+            "default": ["STATE","gridid","zoneName","number"]
         },
         "spawngroup": {
-            "default": ["STATE","spawnGroupId","spawnGroupName","npcNameList","zoneNameList"]
+            "default": ["STATE","id","name","npcNameList","zoneNameList"]
         },
         "spawnentry": {
-            "default": ["STATE","spawnGroupId","spawnGroupName","npcId","npcName"]
+            "default": ["STATE","spawngroupID","spawnGroupName","npcID","npcName"]
         },
         "object": {
-            "default": ["STATE","itemId","itemName","zoneId","zoneName","posY","posX","posZ"]
+            "default": ["STATE","itemid","itemName","zoneid","zoneName","ypos","xpos","zpos"]
         },
         "lootdrop": {
-            "default": ["STATE","lootdropId","lootdropName","npcNameList","itemNameList"]
+            "default": ["STATE","id","name","npcNameList","itemNameList"]
         },
         "lootdrop_entries": {
-            "default": ["STATE","itemId","itemName","lootdropId","loottableIdList","npcNameList","dropChance"]
+            "default": ["STATE","item_id","itemName","lootdrop_id","loottableIdList","npcNameList","chance"]
         },
         "loottable": {
-            "default": ["STATE","loottableId","loottableName","npcNameList","itemNameList"]
+            "default": ["STATE","id","name","npcNameList","itemNameList"]
         },
         "loottable_entries": {
-            "default": ["STATE","lootdropId","loottableId","npcNameList","itemNameList"]
+            "default": ["STATE","lootdrop_id","loottable_id","npcNameList","itemNameList"]
         },
         "doors": {
-            "default": ["STATE","doorId","doorType","zoneName","posY","posX","posZ"]
+            "default": ["STATE","id","name|doorType","zone","pos_y","pos_x","pos_z"]
         },
         "traps": {
-            "default": ["STATE","trapId","zoneName","posY","posX","posZ","trapChance","radius","impact"]
+            "default": ["STATE","id","zone","y","x","z","chance","radius","impact"]
         },
         "fishing": {
-            "default": ["STATE","zoneId","zoneName","itemId","itemName","skillLevel","catchChance"]
+            "default": ["STATE","zoneid","zoneName","Itemid","itemName","skill_level","chance"]
         },
         "tradeskill_recipe": {
-            "default": ["STATE","recipeId","recipeName","tradeskillId","skillNeeded","trivial","noFail","notes","quest","enabled"]
+            "default": ["STATE","id","name","tradeskill","skillneeded","trivial","nofail","notes","quest","enabled"]
         },
         "tradeskill_recipe_entries": {
-            "default": ["STATE","recipeEntryId","recipeId","recipeName","itemId","itemName","recipeEntryType","recipeEntryCount"]
+            "default": ["STATE","id","recipe_id","recipeName","item_id","itemName","recipeEntryType","recipeEntryCount"]
         },
         "ground_spawns": {
-            "default": ["STATE","zoneId","zoneName","itemId","itemName","location","respawnTime","comment"]
+            "default": ["STATE","zoneid","zoneName","item","itemName","location","respawn_timer","comment"]
+        },
+        "spawn_condition_values": {
+            "default": ["STATE","id","value","zone"]
+        },
+        "spawn_events": {
+            "default": ["STATE","id","name","cond_id","period","enabled"]
+        },
+        "grid": {
+            "default": ["STATE","id","zoneName","npcNameList","type","type2"]
+        },
+        "graveyard": {
+            "default": ["STATE","id","zoneName","y","x","z"]
+        },
+        "faction_list": {
+            "default": ["STATE","id","name","base","see_illusion","min_cap","max_cap"]
+        },
+        "blocked_spells": {
+            "default": ["STATE","id","spellName","zoneName","location","description"]
+        },
+        "faction_list_mod": {
+            "default": ["STATE","id","factionName","mod","mod_name"]
+        },
+        "forage": {
+            "default": ["STATE","id","zoneName","itemName","level","chance"]
+        },
+        "keyring_data": {
+            "default": ["STATE","key_name","itemName","zoneName","stage"]
+        },
+        "saylink": {
+            "default": ["STATE","id","phrase"]
+        },
+        "skill_caps": {
+            "default": ["STATE","skillName","className","level","cap"]
         }
     }
 }

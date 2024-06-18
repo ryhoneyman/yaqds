@@ -7,7 +7,7 @@ $main = new Main(array(
    'debugType'      => DEBUG_HTML,
    'errorReporting' => false,
    'sessionStart'   => true,
-   'memoryLimit'    => '256M',
+   'memoryLimit'    => '512M',
    'sendHeaders'    => true,
    'dbConfigDir'    => APP_CONFIGDIR,
    'fileDefine'     => APP_CONFIGDIR.'/defines.json',
@@ -25,12 +25,15 @@ $alte  = $main->obj('adminlte');
 $main->title('Database Changes');
 $main->pageDescription('Perform enriched database differentials between data sets');
 
-$diffOldDate = '20240415';
-$diffNewDate = '20240529';
+$diffOldDate = '20240529';
+$diffNewDate = '20240618';
 
 $pulldown = [
+    '20231001' => '2023-10-01 (official release)',
+    '20240317' => '2024-03-17',
     '20240415' => '2024-04-15',
-    '20240529' => '2024-05-29 (latest)',
+    '20240529' => '2024-05-29',
+    '20240618' => '2024-06-18 (latest)',
 ];
 
 $diff    = json_decode(file_get_contents(sprintf("%s/database/diffs/diff.%s.%s.json",APP_CONFIGDIR,$diffOldDate,$diffNewDate)),true);
@@ -41,21 +44,25 @@ include 'ui/header.php';
 print $alte->displayCard($alte->displayRow(
     $html->startForm().
     "<div class='input-group' style='width:fit-content;'>".    
-    $html->select('oldDate',$pulldown,'20240415').
-    $html->select('newDate',$pulldown,'20240529').
+    $html->select('oldDate',$pulldown,$diffOldDate).
+    $html->select('newDate',$pulldown,$diffNewDate).
     "</div>".
     $html->endForm(),
     array('container' => 'col-xl-9 col-12')
  ),array('title' => 'Choose two dates to compare (statically set for now)', 'container' => 'col-xl-9 col-12'));
 
 printf("<h5>Enriched database differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
-       $pulldown['20240415'],$pulldown['20240529']);
+       $pulldown[$diffOldDate],$pulldown[$diffNewDate]);
+
+ksort($diff['modifiedTables']);
 
 foreach ($diff['modifiedTables'] as $tableName => $stateList) {
     if (is_string($formats['table'][$tableName]['default'])) { continue; }
 
-    $tableFormatKeys = array_map(function($value) { return "@$value:warning@"; },$formats['table'][$tableName]['default'] ?: []);
-    $tableFormatVals = array_map(function($value) { return '{{'.$value.'}}'; },$formats['table'][$tableName]['default'] ?: []);
+    $formatLabels = $formats['labels'][$tableName];
+
+    $tableFormatKeys = array_map(function($value) use ($formatLabels) { return "@$value|".$formatLabels[$value].":warning@"; },$formats['table'][$tableName]['default'] ?: []);
+    $tableFormatVals = array_map(function($value) { return '{{'.preg_replace('/^(\w+).*$/','$1',$value).'}}'; },$formats['table'][$tableName]['default'] ?: []);
 
     $addsRemoves = [];
     $changes     = [];
@@ -89,15 +96,18 @@ foreach ($diff['modifiedTables'] as $tableName => $stateList) {
             // If we have a translated entry, skip this raw entry and use that one instead
             if ($rowData['after']['_'.$changeKey]) { continue; }
 
-            $objectChanges[] = sprintf("<small class='badge badge-secondary'>%s</small><small>(%s -> %s)</small>",ltrim($changeKey,'_'),$rowData['before'][$changeKey],$newValue);
+            $changeKeyValue   = ltrim($changeKey,'_');
+            $changeKeyLabel   = $formats['labels'][$tableName][$changeKeyValue];
+            $changeKeyDisplay = ($changeKeyLabel) ? "$changeKeyLabel ($changeKeyValue)" : $changeKeyValue;
+            $objectChanges[]  = sprintf("<small class='badge badge-secondary'>%s</small><small>(%s -> %s)</small>",$changeKeyDisplay,$rowData['before'][$changeKey],$newValue);
         }
 
         $rowData['OBJECTCHANGES'] = implode(' ',$objectChanges);
 
-        $changes[] = displayFormattedData("<tr><td>".implode("</td><td>",array_values($formats['default']['changed'] ?: []))."</td></tr>\n",$rowData);
+        $changes[] = displayFormattedData("<tr><td>".implode("</td><td>",array_values($formats['global']['changed'] ?: []))."</td></tr>\n",$rowData);
     }
 
-    $changesHeader = preg_replace_callback('/@(?<key>\S+?)@/','badgeReplace',"<tr><th>".implode("</td><td>",array_keys($formats['default']['changed'] ?: []))."</th></tr>\n");
+    $changesHeader = preg_replace_callback('/@(?<key>\S+?)@/','badgeReplace',"<tr><th>".implode("</td><td>",array_keys($formats['global']['changed'] ?: []))."</th></tr>\n");
     $changesTable  = ($changes) ? sprintf("<table class='table table-sm table-striped' border=0>\n%s\n%s</table>",$changesHeader,implode('',$changes)) : '';
 
     $sectionTitle = sprintf("<span class='text-lime'>%s</span> (%d added, %d removed, %d changed)",$tableName,$stateList['added'],$stateList['removed'],$stateList['changed']);
@@ -117,21 +127,26 @@ include 'ui/footer.php';
 
 function badgeReplace($matches)
 {
-    list($value,$badgeColor) = explode(':',$matches['key']);
+    list($valueLabel,$badgeColor) = explode(':',$matches['key']);
+    list($value,$label)           = explode('|',$valueLabel);
 
     if (!$badgeColor) { $badgeColor = 'secondary'; }
 
-    return sprintf("<small class='badge badge-%s'>%s</small>",$badgeColor,$value);
+    return sprintf("<small class='badge badge-%s'>%s</small>",$badgeColor,$label ? "$label ($value)" : $value);
 }
 
 function displayFormattedData($format, $values) 
 {
-   if (!is_null($values) && is_array($values)) {
-      $replace = array();
-      foreach ($values as $key => $value) { $replace['{{'.$key.'}}'] = ((is_array($value)) ? implode('; ',array_filter(array_unique($value))) : ((is_bool($value)) ? json_encode($value) : $value)); }
+    if (!is_null($values) && is_array($values)) {
+        $replace = array();
+        foreach ($values as $key => $value) { 
+            if (isset($values['_'.$key])) { continue; }
+
+            $replace['{{'.ltrim($key,'_').'}}'] = ((is_array($value)) ? implode('; ',array_filter(array_unique($value))) : ((is_bool($value)) ? json_encode($value) : $value)); 
+        }
 
       $format = str_replace(array_keys($replace),array_values($replace),$format);
-   }
+    }
 
    return $format;
 }
