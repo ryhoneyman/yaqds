@@ -1,9 +1,17 @@
 {
     "labels": {
-        "20231001": "2023-10-01 (Classic 1.0, Launch)",
-        "20240317": "2024-03-17 (Classic 1.6, release, The Hole)",
+        "20231001": "2023-10-01 (Classic 1.0, release I, Launch)",
+        "20231008": "2023-01-01 (classic 1.0, patch II)",
+        "20231014": "2023-01-01 (Classic 1.0, patch III)",
+        "20231104": "2023-01-01 (Classic 1.0, patch IV)",
+        "20231129": "2023-01-01 (Classic 1.0, patch V)",
+        "20231213": "2023-01-01 (Classic 1.0, patch VI)",
+        "20231226": "2023-01-01 (Classic 1.3, release I, Temple SolRo/Classic Planes)",
+        "20240118": "2023-01-01 (Classic 1.3, patch II)",
+        "20240213": "2023-01-01 (Classic 1.3, patch III)",
+        "20240317": "2024-03-17 (Classic 1.6, release I, The Hole)",
         "20240415": "2024-04-15 (Classic 1.6, patch II)",
-        "20240529": "2024-05-29 (Classic 1.9, release, Early Access Kunark)",
+        "20240529": "2024-05-29 (Classic 1.9, release I, Early Access Kunark)",
         "20240618": "2024-06-18 (Classic 1.9, patch II, latest)"
     },
     "diffs": [
