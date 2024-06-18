@@ -43,13 +43,14 @@ $dbFiles   = getDatabaseFiles($dbDir);
 $processed = [];
 
 $databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
-$diffAvailable = $databaseInfo['diffs'];
+$diffsList     = $databaseInfo['diffs'];
+$diffAvailable = array_merge($diffsList['sequential'],$diffsList['releases']);
 
 foreach ($diffAvailable as $diffKey) {
    list($dbOldDate,$dbNewDate) = explode('-',$diffKey);
 
-   $diffFile  = APP_CONFIGDIR."/database/diffs/diff.$dbOldDate.$dbNewDate.json";
-   $diffGz    = APP_CONFIGDIR."/database/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
+   $diffFile  = APP_CONFIGDIR."/database/changes/diffs/diff.$dbOldDate.$dbNewDate.json";
+   $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
    
    if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && !$force)) { continue; }
 
