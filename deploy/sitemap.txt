@@ -1,3 +1,5 @@
-https://yaqds.bytelligence.com/index.php
-https://yaqds.bytelligence.com/zone/viewer/index.php
-https://yaqds.bytelligence.com/notes/history/index.php
+https://yaqds.cc/index.php
+https://yaqds.cc/zone/viewer/index.php
+https://yaqds.cc/loot/index.php
+https://yaqds.cc/database/changes/index.php
+https://yaqds.cc/notes/history/index.php
