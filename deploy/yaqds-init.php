@@ -1,6 +1,7 @@
 <?php
 
 define('APP_BASEDIR','/opt/yaqds');
+#define('APP_BASEDIR','/home/u690380958/domains/yaqds.cc');  ### Hostinger
 define('APP_LIBDIR',APP_BASEDIR.'/lib');
 define('APP_WEBDIR',APP_BASEDIR.'/www');
 define('APP_CACHEDIR',APP_BASEDIR.'/cache');   // dynamic cache
