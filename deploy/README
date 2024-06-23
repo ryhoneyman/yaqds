@@ -1,2 +1,8 @@
 ### First time lwplib init on destination
 git submodule update --init --recursive
+
+### Hostinger:  
+# copy .htaccess, robots.txt sitemap.txt to www (webroot)
+# change PHP version to 7.4, in PHP Configuration admin panel on hostinger.com
+# update yaqds-init.php and make sure paths are correct
+
