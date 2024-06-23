@@ -1,0 +1,134 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => false,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+
+$main->var('days',30);
+$main->var('maxRuns',10000);
+
+$main->var('itemDrops',[
+   'Undead Dragongut Strings' => [
+      ['name' => 'An Undead Bard / Trakanon', 'spawn-min' => 18, 'spawn-max' => 18, 'chance' => 100],
+   ],
+   'Kedge Backbone' => [
+      ['name' => 'Phinigel Autropos', 'spawn-min' => 18, 'spawn-max' => 18, 'chance' => 50],
+   ],
+   'White Dragon Scales' => [
+      ['name' => 'Gorenaire', 'spawn-min' => 66, 'spawn-max' => 66, 'chance' => 19],
+      ['name' => 'Lady Vox', 'spawn-min' => 162, 'spawn-max' => 162, 'chance' => 9],
+   ],
+   'Red Dragon Scales' => [
+      ['name' => 'Talendor', 'spawn-min' => 84, 'spawn-max' => 108, 'chance' => 20],
+      ['name' => 'Lord Nagafen', 'spawn-min' => 162, 'spawn-max' => 162, 'chance' => 8],
+      ['name' => 'Nortlav the Scalekeeper', 'spawn-min' => 66, 'spawn-max' => 66, 'chance' => 100],
+   ],
+   'Ball of Everliving Golem' => [
+      ['name' => 'Dread', 'spawn-min' => 66, 'spawn-max' => 66, 'chance' => 30],
+      ['name' => 'Fright', 'spawn-min' => 66, 'spawn-max' => 66, 'chance' => 30],
+      ['name' => 'Terror', 'spawn-min' => 66, 'spawn-max' => 66, 'chance' => 30],
+   ],
+   'Green Dragon Scales' => [
+      ['name' => 'Severilous', 'spawn-min' => 84, 'spawn-max' => 108, 'chance' => 20],
+   ],
+   'Hand of the Maestreo' => [
+      ['name' => 'Hand of the Maestro / A Very Unpleasant Hand', 'spawn-min' => 72, 'spawn-max' => 72, 'chance' => 100],
+   ],
+   'Spiroc Wingblade' => [
+      ['name' => 'The Spiroc Lord', 'spawn-min' => 18, 'spawn-max' => 18, 'chance' => 25],
+   ],
+   'Ancient Blade' => [
+      ['name' => 'Queen Velazul Di`zok', 'spawn-min' => 2, 'spawn-max' => 2, 'chance' => 100],
+   ],
+]);
+
+$main->var('itemGroup',[
+   'bard'    => ['Undead Dragongut Strings','Kedge Backbone','White Dragon Scales','Red Dragon Scales'],
+   'warrior' => ['Green Dragon Scales','Red Dragon Scales','Ball of Everliving Golem','Hand of the Maestreo','Spiroc Wingblade','Ancient Blade']
+]);
+
+$group = 'bard';
+
+foreach (($main->var('itemGroup'))[$group] as $itemName) {
+   runDropAnalysis($main,$itemName);
+}
+print "\n";
+
+?>
+<?php
+
+function runDropAnalysis($main, $itemName)
+{
+   $itemDrops = $main->var('itemDrops');
+   $maxRuns   = $main->var('maxRuns');
+   $days      = $main->var('days');
+   $format    = $main->obj('format');
+
+   if (!$itemDrops[$itemName]) { print "Unknown drop item $itemName\n"; exit; }
+
+   $dropData = [];
+
+   foreach ($itemDrops[$itemName] as $mobDrop) {
+      $dropData['mob'][$mobDrop['name']] = $mobDrop;
+   }
+
+   for ($run = 1; $run <= $maxRuns; $run++) {
+      for ($hour = 0; $hour <= ($days*24); $hour++) {
+         foreach ($itemDrops[$itemName] as $dropMob) {
+            $avgHourSpawn = ceil(($dropMob['spawn-max']+$dropMob['spawn-min']) / 2);
+
+            if ($hour % $avgHourSpawn == 0) {
+               $dropped = (rand(1,100) <= $dropMob['chance']) ? true : false; 
+
+               $dropData['run'][$run]['encounter']++;
+
+               if ($dropped) {
+                  $dropData['run'][$run]['mob'][$dropMob['name']]++; 
+                  $dropData['run'][$run]['count']++;
+                  $dropData['total']['mob'][$dropMob['name']]++;
+                  $dropData['total']['count']++;
+               }
+            }
+         }
+      }
+   }
+
+   $maxNameLength = 0;
+   foreach ($itemDrops[$itemName] as $dropMob) {
+      $nameLength = strlen($dropMob['name']);
+      if ($nameLength > $maxNameLength) { $maxNameLength = $nameLength; }
+   }
+   $maxNameLength += 2;
+
+   printf("\n%s (%d runs)\n------------------------------------------------------------------\n",$itemName,$maxRuns);
+   foreach ($dropData['total']['mob'] as $mobName => $mobDropCount) {
+      $nameLength = strlen($mobName);
+      $displayName = $mobName.str_repeat('.',$maxNameLength - $nameLength);
+      $chance      = $dropData['mob'][$mobName]['chance'];
+      $spawnMin    = $dropData['mob'][$mobName]['spawn-min'];
+      $spawnMax    = $dropData['mob'][$mobName]['spawn-max'];
+      printf("%{$maxNameLength}s: %5.1f  [ %3d%% chance every %s ]\n",$displayName,$mobDropCount/$maxRuns,$chance,
+            (($spawnMin == $spawnMax) ? sprintf("%s",$format->formatDuration($spawnMin*3600)) : sprintf("%s to %s",$format->formatDuration($spawnMin*3600),$format->formatDuration($spawnMax*3600))));
+   }
+   printf("==================================================================\n");
+   printf("Total: %1.1f drops on average out of %d attempts over %d days\n",$dropData['total']['count']/$maxRuns,$dropData['run'][1]['encounter'],$days);
+}
+
+?>

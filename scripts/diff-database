@@ -23,8 +23,11 @@ $main = new Main(array(
 ));
 
 if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
+if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$opts   = getopt(null,array('filter:','limit:','force'));
+$opts   = getopt(null,array('diff:','filter:','limit:','force'));
+$diff   = $opts['diff'] ?: null;
 $filter = strtolower($opts['filter']) ?: null;
 $limit  = $opts['limit'] ?: null;
 $force  = isset($opts['force']) ? true : false;
@@ -45,6 +48,9 @@ $processed = [];
 $databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
 $diffsList     = $databaseInfo['diffs'];
 $diffAvailable = array_merge($diffsList['sequential'],$diffsList['releases']);
+
+// focus run to one diff 
+if ($diff && in_array($diff,$diffAvailable)) { $diffAvailable = [$diff]; }
 
 foreach ($diffAvailable as $diffKey) {
    list($dbOldDate,$dbNewDate) = explode('-',$diffKey);
@@ -79,9 +85,14 @@ foreach ($diffAvailable as $diffKey) {
    print "--- Processing adds and changes ($diffKey) [$diffFile]\n";
    processChanges($main);
 
-   print "--- Writing JSON file ($diffKey) [$diffFile]\n";
-   file_put_contents("compress.zlib://$diffGz",json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
-   file_put_contents($diffFile,json_encode($main->var('results'),JSON_UNESCAPED_SLASHES));
+   if (!$filter) {
+      print "--- Writing JSON file ($diffKey) [$diffFile]\n";
+      file_put_contents("compress.zlib://$diffGz",json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+      file_put_contents($diffFile,json_encode($main->var('results'),JSON_UNESCAPED_SLASHES));
+   }
+   else {
+      print json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+   }
 
    $processed[$diffKey] = true;
 
@@ -300,16 +311,17 @@ function processDatabaseFile($fileName)
 
 function provideAnalysis($main, $tableName, $state, $objectData, $previousData = null)
 {
+   $conv     = $main->obj('conv');
+   $spell    = $main->obj('spell');
    $data     = $main->var('data');
-   $formats  = ($main->var('results'))['format'];
    $lookup   = $main->var('lookup');
    $analysis = null;
 
-   
+   $state = 'added';
 
    $sourceData = ($state == 'added') ? $data['new'] : $data['old'];
 
-   if ($state == 'changed') {
+   if (0 && $state == 'changed') {
       $diff        = array_diff_assoc($objectData,$previousData);
       $before      = array_intersect_key($previousData,$diff);
       $after       = array_diff_assoc($objectData,$previousData);
@@ -329,8 +341,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
 
       foreach (['max','min'] as $qualifier) {
          if (isset($after[$qualifier.'_expansion'])) {
-            $analysis['before']['_'.$qualifier.'_expansion'] = convertExpansionName($analysis['before'][$qualifier.'_expansion']);
-            $analysis['after']['_'.$qualifier.'_expansion']  = convertExpansionName($analysis['after'][$qualifier.'_expansion']);
+            $analysis['before']['_'.$qualifier.'_expansion'] = $conv->convertExpansionName($analysis['before'][$qualifier.'_expansion']);
+            $analysis['after']['_'.$qualifier.'_expansion']  = $conv->convertExpansionName($analysis['after'][$qualifier.'_expansion']);
          }
       }
 
@@ -338,18 +350,18 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
 
       if ($tableName == 'npc_types') {
          if (isset($after['special_abilities'])) {
-            $analysis['before']['_special_abilities'] = convertNpcSpecialAbilities($analysis['before']['special_abilities']);
-            $analysis['after']['_special_abilities']  = convertNpcSpecialAbilities($analysis['after']['special_abilities']);
+            $analysis['before']['_special_abilities'] = $conv->convertNpcSpecialAbilities($analysis['before']['special_abilities']);
+            $analysis['after']['_special_abilities']  = $conv->convertNpcSpecialAbilities($analysis['after']['special_abilities']);
          }
       }
       else if ($tableName == 'grid') {
          if (isset($after['type'])) {
-            $analysis['before']['_type'] = convertGridType($analysis['before']['type'],'wander');
-            $analysis['after']['_type']  = convertGridType($analysis['after']['type'],'wander');
+            $analysis['before']['_type'] = $conv->convertGridType($analysis['before']['type'],'wander');
+            $analysis['after']['_type']  = $conv->convertGridType($analysis['after']['type'],'wander');
          }
          if (isset($after['type2'])) {
-            $analysis['before']['_type2'] = convertGridType($analysis['before']['type2'],'pause');
-            $analysis['after']['_type2']  = convertGridType($analysis['after']['type2'],'pause');
+            $analysis['before']['_type2'] = $conv->convertGridType($analysis['before']['type2'],'pause');
+            $analysis['after']['_type2']  = $conv->convertGridType($analysis['after']['type2'],'pause');
          }
       }
    }
@@ -388,8 +400,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
             'pathgrid'        => $pathGrid,
             'min_expansion'   => $minExpansion,
             'max_expansion'   => $maxExpansion,
-            '_min_expansion'  => convertExpansionName($minExpansion),
-            '_max_expansion'  => convertExpansionName($maxExpansion),
+            '_min_expansion'  => $conv->convertExpansionName($minExpansion),
+            '_max_expansion'  => $conv->convertExpansionName($maxExpansion),
             'enabled'         => $enabled,
          ];
       }
@@ -429,8 +441,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
             'Name'           => $itemName,
             'min_expansion'  => $minExpansion,
             'max_expansion'  => $maxExpansion,
-            '_min_expansion' => convertExpansionName($minExpansion),
-            '_max_expansion' => convertExpansionName($maxExpansion),
+            '_min_expansion' => $conv->convertExpansionName($minExpansion),
+            '_max_expansion' => $conv->convertExpansionName($maxExpansion),
          ];
       }
       else if ($state == 'changed') {
@@ -465,7 +477,7 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
             '_outdoor'            => ($outdoor) ? true : false,
             '_dungeon'            => ($dungeon) ? true : false,
             '_reducedspawntimers' => ($reducedSpawnTimers) ? true : false,
-            '_expansion'          => convertExpansionName($expansion),
+            '_expansion'          => $conv->convertExpansionName($expansion),
          ];
       }
       else if ($state == 'changed') {
@@ -905,8 +917,6 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       }
    }
    else if ($tableName == 'spawn_conditions') {
-      // {"zone":"butcher","id":4,"value":0,"onchange":2,"name":"Shuttle_II"}
-
       $zoneName            = $objectData['zone'];
       $spawnConditionId    = $objectData['id'];
       $spawnConditionValue = $objectData['value'];
@@ -991,8 +1001,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
             'zoneName'         => $zoneName,
             'type'             => $wanderType,
             'type2'            => $pauseType,
-            '_type'            => convertGridType($wanderType,'wander'),
-            '_type2'           => convertGridType($pauseType,'pause'),
+            '_type'            => $conv->convertGridType($wanderType,'wander'),
+            '_type2'           => $conv->convertGridType($pauseType,'pause'),
             'spawnGroupIdList' => $spawnGroupIdList,
             'npcIdList'        => $npcIdList,
             'npcNameList'      => $npcNameList,
@@ -1115,15 +1125,27 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       }
    }
    else if ($tableName == 'npc_emotes') {
-      $id   = $objectData['id'];
+      $npcEmoteId    = $objectData['id'];
+      $emoteId       = $objectData['emoteid'];
+      $npcEventId    = $objectData['event_'];
+      $emoteTypeId   = $objectData['type'];
+      $emoteText     = $objectData['text'];
+      $npcEventName  = $conv->convertNpcEvent($npcEventId);
+      $emoteTypeName = $conv->convertEmoteType($emoteTypeId);
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
-            'id'    => $id,
+            'id'            => $npcEmoteId,
+            'emoteid'       => $emoteId,
+            'event_'        => $emoteEventId,
+            'type'          => $emoteTypeId,
+            'text'          => $emoteText,
+            'npcEventName'  => $npcEventName,
+            'emoteTypeName' => $emoteTypeName,
          ];
       }
       else if ($state == 'changed') {
-         $analysis['objectInfo'] = $objectData['id'];
+         $analysis['objectInfo'] = sprintf("%s/%s",$npcEventName,$emoteTypeName);
       }
    }
    else if ($tableName == 'npc_spells') {
@@ -1263,8 +1285,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $level       = $objectData['level'];
       $cap         = $objectData['cap'];
       $classUnused = $objectData['class_'];
-      $skillName   = convertSkill($skillId);
-      $className   = convertClass($classId);
+      $skillName   = $conv->convertSkill($skillId);
+      $className   = $conv->convertClass($classId);
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
@@ -1296,50 +1318,37 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $resistType          = $objectData['resistType'];
       $resistDiff          = $objectData['ResistDiff'];
 
-      $effectList = [];
-      $classList  = [];
-
-      for ($effectPos = 1; $effectPos <= 12; $effectPos++) {
-         $effectId = $objectData['effectid'.$effectPos];
-
-         if ($effectId == 254) { continue; }
-
-         $effectList[$effectPos] = [
-            'id'      => $effectId,
-            'base'    => $objectData['effect_base_value'.$effectPos],
-            'limit'   => $objectData['effect_limit_value'.$effectPos],
-            'max'     => $objectData['max'.$effectPos],
-            'formula' => $objectData['formula'.$effectPos],
-         ];
-      }
-      
-      for ($classId = 1; $classId <= 15; $classId++) {
-         $casterLevel = $objectData['classes'.$classId];
-
-         if ($classesId == 255) { continue; }
-
-         $classList[$classId] = [
-            'id'      => $effectId,
-            'base'    => $objectData['effect_base_value'.$effectPos],
-            'limit'   => $objectData['effect_limit_value'.$effectPos],
-            'max'     => $objectData['max'.$effectPos],
-            'formula' => $objectData['formula'.$effectPos],
-         ];
-      }
+      $effectList    = $conv->convertSpellEffectList($objectData);
+      $classList     = $conv->convertSpellClasses($objectData);
+      $minClassLevel = min($classList) ?: 65;
+      $minDuration   = $spell->calculateBuffDurationFormula($minClassLevel,$buffDurationFormula,$buffDuration);
+      $maxDuration   = $spell->calculateBuffDurationFormula(65,$buffDurationFormula,$buffDuration);
+      $duration      = ($minDuration == $maxDuration) ? $maxDuration : sprintf("%s - %s",$minDuration,$maxDuration);
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
-            'skillID'   => $skillId,
-            'class'     => $class,
-            'level'     => $level,
-            'cap'       => $cap,
-            'class_'    => $classUnused,
-            'skillName' => $skillName,
-            'className' => $className,
+            'id'                  => $spellId,
+            'name'                => $spellName,
+            'range'               => $range,
+            'cast_time'           => $castTime,
+            'recovery_time'       => $recoveryTime,
+            'recast_time'         => $recastTime,
+            'buffdurationformula' => $buffDurationFormula,
+            'buffduration'        => $buffDuration,
+            'mana'                => $manaCost,
+            'skill'               => $castingSkill,
+            'targettype'          => $targetType,
+            'resistType'          => $resistType,
+            'ResistDiff'          => $resistDiff,
+            'effectList'          => $effectList,
+            'classList'           => $classList,
+            'minDuration'         => $minDuration,
+            'maxDuration'         => $maxDuration,
+            'duration'            => $duration,
          ];
       }
       else if ($state == 'changed') {
-         $analysis['objectInfo'] = sprintf("%s/%s/L%s",$className,$skillName,$level);
+         $analysis['objectInfo'] = $spellName;
       }
    }
 
@@ -1475,465 +1484,6 @@ function findTableDataMatch($tableInfo, $kvPairs, $return = null)
    $cache[$cacheKey] = $results;
 
    return $results;
-}
-
-function convertNpcSpecialAbilities($specialAbilities = '')
-{
-   $abilityMap = [
-      '1' => [
-         'name' => 'Summon',
-         'params' => [
-            ['name' => 'enabled', 'default' => 1],
-            ['name' => 'cooldown_ms', 'default' => 6000],
-            ['name' => 'hp_ratio', 'default' => 97],
-         ],
-      ],
-      '2' => [
-         'name' => 'Enrage',
-         'params' => [
-            ['name' => 'hp_percent', 'default' => RULE_NPC_STARTENRAGEVALUE],  // 10
-            ['name' => 'duration_ms', 'default' => 10000],
-            ['name' => 'cooldown_ms', 'default' => 360000],
-         ],
-      ],
-      '3' => [
-         'name' => 'Rampage',
-         'params' => [
-            ['name' => 'percent_chance', 'default' => 20],
-            ['name' => 'target_count', 'default' => RULE_COMBAT_MAXRAMPAGETARGET],  // 3
-            ['name' => 'percent_damage', 'default' => 100],
-            ['name' => 'flat_added_damage', 'default' => 0],
-            ['name' => 'percent_ac_ignore', 'default' => 0],
-            ['name' => 'flat_ac_ignore', 'default' => 0],
-            ['name' => 'percent_natural_crit', 'default' => 100],
-            ['name' => 'flat_added_crit', 'default' => 0],
-         ],
-      ],
-      '4' => [
-         'name' => 'Area Rampage',
-      ],
-      '5' => [
-         'name' => 'Flurry',
-      ],
-      '6' => [
-         'name' => 'Triple Attack',
-      ],
-      '7' => [
-         'name' => 'Dual Wield',
-      ],
-      '8' => [
-         'name' => 'Do Not Equip',
-      ],
-      '9' => [
-         'name' => 'Bane Attack',
-      ],
-      '10' => [
-         'name' => 'Magical Attack',
-      ],
-      '11' => [
-         'name' => 'Ranged Attack',
-      ],
-      '12' => [
-         'name' => 'Unslowable',
-      ],
-      '13' => [
-         'name' => 'Unmezable',
-      ],
-      '14' => [
-         'name' => 'Uncharmable',
-      ],
-      '15' => [
-         'name' => 'Unstunable',
-      ],
-      '16' => [
-         'name' => 'Unsnareable',
-      ],
-      '17' => [
-         'name' => 'Unfearable',
-      ],
-      '18' => [
-         'name' => 'Immune to Dispell',
-      ],
-      '19' => [
-         'name' => 'Immune to Melee',
-      ],
-      '20' => [
-         'name' => 'Immune to Magic',
-      ],
-      '21' => [
-         'name' => 'Immune to Fleeing',
-      ],
-      '22' => [
-         'name' => 'Immune to Non-Bane Damage',
-      ],
-      '23' => [
-         'name' => 'Immune to Non-Magical Damage',
-      ],
-      '24' => [
-         'name' => 'Will Not Aggro',
-      ],
-      '25' => [
-         'name' => 'Immune to Aggro',
-      ],
-      '26' => [
-         'name' => 'Resist Ranged Spells',
-      ],
-      '27' => [
-         'name' => 'See Through Feign Death',
-      ],
-      '28' => [
-         'name' => 'Immune to Taunt',
-      ],
-      '29' => [
-         'name' => 'Tunnel Vision',
-      ],
-      '30' => [
-         'name' => 'Does Not Buff/Heal Friends',
-      ],
-      '31' => [
-         'name' => 'Unpacifiable',
-      ],
-      '32' => [
-         'name' => 'Leashed',
-      ],
-      '33' => [
-         'name' => 'Tethered',
-      ],
-      '34' => [
-         'name' => 'Permaroot Flee',
-      ],
-      '35' => [
-         'name' => 'No Harm from Players',
-      ],
-      '36' => [
-         'name' => 'Always Flee',
-      ],
-      '37' => [
-         'name' => 'Flee Percentage',
-      ],
-      '38' => [
-         'name' => 'Allow Beneficial',
-      ],
-      '39' => [
-         'name' => 'Disable Melee',
-      ],      
-      '40' => [
-         'name' => 'Chase Distance',
-      ],
-      '41' => [
-         'name' => 'Allow Tank',
-      ],
-      '42' => [
-         'name' => 'Proximity Aggro',
-      ],
-      '43' => [
-         'name' => 'Always Call for Help',
-      ],
-      '44' => [
-         'name' => 'Use Warrior Skills',
-      ],
-      '45' => [
-         'name' => 'Always Flee Low Con',
-      ],
-      '46' => [
-         'name' => 'No Loitering',
-      ],
-      '47' => [
-         'name' => 'Bad Faction Block Hand In',
-      ],
-      '48' => [
-         'name' => 'PC Deathblow Corpse',
-      ],
-      '49' => [
-         'name' => 'Corpse Camper',
-      ],
-      '50' => [
-         'name' => 'Reverse Slow',
-      ],
-      '51' => [
-         'name' => 'No Haste',
-      ],
-      '52' => [
-         'name' => 'Immune to Disarm',
-      ],
-      '53' => [
-         'name' => 'Immune to Riposte',
-      ],
-      '54' => [
-         'name' => 'Proximity Aggro',
-      ],
-      '55' => [
-         'name' => 'Max Special Attack',
-      ],
-   ];
-
-   $abilityList   = explode('^',$specialAbilities);
-   $convertedList = [];
-
-   foreach ($abilityList as $ability) {
-      $abilityProperties = explode(',',$ability);
-      $abilityType       = $abilityProperties[0];
-      $abilityName       = $abilityMap[$abilityType]['name'] ?: 'Unknown';
-      $abilityEnabled    = ($abilityProperties[0] == '0') ? false : true;
-
-      if ($abilityEnabled) { $convertedList[] = $abilityName; }
-   }
-
-   if (!$convertedList) { return "None"; }
-
-   return implode(', ',array_unique($convertedList));
-}
-
-function convertExpansionName($expansionNumber)
-{
-   $expansionList = [
-      '0' => 'Any',
-      '1' => 'Classic',
-      '2' => 'Kunark',
-      '3' => 'Velious',
-      '4' => 'Luclin',
-      '5' => 'Planes',
-      '6' => 'PostPlanes',
-      '7' => 'Disabled',
-      '8' => 'Disabled',
-   ];
-
-   $minorList = [
-      ''  => '',
-      '0' => '',
-      '3' => 'II',
-      '6' => 'III',
-      '9' => 'IV',
-   ];
-
-   list($major,$minor) = explode('.',$expansionNumber);
-
-   return sprintf("%s%s",$expansionList[$major] ?: 'Unknown',$minorList[$minor] ?: '');
-}
-
-function convertGridType($value, $type)
-{
-   $type = strtolower($type);
-
-   $expansionList = [
-      'wander' => [
-         '0' => 'Circular',
-         '1' => 'Random10',
-         '2' => 'Random',
-         '3' => 'Patrol',
-         '4' => 'OneWayRepop',
-         '5' => 'Random5LoS',
-         '6' => 'OneWayDepop',
-         '7' => 'CenterPoint',
-         '8' => 'RandomCenterPoint',
-         '9' => 'RandomPath',
-      ],
-      'pause' => [
-         '0' => 'RandomHalf',
-         '1' => 'Full',
-         '2' => 'Random',
-      ],
-   ];
-
-   return ((isset($expansionList[$type][$value])) ? $expansionList[$type][$value] : null);
-}
-
-function convertClass($classId)
-{
-   $classList = [
-      '1' => 'Warrior',
-      '2' => 'Cleric',
-      '3' => 'Paladin',
-      '4' => 'Ranger',
-      '5' => 'Shadowknight',
-      '6' => 'Druid',
-      '7' => 'Monk',
-      '8' => 'Bard',
-      '9' => 'Rogue',
-      '10' => 'Shaman',
-      '11' => 'Necromancer',
-      '12' => 'Wizard',
-      '13' => 'Magician',
-      '14' => 'Enchanter',
-      '15' => 'Beastlord', 
-   ];
-
-   return $classList[$classId] ?: null;
-}
-
-function convertSkill($skillId)
-{
-   $skillList = [
-      '0'  => '1HBlunt',
-      '1'  => '1HSlashing',
-      '2'  => '2HBlunt',
-      '3'  => '2HSlashing',
-      '4'  => 'Abjuration',
-      '5'  => 'Alteration',
-      '6'  => 'ApplyPoison',
-      '7'  => 'Archery',
-      '8'  => 'Backstab',
-      '9'  => 'BindWound',
-      '10' => 'Bash',
-      '11' => 'Block',
-      '12' => 'BrassInstruments',
-      '13' => 'Channeling',
-      '14' => 'Conjuration',
-      '15' => 'Defense',
-      '16' => 'Disarm',
-      '17' => 'DisarmTraps',
-      '18' => 'Divination',
-      '19' => 'Dodge',
-      '20' => 'DoubleAttack',
-      '21' => 'DragonPunch/TailRake',
-      '22' => 'DualWield',
-      '23' => 'EagleStrike',
-      '24' => 'Evocation',
-      '25' => 'FeignDeath',
-      '26' => 'FlyingKick',
-      '27' => 'Forage',
-      '28' => 'HandtoHand',
-      '29' => 'Hide',
-      '30' => 'Kick',
-      '31' => 'Meditate',
-      '32' => 'Mend',
-      '33' => 'Offense',
-      '34' => 'Parry',
-      '35' => 'PickLock',
-      '36' => '_1HPiercing',
-      '37' => 'Riposte',
-      '38' => 'RoundKick',
-      '39' => 'SafeFall',
-      '40' => 'SenseHeading',
-      '41' => 'Singing',
-      '42' => 'Sneak',
-      '43' => 'SpecializeAbjure',
-      '44' => 'SpecializeAlteration',
-      '45' => 'SpecializeConjuration',
-      '46' => 'SpecializeDivination',
-      '47' => 'SpecializeEvocation',
-      '48' => 'PickPockets',
-      '49' => 'StringedInstruments',
-      '50' => 'Swimming',
-      '51' => 'Throwing',
-      '52' => 'TigerClaw',
-      '53' => 'Tracking',
-      '54' => 'WindInstruments',
-      '55' => 'Fishing',
-      '56' => 'MakePoison',
-      '57' => 'Tinkering',
-      '58' => 'Research',
-      '59' => 'Alchemy',
-      '60' => 'Baking',
-      '61' => 'Tailoring',
-      '62' => 'SenseTraps',
-      '63' => 'Blacksmithing',
-      '64' => 'Fletching',
-      '65' => 'Brewing',
-      '66' => 'AlcoholTolerance',
-      '67' => 'Begging',
-      '68' => 'JewelryMaking',
-      '69' => 'Pottery',
-      '70' => 'PercussionInstruments',
-      '71' => 'Intimidation',
-      '72' => 'Berserking',
-      '73' => 'Taunt',
-   ];
-
-   return $skillList[$skillId] ?: null;
-}
-
-function convertSpellTargetType($spellTargetTypeId)
-{
-   $spellTargetTypeList = [
-      '1'  => 'TargetOptional',
-      '2'  => 'GroupV1',
-      '3'  => 'GroupTeleport',
-      '4'  => 'PBAE',
-      '5'  => 'Single',
-      '6'  => 'Self',
-      '8'  => 'TargetAE',
-      '9'  => 'Animal',
-      '10' => 'Undead',
-      '11' => 'Summoned',
-      '13' => 'Tap',
-      '14' => 'Pet',
-      '15' => 'Corpse',
-      '16' => 'Plant',
-      '17' => 'UberGiant',
-      '18' => 'UberDragon',
-      '20' => 'TargetAETap',
-      '24' => 'UndeadAE',
-      '25' => 'SummonedAE',
-      '40' => 'BardAE',
-      '41' => 'GroupV2',
-      '43' => 'ProjectIllusion',
-   ];
-
-   return $spellTargetTypeList[$spellTargetTypeId] ?: null;
-}
-
-function convertBuffDuration($casterLevel, $formula, $duration) 
-{
-   switch ($formula) {
-      case 0: return 0;
-      case 1:  $uDuration = $casterLevel / 2;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 2:  $uDuration = ($casterLevel <= 1) ? 6 : ($casterLevel / 2) + 5;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 3:  $uDuration = $casterLevel * 30;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 4:  $uDuration = 50;
-               $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-               break;
-      case 5:  $uDuration = 2;
-               $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-               break;
-      case 6:  $uDuration = ($casterLevel / 2) + 2;
-               $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-               break;
-      case 7:  $uDuration = $casterLevel;
-               $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-               break;
-      case 8:  $uDuration = $casterLevel + 10;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 9:  $uDuration = ($casterLevel * 2) + 10;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 10: $uDuration = ($casterLevel * 3) + 10;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 11: $uDuration = ($casterLevel * 30) + 90;
-               $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-               break;
-      case 12: $uDuration = $casterLevel / 4; 
-               $uDuration = ($uDuration) ? $uDuration : 1;
-               $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-               break;
-      case 50: $return = hexdec('0xFFFE');
-               break;
-      default: $return = 0;
-   }
-
-   return $return;
-}
-
-function convertResistType($resistTypeId)
-{
-   $resistTypeList = [
-      '0' => 'None',
-      '1' => 'Magic',
-      '2' => 'Fire',
-      '3' => 'Cold',
-      '4' => 'Poison',
-      '5' => 'Disease',
-   ];
-
-   return $resistTypeList[$resistTypeId] ?: null;
 }
 
 function getDatabaseFiles($dbDir)
