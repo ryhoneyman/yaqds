@@ -97,8 +97,25 @@ class Spell extends LWPLib\Base
          case 118: $result = $uBase; if ($casterLevel > 44) { $result += 20 * ($casterLevel - 44); } break;
          case 119: $result = $uBase + ($casterLevel / 8); break;
          case 121: $result = $uBase + ($casterLevel / 3); break;
+         case 123: $result = rand($uBase,abs($max));
+         case 124: $result = ($casterLevel > 50) ? $uBase + ($updownSign * ($casterLevel - 50)) : $uBase;
+         case 125: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 2 * ($casterLevel - 50)) : $uBase;
+         case 126: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 3 * ($casterLevel - 50)) : $uBase;
+         case 127: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 4 * ($casterLevel - 50)) : $uBase;
+         case 128: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 5 * ($casterLevel - 50)) : $uBase;
+         case 129: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 10 * ($casterLevel - 50)) : $uBase;
+         case 130: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 15 * ($casterLevel - 50)) : $uBase;
+         case 131: $result = ($casterLevel > 50) ? $uBase + ($updownSign * 20 * ($casterLevel - 50)) : $uBase;
+         case 150: $result = ($casterLevel > 50) ? 10 : (($casterLevel > 45) ? 5 + $casterLevel - 45 : (($casterLevel > 40) ? 5 : (($casterLevel > 34) ? 4 : 3)));
+         case 201:
+         case 202:
+         case 203:
+         case 204:
+         case 205: $result = $max; break;
+         default:  if ($formula < 100) { $result = $uBase + ($casterLevel * $formula); } 
       }
 
+      $result     = floor($result);
       $origResult = $result;
 
       if ($max != 0 && (($updownSign == 1 && $result > $max) || ($updownSign != 1 && $result < $max))) { $result = $max; }
@@ -106,7 +123,7 @@ class Spell extends LWPLib\Base
       if ($base < 0 && $result > 0) { $result *= -1; }
 
       $this->debug(9,sprintf("casterLevel(%d) ticsRemaining(%d) base(%d) uBase(%d) formula(%d) max(%d) updownSign(%d) result(%d) origResult(%d) %s",
-                             $casterLevel,$ticsRemaining,$result,$base,$uBase,$formula,$max,$origResult,($base < 0 && $result > 0) ? "Inverted/negative base" : ''));
+                             $casterLevel,$ticsRemaining,$base,$uBase,$formula,$max,$updownSign,$result,$origResult,($base < 0 && $result > 0) ? "Inverted/negative base" : ''));
 
       return $result;
    }
@@ -118,50 +135,40 @@ class Spell extends LWPLib\Base
       $return = null;
  
       switch ($formula) {
-         case 0: return 0;
-         case 1:  $uDuration = $casterLevel / 2;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 2:  $uDuration = ($casterLevel <= 1) ? 6 : ($casterLevel / 2) + 5;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 3:  $uDuration = $casterLevel * 30;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 4:  $uDuration = 50;
-                  $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-                  break;
-         case 5:  $uDuration = 2;
-                  $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-                  break;
-         case 6:  $uDuration = ($casterLevel / 2) + 2;
-                  $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-                  break;
-         case 7:  $uDuration = $casterLevel;
-                  $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-                  break;
-         case 8:  $uDuration = $casterLevel + 10;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 9:  $uDuration = ($casterLevel * 2) + 10;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 10: $uDuration = ($casterLevel * 3) + 10;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 11: $uDuration = ($casterLevel * 30) + 90;
-                  $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration;
-                  break;
-         case 12: $uDuration = $casterLevel / 4; 
-                  $uDuration = ($uDuration) ? $uDuration : 1;
-                  $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration;
-                  break;
-         case 50: $return = hexdec('0xFFFE');
-                  break;
+         case 0:  $return = 0; break;
+         case 1:  $return = $this->applyDuration($duration,'minFloor1',$casterLevel / 2); break;        
+         case 2:  $return = $this->applyDuration($duration,'minFloor1',($casterLevel <= 1) ? 6 : ($casterLevel / 2) + 5); break;
+         case 3:  $return = $this->applyDuration($duration,'minFloor1',$casterLevel * 30); break;       
+         case 4:  $return = $this->applyDuration($duration,'minNot0',50); break;               
+         case 5:  $return = $this->applyDuration($duration,'minNot0',2); break;                
+         case 6:  $return = $this->applyDuration($duration,'minNot0',($casterLevel / 2) + 2); break;                
+         case 7:  $return = $this->applyDuration($duration,'minNot0',$casterLevel); break;                
+         case 8:  $return = $this->applyDuration($duration,'minFloor1',$casterLevel + 10); break;                
+         case 9:  $return = $this->applyDuration($duration,'minFloor1',($casterLevel * 2) + 10); break;                
+         case 10: $return = $this->applyDuration($duration,'minFloor1',($casterLevel * 3) + 10); break;               
+         case 11: $return = $this->applyDuration($duration,'minFloor1',($casterLevel * 30) + 90); break;               
+         case 12: $return = $this->applyDuration($duration,'minNot0',($casterLevel < 4) ? 1 : $casterLevel / 4); break; 
+         case 50: $return = hexdec('0xFFFE'); break;
          default: $return = 0;
       }
 
-      $this->debug(9,sprintf("casterLevel(%d) formula(%d) duration(%d) uDuration(%d) return(%d)",$casterLevel,$formula,$duration,$uDuration,$return));
+      $this->debug(9,sprintf("casterLevel(%d) formula(%d) return(%d)",$casterLevel,$formula,$return));
+
+      return $return;
+   }
+
+   private function applyDuration($duration, $type = 'minNot0', $uDuration)
+   {
+      $return = null;
+
+      // These values are all treated as C++ ints.
+      $uDuration = floor($uDuration);
+      $duration  = floor($duration);
+
+      if ($type == 'minFloor1')    { $return = ($uDuration < $duration) ? (($uDuration < 1) ? 1 : $uDuration) : $duration; }
+      else if ($type == 'minNot0') { $return = ($duration) ? (($uDuration < $duration) ? $uDuration : $duration) : $uDuration; }
+
+      $this->debug(9,sprintf("type(%s) uDuration(%d) duration(%d) return(%d)",$type,$uDuration,$duration,$return));
 
       return $return;
    }
