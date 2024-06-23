@@ -1,7 +1,3 @@
 [submodule "lwplib"]
 	path = lwplib
 	url = https://github.com/ryhoneyman/lwplib.git
-
-[submodule "yaqds-api"]
-	path = yaqds-api
-	url = https://github.com/ryhoneyman/yaqds-api.git
