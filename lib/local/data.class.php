@@ -138,6 +138,28 @@ class Data extends LWPLib\Base
       return ((is_null($zoneName)) ? $mapData : $mapData[$zoneName]);
    }
 
+   public function getRuleInfoByName($ruleName)
+   {
+      $this->debug(8,"called");
+
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      if (!preg_match('/^[\w\:]+$/',$ruleName)) { $this->error('invalid ruleName provided'); return false; }
+
+      return $this->db->query("SELECT * FROM rule_values WHERE rule_name = '$ruleName'",array('single' => true));
+   }
+
+   public function getItemInfoById($itemId)
+   {
+      $this->debug(8,"called");
+
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      if (!preg_match('/^\d+$/',$itemId)) { $this->error('invalid itemId provided'); return false; }
+
+      return $this->db->query("SELECT * FROM items WHERE id = $itemId",array('single' => true));
+   }
+
    public function getZoneInfoByName($zoneName)
    {
       $this->debug(8,"called");
