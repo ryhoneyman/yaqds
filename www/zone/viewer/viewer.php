@@ -175,15 +175,16 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
    $grids  = array();
    
    foreach ($spawnData as $keyId => $entryInfo) {
-      $entityX    = $entryInfo['x'];
-      $entityY    = $entryInfo['y'];
-      $entityZ    = $entryInfo['z'];
-      $spawnXY    = sprintf("%d_%d",$entryInfo['y'],$entryInfo['x']);
-      $entityMapX = -$entityX;  // EQ maps are inverted axis
-      $entityMapY = -$entityY;  // EQ maps are inverted axis
-      $entityLvl  = $entryInfo['level'];
-      $groupId    = $entryInfo['sgID'];
-      $gridId    = $entryInfo['gridID'];
+      $entityX      = $entryInfo['x'];
+      $entityY      = $entryInfo['y'];
+      $entityZ      = $entryInfo['z'];
+      $spawnXY      = sprintf("%d_%d",$entryInfo['y'],$entryInfo['x']);
+      $entityMapX   = -$entityX;  // EQ maps are inverted axis
+      $entityMapY   = -$entityY;  // EQ maps are inverted axis
+      $entityLvl    = $entryInfo['level'];
+      $entityMaxLvl = $entryInfo['maxlevel'] ?: $entityLvl;
+      $groupId      = $entryInfo['sgID'];
+      $gridId      = $entryInfo['gridID'];
    
       $entityName = str_replace(array('#','_'),array('',' '),$entryInfo['name']);
       $entityId   = $entryInfo['npcID'];
@@ -217,7 +218,9 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
          $return['search'][] = sprintf("<use class='crosshair' transform-origin='$originMapX $originMapY' x=%s y=%s href='#crosshair'/>\n",$entityMapX-15,$entityMapY-15); 
       }
       $spawns[$spawnXY][$groupId]['info']['sgName'] = $entryInfo['sgName'];
-      $spawns[$spawnXY][$groupId]['spawn'][] = array('chance' => $entryInfo['chance'], 'id' => $entityId, 'name' => $entityName, 'level' => $entityLvl, 'match' => $npcMatch);
+      $spawns[$spawnXY][$groupId]['spawn'][] = [
+         'chance' => $entryInfo['chance'], 'id' => $entityId, 'name' => $entityName, 'level' => $entityLvl, 'maxlevel' => $entityMaxLvl, 'match' => $npcMatch
+      ];
 
       $return['mobs']['by-name'][$entityName][$entityId]++;
       $return['mobs']['by-id'][$entityId][$entityName]++;
@@ -288,8 +291,9 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
                $chanceMult = ($spawnInfo['chance.total']) ? (100/$spawnInfo['chance.total']) : 1;
                foreach ($spawnInfo['spawn'] as $spawnEntry) { 
                   $spawnMatch = $spawnEntry['match'];
+                  $spawnLevel = ($spawnEntry['level'] == $spawnEntry['maxlevel']) ? sprintf("L%s",$spawnEntry['level']) : sprintf("L%s-%s",$spawnEntry['level'],$spawnEntry['maxlevel']);
 
-                  $entityEntry = sprintf("%3d&#37; %s (L%s)",$spawnEntry['chance'] * $chanceMult,$spawnEntry['name'],$spawnEntry['level']);
+                  $entityEntry = sprintf("%3d&#37; %s (%s)",$spawnEntry['chance'] * $chanceMult,$spawnEntry['name'],$spawnLevel);
             
                   if ($spawnMatch) { $entityEntry = sprintf("<span class='text-bold text-red'>%s</span>",$entityEntry); }
 
