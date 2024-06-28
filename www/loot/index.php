@@ -200,6 +200,9 @@ if ($sample) {
       $lootDropRange = ($lootOutcome['mindrops'] == $lootOutcome['maxdrops']) ? sprintf("%d drop%s",$lootOutcome['maxdrops'],($lootOutcome['maxdrops'] != 1) ? 's' :'') :
                                                                                 sprintf("%d - %d drops",$lootOutcome['mindrops'],$lootOutcome['maxdrops']);
 
+      $tableData['droplimit'] = $lootOutcome['dropLimit'];
+      $tableData['mindrop']   = $lootOutcome['minDrop'];                               
+
       $title = sprintf("<span class='text-warning'>TableID %s, DropID %s</span> <span class='text-orange ml-3'>(%s)</span>",
                        $tableData['loottable_id'],$tableData['lootdrop_id'],$lootDropRange);                                                                         
 
@@ -318,6 +321,8 @@ function describeLootOutcome($tableData)
    $description .= " The result of this table produces ".(($minDrops == $maxDrops) ? "$minDrops drop".(($minDrops != 1) ? 's' : '') : "$minDrops to $maxDrops drops").".";
 
    $return = array(
+      'dropLimit'   => $dropLimit,
+      'minDrop'     => $minDrop,
       'mindrops'    => $minDrops,
       'maxdrops'    => $maxDrops,
       'description' => $description,
