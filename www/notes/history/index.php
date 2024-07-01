@@ -13,6 +13,18 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.4.0',
+      'datetime' => '2024-07-01 11:00 UTC',
+      'changes' => array(
+         'system' => array(
+            'Loaded 20240701 database (Kunark release day)'
+         ),
+         'frontend' => array(),
+         'backend'  => array(),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.3.1',
       'datetime' => '2024-06-18 13:00 UTC',
       'changes' => array(
