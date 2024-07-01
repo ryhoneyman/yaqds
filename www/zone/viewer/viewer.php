@@ -184,7 +184,7 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
       $entityLvl    = $entryInfo['level'];
       $entityMaxLvl = $entryInfo['maxlevel'] ?: $entityLvl;
       $groupId      = $entryInfo['sgID'];
-      $gridId      = $entryInfo['gridID'];
+      $gridId       = $entryInfo['gridID'];
    
       $entityName = str_replace(array('#','_'),array('',' '),$entryInfo['name']);
       $entityId   = $entryInfo['npcID'];
