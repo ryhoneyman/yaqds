@@ -36,7 +36,7 @@ include 'ui/header.php';
 print infoBox('fa-map-marked-alt','bg-warning','/zone/viewer/','Zone Viewer','Load zone maps to view terrain and spawn data');
 print infoBox('fa-gem','bg-primary','/loot/','Loot Viewer','Simulate loot drops from NPCs','popular');
 print infoBox('fa-database','bg-success','/database/changes/','Database Changes','Perform enriched database differentials','new');
-print infoBox('fa-database','bg-danger','https://www.pqdi.cc/','PQDI','Talador\'s Project Quarm Database Interface!','popular');
+print infoBox('fa-database','bg-danger','https://www.pqdi.cc/','PQDI','Talodar\'s Project Quarm Database Interface!','popular');
 
 ?>
 
