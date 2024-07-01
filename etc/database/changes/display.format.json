@@ -115,6 +115,9 @@
         },
         "npc_emotes": {
             "default": ["STATE","emoteid","npcEventName","emoteTypeName","text"]
+        },
+        "books": {
+            "default": ["STATE","name","txtfile"]
         }
     }
 }
