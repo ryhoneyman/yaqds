@@ -127,7 +127,7 @@ class Data extends LWPLib\Base
          list($minExp,$maxExp) = explode('-',$this->calculateExpansion($s2MinExp,$s2MaxExp,$seMinExp,$seMaxExp));
 
          $cleanName = $this->cleanName($name);
-         $cleanName = preg_replace('/^(a|an)\s+(.*)$/i','$2, $1',$cleanName);
+         $cleanName = preg_replace('/^(a|an|the)\s+(.*)$/i','$2, $1',$cleanName);
 
          $index = sprintf("%s.%d",strtolower($cleanName),$lootTableId);
          $hash  = hash("crc32",$index);
