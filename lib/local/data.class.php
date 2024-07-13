@@ -29,6 +29,27 @@ class Data extends LWPLib\Base
       }
    }
 
+   public function getPetInfoBySpellId($spellId)
+   {
+      if (!$this->databaseAvail()) { $this->error('database not available'); return false; }
+
+      $magicianPetTypeList = [
+         'Fire'  => [626, 630, 634, 316, 399, 403, 395, 498, 571, 575, 622, 1673, 1677, 3322],
+         'Air'   => [627, 631, 635, 317, 396, 400, 404, 499, 572, 576, 623, 1674, 1678, 3371],
+         'Earth' => [624, 628, 632, 58, 397, 401, 335, 496, 569, 573, 620, 1675, 1671, 3324],
+         'Water' => [625, 629, 633, 315, 398, 403, 336, 497, 570, 574, 621, 1676, 1672, 3320],
+      ];
+
+      $petInfo = $this->db->bindQuery("SELECT r.name,nt.level,nt.race,nt.bodytype FROM spells_new sn LEFT JOIN pets p ON sn.teleport_zone = p.type ". 
+                                      "LEFT JOIN npc_types nt ON nt.id = p.npcID LEFT JOIN races r ON r.id = nt.race WHERE sn.id = ?;",'i',array($spellId),array('single' => true));
+
+      foreach ($magicianPetTypeList as $petType => $spellIdList) {
+         if (in_array($spellId,$spellIdList)) { $petInfo['name'] = sprintf("%s %s",$petType,$petInfo['name']); }
+      }
+
+      return $petInfo;
+   }
+
    public function forceExpansion() 
    { 
       $expansionInfo = $this->fetch('expansionInfo');
@@ -106,6 +127,7 @@ class Data extends LWPLib\Base
          list($minExp,$maxExp) = explode('-',$this->calculateExpansion($s2MinExp,$s2MaxExp,$seMinExp,$seMaxExp));
 
          $cleanName = $this->cleanName($name);
+         $cleanName = preg_replace('/^(a|an)\s+(.*)$/i','$2, $1',$cleanName);
 
          $index = sprintf("%s.%d",strtolower($cleanName),$lootTableId);
          $hash  = hash("crc32",$index);
