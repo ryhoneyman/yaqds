@@ -26,15 +26,17 @@ if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php'))
 if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
 if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$opts   = getopt(null,array('diff:','filter:','limit:','force'));
-$diff   = $opts['diff'] ?: null;
-$filter = strtolower($opts['filter']) ?: null;
-$limit  = $opts['limit'] ?: null;
-$force  = isset($opts['force']) ? true : false;
+$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache'));
+$diff      = $opts['diff'] ?: null;
+$filter    = strtolower($opts['filter']) ?: null;
+$limit     = $opts['limit'] ?: null;
+$force     = isset($opts['force']) ? true : false;
+$skipCache = isset($opts['skipcache']) ? true : false;
 
 $main->var('maxServerLevel',65);
 $main->var('tableFilter',$filter);
 $main->var('tableLimit',$limit);
+$main->var('skipCache',$skipCache);
 
 $main->var('lookup',[
    'items' => [
@@ -63,6 +65,7 @@ foreach ($diffAvailable as $diffKey) {
 
    $main->var('oldFile',$dbFiles[$dbOldDate]);
    $main->var('newFile',$dbFiles[$dbNewDate]);
+   $main->var('cacheFileBase',APP_VARDIR.sprintf("/cache/diff-database/%s.%s",$dbOldDate,$dbNewDate));
 
    $main->var('data',[
       'old' => processDatabaseFile($main->var('oldFile')),
@@ -95,6 +98,15 @@ foreach ($diffAvailable as $diffKey) {
       print json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
    }
 
+   print "--- Cleaning up cache ($diffKey)\n";
+   foreach (['deletes','changes'] as $cacheType) {
+      $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),$cacheType);
+      if (file_exists($cacheFile)) { 
+         print "       * Removing $cacheFile\n";
+         unlink($cacheFile); 
+      }
+   }
+
    $processed[$diffKey] = true;
 
    print "\n";
@@ -105,9 +117,12 @@ foreach ($diffAvailable as $diffKey) {
 
 function processChanges($main)
 {
-   $data    = $main->var('data');
-   $filter  = $main->var('tableFilter');
-   $changes = [];
+   $data      = $main->var('data');
+   $filter    = $main->var('tableFilter');
+   $skipCache = $main->var('skipCache');
+   $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'changes');
+
+   $changes = (!$skipCache && file_exists($cacheFile)) ? json_decode(file_get_contents($cacheFile),true) ?: [] : [];
 
    $maxLength = 0;
    foreach (array_keys($data['old']) as $tableName) {
@@ -131,6 +146,12 @@ function processChanges($main)
       $oldTableInfo = $data['old'][$tableName];
 
       foreach ($newTableInfo['refs']['primary'] as $newRowKey => $newDataRef) {
+         // We had this table cached as processed
+         if ($changes['processedTables'][$tableName]) { 
+            print "cached --> ";
+            break; 
+         }
+         
          $newDataJson = $newTableInfo['data'][$newDataRef];
          $oldDataJson = $oldTableInfo['data'][$oldTableInfo['refs']['primary'][$newRowKey]];
 
@@ -162,6 +183,10 @@ function processChanges($main)
          }
       }
       printf(" [%d added, %d changed]\n",count($changes['analysis']['added'][$tableName] ?: []),count($changes['analysis']['changed'][$tableName] ?: []));
+
+      $changes['processedTables'][$tableName] = true;
+
+      file_put_contents($cacheFile,json_encode($changes));
    }
 
    if ($changes) { $main->var('results',array_merge_recursive($main->var('results'),$changes)); }
@@ -169,11 +194,13 @@ function processChanges($main)
 
 function processDeletes($main)
 {
-   $data    = $main->var('data');
-   $filter  = $main->var('tableFilter');
-   $state   = 'removed';
-   $changes = [];
-   
+   $data      = $main->var('data');
+   $filter    = $main->var('tableFilter');
+   $skipCache = $main->var('skipCache');
+   $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'deletes');
+   $state     = 'removed';
+
+   $changes = (!$skipCache && file_exists($cacheFile)) ? json_decode(file_get_contents($cacheFile),true) ?: [] : [];
 
    $maxLength = 0;
    foreach (array_keys($data['old']) as $tableName) {
@@ -193,9 +220,17 @@ function processDeletes($main)
       $deletesLeft = $main->var('tableLimit');
 
       printf("  %s%s: %6d ",$tableName,str_repeat('.',$maxLength-strlen($tableName)),$total);
+    
       $newTableInfo = $data['new'][$tableName];
+
       foreach ($oldTableInfo['refs']['primary'] as $oldRowKey => $oldDataRef) {
          if (!$oldDataRef) { continue; }
+
+         // We had this table cached as processed
+         if ($changes['processedTables'][$tableName]) { 
+            print "cached --> ";
+            break; 
+         }
 
          if ($total && $count++ % ceil($total/50) == 0) { print "*"; }
 
@@ -214,6 +249,10 @@ function processDeletes($main)
          }
       }
       printf(" [%d removed]\n",count($changes['analysis']['removed'][$tableName] ?: []));
+
+      $changes['processedTables'][$tableName] = true;
+
+      file_put_contents($cacheFile,json_encode($changes));
    }
 
    if ($changes) { $main->var('results',array_merge_recursive($main->var('results'),$changes)); }
@@ -1426,7 +1465,7 @@ function findTableDataMatchIds($tableInfo, $key, $values, $return = null)
       return $cache[$cacheKey]; 
    }
 
-   if (!is_array($values)) { $values = array($values); }
+   if (!is_array($values)) { $values = [$values]; }
 
    if (!$values || !in_array($key,$tableInfo['columns'])) { return $results; }
 
