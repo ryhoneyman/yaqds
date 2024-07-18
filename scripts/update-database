@@ -8,6 +8,7 @@ pushd . &> /dev/null
 SCRIPTDIR=${BASH_SOURCE%/*}
 BASEDIR=$(dirname -- $(realpath $SCRIPTDIR))
 
+### Database connect string parameters
 DBHOST='localhost'
 DBUSER='yaqds'
 DBNAME='yaqds'
@@ -15,15 +16,22 @@ DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | jq -r '.password')
 
 DEPLOYDIR="$BASEDIR/deploy"
 DBDUMPDIR="$BASEDIR/quarm/db"
+
+### Remote latest available downoad, filename, and date
 LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | jq -r '.[length -1].download_url')
 AVAILFILE=$(basename $LATESTAVAIL)
-LATESTINSTALL=$(cat $DBDUMPDIR/latest)
 AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}' | tr -d '-')
 
+### Local install date
+LATESTINSTALL=$(cat $DBDUMPDIR/latest)
+
+### If we're up to date, there's nothing to do
 if [ "$AVAILDATE" == "$LATESTINSTALL" ] && [ -d "$DBDUMPDIR/$LATESTINSTALL" ]; then
     printf "\nWe are running the latest database. ($AVAILDATE)\n\n"
     exit
 fi
+
+### Start synchronizing new database
 
 printf "* Making new quarm database directory $AVAILDATE\n"
 mkdir -p $DBDUMPDIR/$AVAILDATE
