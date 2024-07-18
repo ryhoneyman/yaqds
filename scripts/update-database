@@ -11,7 +11,7 @@ BASEDIR=$(dirname -- $(realpath $SCRIPTDIR))
 DBHOST='localhost'
 DBUSER='yaqds'
 DBNAME='yaqds'
-DBPASS=`php -r '$dbData = json_decode(base64_decode(file_get_contents("/opt/yaqds/etc/db.conf")),true); print $dbData["password"];'`
+DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | jq -r '.password')
 
 DEPLOYDIR="$BASEDIR/deploy"
 DBDUMPDIR="$BASEDIR/quarm/db"
