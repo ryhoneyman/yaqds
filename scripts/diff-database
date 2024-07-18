@@ -32,6 +32,7 @@ $filter = strtolower($opts['filter']) ?: null;
 $limit  = $opts['limit'] ?: null;
 $force  = isset($opts['force']) ? true : false;
 
+$main->var('maxServerLevel',65);
 $main->var('tableFilter',$filter);
 $main->var('tableLimit',$limit);
 
@@ -317,11 +318,11 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
    $lookup   = $main->var('lookup');
    $analysis = null;
 
-   $state = 'added';
+   //$state = 'added';
 
    $sourceData = ($state == 'added') ? $data['new'] : $data['old'];
 
-   if (0 && $state == 'changed') {
+   if ($state == 'changed') {
       $diff        = array_diff_assoc($objectData,$previousData);
       $before      = array_intersect_key($previousData,$diff);
       $after       = array_diff_assoc($objectData,$previousData);
@@ -1320,9 +1321,9 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
 
       $effectList    = $conv->convertSpellEffectList($objectData);
       $classList     = $conv->convertSpellClasses($objectData);
-      $minClassLevel = min($classList) ?: 65;
+      $minClassLevel = (count($classList ?: []) > 0) ? min($classList) : $main->var('maxServerLevel');
       $minDuration   = $spell->calculateBuffDurationFormula($minClassLevel,$buffDurationFormula,$buffDuration);
-      $maxDuration   = $spell->calculateBuffDurationFormula(65,$buffDurationFormula,$buffDuration);
+      $maxDuration   = $spell->calculateBuffDurationFormula($main->var('maxServerLevel'),$buffDurationFormula,$buffDuration);
       $duration      = ($minDuration == $maxDuration) ? $maxDuration : sprintf("%s - %s",$minDuration,$maxDuration);
 
       if ($state == 'added' || $state == 'removed') {
@@ -1349,6 +1350,20 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       }
       else if ($state == 'changed') {
          $analysis['objectInfo'] = $spellName;
+      }
+   }
+   else if ($tableName == 'books') {
+      $bookName = $objectData['name'];
+      $bookText = $objectData['txtfile'];
+      
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'name'    => $bookName,
+            'txtfile' => $bookText,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $bookName;
       }
    }
 

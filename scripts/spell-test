@@ -30,19 +30,41 @@ $conv   = $main->obj('conv');
 $spell  = $main->obj('spell');
 $format = $main->obj('format');
 
-$opts = getopt(null,array('name:'));
-$name = $opts['name'] ?: null;
+$opts     = getopt(null,array('name:','npc','id:'));
+$name     = $opts['name'] ?: null;
+$id       = $opts['id'] ?: null;
+$npcSpell = isset($opts['npc']) ? 1 : 0;
 
 $maxServerLevel = 65;
 $tickInSecs     = 6;
 
-$query = sprintf("SELECT * FROM spells_new %s",($name) ? "WHERE name = '$name'" : '');
+$splurtVals = [
+   '107' => 1,
+   '108' => 2,
+   '120' => 5,
+   '122' => 12,
+];
 
-$spellInfo = $main->db()->query($query);
+if ($name) {
+   $statement = 'SELECT * FROM spells_new WHERE name = ? and not_player_spell = ?';
+   $types     = 'si';
+   $data      = [$name,$npcSpell];
+}
+else if ($id) {
+   $statement = 'SELECT * FROM spells_new WHERE id = ? and not_player_spell = ?';
+   $types     = 'ii';
+   $data      = [$id,$npcSpell];
+}
+else {
+   $statement = 'SELECT * FROM spells_new WHERE not_player_spell = ?';
+   $types     = 'i';
+   $data      = [$npcSpell];
+}
+
+$spellInfo = $main->db()->bindQuery($statement,$types,$data);
 
 $classList = [];
-
-$missing = [];
+$missing   = [];
 
 foreach ($spellInfo as $spellId => $spellData) {
    $spellName  = $spellData['name'];
@@ -58,36 +80,23 @@ foreach ($spellInfo as $spellId => $spellData) {
 
    $buffFormula   = $spellData['buffdurationformula'];
    $buffDuration  = $spellData['buffduration'];
+   $manaCost      = $spellData['mana'];
+   $targetType    = $spellData['targettype'];
+   $resistType    = $spellData['resisttype'];
+   $resistDiff    = $spellData['ResistDiff'];
+   $castTime      = $format->formatDurationShort($spellData['cast_time'] / 1000,['fractional' => true]);
+   $recoveryTime  = $format->formatDurationShort($spellData['recovery_time'] / 1000,['fractional' => true]);
+   $recastTime    = $format->formatDurationShort($spellData['recast_time'] / 1000,['fractional' => true]);
    
    $minDuration  = null;
    $maxDuration  = null;
    $hasDuration  = ($buffFormula == 0 && $buffDuration == 0) ? false : true;
    $effectValues = [];
 
-   foreach ($effectList as $effectPos => $effectInfo) {
-      $effectId       = $effectInfo['id'];
-      $effectFormula  = $effectInfo['formula'];
-      $effectBase     = $effectInfo['base'];
-      $effectMax      = $effectInfo['max'];
-      $effectDisplay  = $effectInfo['effectDisplay'];
-      $minValue       = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$minLevel);
-      $maxValue       = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$maxServerLevel);
+   $spell->property('buffduration',$buffDuration);
+   $spell->property('buffdurationformula',$buffFormula);
 
-      $effectInfo['minValue'] = $minValue;
-      $effectInfo['maxValue'] = $maxValue;
-
-      
-      for ($checkLevel = $minLevel; $checkLevel <= $maxServerLevel; $checkLevel++) {
-         $checkValue = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$checkLevel);
-         if (($checkValue > 0 && $checkValue >= $maxValue) || ($checkValue < 0 && $checkValue <= $maxValue)) { $maxLevel = $checkLevel; break; }
-      }
-
-      $effectInfo['minLevel'] = $minLevel;
-      $effectInfo['maxLevel'] = $maxLevel;
-
-      $effectValues[$effectPos] = $effectInfo;
-   }
-
+   // Process duration of spell
    if (!$hasDuration) { $duration = 'Instant'; }
    else {
       $minDuration      = $spell->calculateBuffDurationFormula($minLevel,$buffFormula,$buffDuration);
@@ -113,13 +122,47 @@ foreach ($spellInfo as $spellId => $spellData) {
    $spellData['minDuration'] = $minDuration;
    $spellData['maxDuration'] = $maxDuration;
 
+   // Process levels for effect data
+   foreach ($effectList as $effectPos => $effectInfo) {
+      $effectId       = $effectInfo['id'];
+      $effectFormula  = $effectInfo['formula'];
+      $effectBase     = $effectInfo['base'];
+      $effectMax      = $effectInfo['max'];
+      $minValue       = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$minLevel,$maxDuration);  
+      $maxValue       = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$maxServerLevel,1);
+
+      $effectInfo['splurtVal'] = $splurtVals[$effectFormula] ?: null;
+      $effectInfo['minValue']  = $minValue;
+      $effectInfo['maxValue']  = $maxValue;
+
+      //for ($checkLevel = $minLevel; $checkLevel <= $maxServerLevel; $checkLevel++) {
+      //   $checkValue = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$checkLevel);
+      //   if (($checkValue > 0 && $checkValue >= $maxValue) || ($checkValue < 0 && $checkValue <= $maxValue)) { $maxLevel = $checkLevel; break; }
+      //}
+
+      for ($checkLevel = $maxServerLevel; $checkLevel >= $minLevel; $checkLevel--) {
+         $checkValue = $spell->calculateEffectValueFormula($effectFormula,$effectBase,$effectMax,$checkLevel);
+         if ($maxValue && $maxValue != $checkValue) { break; }
+         $maxLevel = $checkLevel;
+      }
+
+      $effectInfo['minLevel'] = $minLevel;
+      $effectInfo['maxLevel'] = $maxLevel;
+
+      $effectValues[$effectPos] = $effectInfo;
+   }
+
    $effectDescList = [];
    foreach ($effectValues as $effectPos => $effectInfo) { 
       $effectDescList[$effectPos] = displayFormattedSpellText($main,$spellData,$effectInfo);
    }
 
    printf("\nSpell: %s (%d), minCastingLevel(%d) buffFormula(%s) buffDuration(%s)\n",$spellName,$spellId,$minLevel,$buffFormula,$buffDuration);
+   printf("  Mana.......: %s\n",$manaCost);
+   printf("  Cast Time..: %s (recovery:%s, recast:%s)\n",$castTime,$recoveryTime,$recastTime);
    printf("  Duration...: %s\n",$duration);
+   printf("  Target.....: %s\n",$conv->convertSpellTargetType($targetType));
+   printf("  Resist.....: %s (%s)\n",$conv->convertResistType($resistType),$resistDiff);
    printf("  Classes....: %s\n",str_replace('"','',json_encode($classList)));
    printf("\n");
    foreach ($effectDescList as $effectPos => $effectDesc) { printf("  * %s\n",$effectDesc); }
@@ -132,13 +175,17 @@ function displayFormattedSpellText($main, $spellData, $effectInfo)
 {
    global $missing;
 
-   $conv = $main->obj('conv');
-   $data = $main->data;
+   $conv   = $main->obj('conv');
+   $format = $main->obj('format');
+   $data   = $main->data;
 
    $availClasses = [
       'data' => $data,
-      'conv' => $conv,       
+      'conv' => $conv,
+      'raw'  => true,       
    ];
+
+   $spellId = $spellData['id'];
 
    $hasDuration = $spellData['hasDuration'];
 
@@ -147,61 +194,70 @@ function displayFormattedSpellText($main, $spellData, $effectInfo)
    $maxValue       = $effectInfo['maxValue'];
    $minLevel       = $effectInfo['minLevel'];
    $maxLevel       = $effectInfo['maxLevel'];
-   $effectDisplay  = $effectInfo['effectDisplay'];
+   $splurtVal      = $effectInfo['splurtVal'];
+   $effectDisplay  = $effectInfo['effectExceptions'][$spellId] ?: $effectInfo['effectDisplay'];
+   $effectName     = $effectInfo['effectName'];
    $textFormat     = $effectDisplay['format'] ?: 0;
    $textLabel      = $effectDisplay['label'];
-   $textValues     = $effectDisplay['values'];
+   $textValues     = $effectDisplay['values'] ?: [];
    $allowDuration  = $effectDisplay['allowDuration'] ? true : false;
+   $reverseAdjust  = $effectDisplay['reverseAdjust'] ? true : false;
 
    foreach ($spellData as $spellDataKey => $spellDataValue) {
       $values[sprintf("spell:%s",$spellDataKey)] = $spellDataValue;
    }
 
    $values = array_merge($values,[
-      'effect:id'       => $effectId,
-      'effect:label'    => $textLabel,
-      'effect:formula'  => $effectInfo['formula'],
-      'effect:base'     => $effectInfo['base'],
-      'effect:max'      => $effectInfo['max'],
-      'effect:minLevel' => $minLevel,
-      'effect:maxLevel' => $maxLevel,
+      'effect:id'        => $effectId,
+      'effect:label'     => $textLabel,
+      'effect:formula'   => $effectInfo['formula'],
+      'effect:base'      => $effectInfo['base'],
+      'effect:max'       => $effectInfo['max'],
+      'effect:limit'     => $effectInfo['limit'],
+      'effect:minLevel'  => $minLevel,
+      'effect:maxLevel'  => $maxLevel,
+      'effect:splurtVal' => $splurtVal,
+      'effect:units'     => '',
    ]);
 
-   if ($minValue < 0) { 
-      $values['effect:adjust'] = 'Decrease'; 
-      $values['effect:minValue'] = abs($minValue); 
-      $values['effect:maxValue'] = abs($maxValue); 
-   }
-   else { 
-      $values['effect:adjust'] = 'Increase'; 
-      $values['effect:minValue'] = $minValue; 
-      $values['effect:maxValue'] = $maxValue; 
-   }  
+   $adjustPos = ($reverseAdjust) ? 'Decrease' : 'Increase';
+   $adjustNeg = ($reverseAdjust) ? 'Increase' : 'Decrease';
+
+   $values['effect:adjust']   = ($minValue < 0) ? $adjustNeg : $adjustPos; 
+   $values['effect:minValue'] = abs($minValue); 
+   $values['effect:maxValue'] = ($minValue > 0 && $maxValue <= 0) ? $maxValue : abs($maxValue); 
+
+   if ($splurtVal) { $values['effect:splurtLabel'] = ($minValue > 0 && $minValue > $maxValue) ? 'subtract' : 'add'; }
 
    foreach ($textValues as $valueKey => $valueString) {
-      print "processing: $valueString\n";
+      //print "processing: $valueString\n";
       list($valueClass,$valueFunction,$valueParams,$valueIndex) = explode('^',replaceValues($valueString,$values));
-      print "processed: $valueClass,$valueFunction,$valueParams,$valueIndex\n";
+      //print "processed: $valueClass,$valueFunction,$valueParams,$valueIndex\n";
 
       if (!isset($availClasses[$valueClass])) { continue; }
 
-      $callResult = call_user_func_array([$availClasses[$valueClass],$valueFunction],explode(',',$valueParams));
-      $callValue  = (($valueIndex) ? $callResult[$valueIndex] : $callResult) ?: 'Unknown';
+      if ($valueClass == 'raw') { $callValue = $valueFunction; }
+      else {
+         $callResult = call_user_func_array([$availClasses[$valueClass],$valueFunction],explode(',',$valueParams));
+         $callValue  = (($valueIndex) ? $callResult[$valueIndex] : $callResult) ?: 'Unknown';
+      }
 
       $values[$valueKey] = $callValue;
    }
 
-   $format = '';
-   //$format = "{{effect:id}} {{effect:formula}} {{effect:base}} {{effect:max}}: ";
+   $effectFormat = '';
+   //$effectFormat = "i:{{effect:id}} f:{{effect:formula}} b:{{effect:base}} m:{{effect:max}} l:{{effect:limit}}: ";
 
    switch ($textFormat) {
-      // Generic effect with min/max, optionally over time
+      // Generic effect with min/max, optionally over time, optional qualifier (such as % or units) - accounts for splurt decay/cumulative
       case 1: {
-         $format .= "{{effect:adjust}} {{effect:label}} by {{effect:minValue}}";
+         $effectFormat .= "{{effect:adjust}} {{effect:label}} by {{effect:minValue}}{{effect:units}}";
 
-         if ($minValue != $maxValue) { $format .= " (L{{effect:minLevel}}) to {{effect:maxValue}} (L{{effect:maxLevel}})"; }
-
-         if ($hasDuration && $allowDuration) { $format .= ' per tick'; }
+         if ($minValue != $maxValue) { 
+            if ($splurtVal) { $effectFormat .= " and {{effect:splurtLabel}} {{effect:splurtVal}} per tick, ending at {{effect:maxValue}}"; }
+            else            { $effectFormat .= " (L{{effect:minLevel}}) to {{effect:maxValue}}{{effect:units}} (L{{effect:maxLevel}})"; }
+         }
+         if ($hasDuration && $allowDuration) { $effectFormat .= ' per tick'; }
 
          break;
       }
@@ -230,27 +286,28 @@ function displayFormattedSpellText($main, $spellData, $effectInfo)
             foreach (array_keys($formats) as $formatType) { $formats[$formatType] .= ' per tick'; }
          }
 
-         $format .= "{{effect:adjust}} {{effect:label}} for ".implode(', ',$formats);
+         $effectFormat .= "{{effect:adjust}} {{effect:label}} for ".implode(', ',$formats);
 
          break;
       }
       // Generic up to max
       case 3: {
-         $format .= "{{effect:label}} up to {{effect:max}}";
+         $effectFormat .= "{{effect:label}} up to {{effect:max}}";
          break;
       }
       // Generic percentage
       case 4: {
-         $format .= "{{effect:label}} ({{effect:maxValue}}%)";
+         $effectFormat .= "{{effect:label}} ({{effect:maxValue}}%)";
          break;
       }
       // Teleportation
       case 5: {
-         $format .= "{{spell:targetName}}{{effect:label}} to {{spell:zoneName}} ({{spell:effect_base_value1}},{{spell:effect_base_value2}},{{spell:effect_base_value3}})";
+         $effectFormat .= "{{spell:targetName}}{{effect:label}} to {{spell:zoneName}} ({{spell:effect_base_value1}},{{spell:effect_base_value2}},{{spell:effect_base_value3}})";
+         $targetType   = $conv->convertSpellTargetType($spellData['targettype']);
 
          $zoneInfo                   = $data->getZoneInfoByName($spellData['teleport_zone']);
          $values['spell:zoneName']   = $zoneInfo['long_name'] ?: 'Unknown Zone';
-         $values['spell:targetName'] = ($spellData['targettype'] == 3) ? 'Group ' : (($spellData['targettype'] == 6) ? 'Self ' : ''); 
+         $values['spell:targetName'] = ($targetType == 'GroupTeleport') ? 'Group ' : (($targetType == 'Self') ? 'Self ' : ''); 
          break;
       }
       // Aggro/Assist Radius
@@ -258,23 +315,70 @@ function displayFormattedSpellText($main, $spellData, $effectInfo)
          // Harmony uses a special flag to prevent level restrictions
          $ruleResults     = $data->getRuleInfoByName('AlKabor:EnableLatePlanesHarmonyNerf');
          $isHarmonyNerfed = ($ruleResults['rule_value'] == 'false') ? false : true;
-         $isHarmony       = ($spellData['id'] == 250) ? true : false;
+         $isHarmony       = ($spellData['name'] == 'Harmony') ? true : false;
 
-         $format .= "Change {{effect:label}} to {{effect:base}}";
+         $effectFormat .= "Change {{effect:label}} to {{effect:base}}";
 
-         if ($effectInfo['max'] > 0 && (!$isHarmony || ($isHarmony && $isHarmonyNerfed))) { $format .= " up to L{{effect:max}}"; }
+         if ($effectInfo['max'] > 0 && (!$isHarmony || ($isHarmony && $isHarmonyNerfed))) { $effectFormat .= " up to L{{effect:max}}"; }
+
+         break;
+      }
+      // Adjust percent by skill
+      case 7: {
+         $values['effect:skill'] = ($values['effect:limit'] == -1) ? 'All Skills' : $conv->convertSkill($values['effect:limit']); 
+
+         $effectFormat .= "{{effect:adjust}} {{effect:label}} by {{effect:minValue}}% for {{effect:skill}}";
+
+         break;
+      }
+      // Effects that can cause or remove impact, such as Blindness
+      case 8: {
+         $beneficial = ($spellData['goodEffect'] || in_array($conv->convertSpellTargetType($spellData['targettype']),['GroupV1','GroupTeleport','GroupV2','BardAE'])) ? true : false;
+
+         $values['effect:adjust'] = ($beneficial) ? 'Remove ' : '';
+
+         $effectFormat .= "{{effect:adjust}}{{effect:label}} (Strength: {{strength}})";
+
+         break;
+      }
+      // Effects with duration optionally up to a certian level
+      case 9: {
+         $maxLevel           = $values['effect:max'] ?: null;
+         $values['duration'] = $format->formatDuration($values['effect:base']/1000);
+
+         $effectFormat .= "{{effect:label}} ({{duration}})";
+
+         if ($maxLevel) { $effectFormat .= " up to L$maxLevel"; }
+
+         break;
+      }
+      // Generic up to max level
+      case 10: {
+         if ($effectName == 'SE_Fear' && $values['effect:max'] == 0) { $values['effect:max'] = 52; }
+
+         $effectFormat .= "{{effect:label}} up to L{{effect:max}}";
+
+         break;
+      }
+      // Summoned Pets
+      case 11: {
+         $petInfo = $data->getPetInfoBySpellId($spellId);
+
+         foreach ($petInfo as $petKey => $petValue) { $values["pet:$petKey"] = $petValue; }
+
+         $effectFormat .= "{{effect:label}}: L{{pet:level}} {{pet:name}}";
 
          break;
       }
       // Custom format or generic label only
-      default: $format .= ($textFormat) ? $textFormat : "{{effect:label}}";
+      default: $effectFormat .= ($textFormat) ? $textFormat : "{{effect:label}}";
    }
    
-   $format = replaceValues($format,$values);
+   $effectFormat = replaceValues($effectFormat,$values);
 
-   if (!$format) { $format = "Missing effectID: $effectId"; $missing[$effectId][$spellData['name']]++; }
+   if (!$effectFormat) { $effectFormat = "Missing effectID: $effectId"; $missing[$effectId][$spellData['name']]++; }
 
-   return $format;
+   return $effectFormat;
 }
 
 function replaceValues($string, $values)
