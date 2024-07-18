@@ -1,0 +1,60 @@
+#!/bin/bash
+
+### Enable shell debugging
+#set -x
+
+pushd . &> /dev/null
+
+SCRIPTDIR=${BASH_SOURCE%/*}
+BASEDIR=$(dirname -- $(realpath $SCRIPTDIR))
+
+DBHOST='localhost'
+DBUSER='yaqds'
+DBNAME='yaqds'
+DBPASS=`php -r '$dbData = json_decode(base64_decode(file_get_contents("/opt/yaqds/etc/db.conf")),true); print $dbData["password"];'`
+
+DEPLOYDIR="$BASEDIR/deploy"
+DBDUMPDIR="$BASEDIR/quarm/db"
+LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | jq -r '.[length -1].download_url')
+AVAILFILE=$(basename $LATESTAVAIL)
+LATESTINSTALL=$(cat $DBDUMPDIR/latest)
+AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}' | tr -d '-')
+
+if [ "$AVAILDATE" == "$LATESTINSTALL" ] && [ -d "$DBDUMPDIR/$LATESTINSTALL" ]; then
+    printf "\nWe are running the latest database. ($AVAILDATE)\n\n"
+    exit
+fi
+
+printf "* Making new quarm database directory $AVAILDATE\n"
+mkdir -p $DBDUMPDIR/$AVAILDATE
+cd $DBDUMPDIR/$AVAILDATE
+
+printf "* Getting latest dump file from repo $AVAILFILE\n"
+wget -q $LATESTAVAIL
+
+printf "* Extracting latest dump file\n"
+tar zxf $AVAILFILE
+rm $AVAILFILE
+
+### Remove MariaDB bugged sandbox line
+printf "* Preparing quarm data file\n"
+tail -n +2 quarm_*.sql > quarm-import.sql
+
+export MYSQL_PWD="$DBPASS"
+
+printf "* Purging existing tables\n"
+mysql -h $DBHOST -u $DBUSER $DBNAME < drop_system.sql
+
+printf "* Importing new tables\n"
+mysql -h $DBHOST -u $DBUSER $DBNAME < quarm-import.sql
+
+printf "* Executing custom table queries\n"
+mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/yaqds-tables.sql
+
+printf "* Cleaning up\n"
+rm quarm-import.sql
+
+printf "* Storing this version ($AVAILDATE) in $DBDUMPDIR/latest\n"
+echo "$AVAILDATE" > $DBDUMPDIR/latest
+
+popd &> /dev/null
