@@ -50,7 +50,7 @@ class Spell extends LWPLib\Base
       return $effectValue;
    }
 
-   public function calculateEffectValueFormula($formula, $base, $max, $casterLevel, $ticsRemaining = null)
+   public function calculateEffectValueFormula(int $formula, int $base, int $max, int $casterLevel, ?int $ticsRemaining = null): int
    {
       $result     = 0;
       $updownSign = 1;
@@ -273,7 +273,12 @@ class Spell extends LWPLib\Base
    public function buffDurationFormula() { return $this->property('buffdurationformula'); }
    public function targetType()          { return $this->property('targettype'); }
 
-   public function property($name) { return $this->data[$name]; }
+   public function property($key, $value = null, $clear = false)
+   {
+      if (!is_null($value) || $clear) { $this->data[$key] = $value; }
+
+      return (isset($this->data[$key]) ? $this->data[$key] : null);
+   }
 
    public function load($spellData) { 
       if (!preg_match('/^\d+$/',$spellData['id'])) { $this->error('Invalid spell data: id not valid'); return false; }

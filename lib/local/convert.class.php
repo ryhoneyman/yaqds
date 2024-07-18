@@ -288,13 +288,14 @@ class Convert extends LWPLib\Base
          if ($effectId == 254 || ($effectId == 10 && $effectBase == 0 && $effectMax == 0)) { continue; }
 
          $spellEffectList[$effectPos] = [
-            'id'            => $effectId,
-            'base'          => $effectBase,
-            'limit'         => $effectLimit,
-            'max'           => $effectMax,
-            'formula'       => $effectFormula,
-            'effect'        => $this->convertSpellEffect($effectId,'key'),
-            'effectDisplay' => $this->convertSpellEffect($effectId,'display'),
+            'id'               => $effectId,
+            'base'             => $effectBase,
+            'limit'            => $effectLimit,
+            'max'              => $effectMax,
+            'formula'          => $effectFormula,
+            'effectName'       => $this->convertSpellEffect($effectId,'name'),
+            'effectDisplay'    => $this->convertSpellEffect($effectId,'display'),
+            'effectExceptions' => $this->convertSpellEffect($effectId,'exceptions'),
          ];
       }
 
@@ -319,127 +320,145 @@ class Convert extends LWPLib\Base
    {
       $spellEffectList = [
          '0' => [
-            'key'  => 'SE_CurrentHP',
+            'name'    => 'SE_CurrentHP',
             'display' => ['format' => 1, 'label' => 'Hitpoints', 'allowDuration' => true],
          ],
          '1' => [
-            'key'  => 'SE_ArmorClass',
+            'name'    => 'SE_ArmorClass',
             'display' => ['format' => 2, 'label' => 'AC'],
          ],
          '2' => [
-            'key'  => 'SE_ATK',
+            'name'    => 'SE_ATK',
             'display' => ['format' => 1, 'label' => 'Attack'],
          ],
          '3' => [
-            'key'  => 'SE_MovementSpeed',
-            'display' => ['format' => 1, 'label' => 'Movement Speed'],
+            'name'    => 'SE_MovementSpeed',
+            'display' => ['format' => 1, 'label' => 'Movement Speed', 'values' => ['effect:units' => 'raw^%']],
          ],
          '4' => [
-            'key'  => 'SE_STR',
+            'name'    => 'SE_STR',
             'display' => ['format' => 1, 'label' => 'Strength'],
          ],
          '5' => [
-            'key'  => 'SE_DEX',
+            'name'    => 'SE_DEX',
             'display' => ['format' => 1, 'label' => 'Dexerity'],
          ],
          '6' => [
-            'key'  => 'SE_AGI',
+            'name'    => 'SE_AGI',
             'display' => ['format' => 1, 'label' => 'Agility'],
          ],
          '7' => [
-            'key'  => 'SE_STA',
+            'name'    => 'SE_STA',
             'display' => ['format' => 1, 'label' => 'Stamina'],
          ],
          '8' => [
-            'key'  => 'SE_INT',
+            'name'    => 'SE_INT',
             'display' => ['format' => 1, 'label' => 'Intelligence'],
          ],
          '9' => [
-            'key'  => 'SE_WIS',
+            'name'    => 'SE_WIS',
             'display' => ['format' => 1, 'label' => 'Wisdom'],
          ],
          '10' => [
-            'key'  => 'SE_CHA',
+            'name'    => 'SE_CHA',
             'display' => ['format' => 1, 'label' => 'Charisma'],
          ],
          '11' => [
-            'key'  => 'SE_AttackSpeed',
+            'name'    => 'SE_AttackSpeed',
             'display' => ['format' => 1, 'label' => 'Attack Speed'],
          ],
          '12' => [
-            'key'  => 'SE_Invisibility',
+            'name'    => 'SE_Invisibility',
             'display' => ['format' => 0, 'label' => 'Invisibility'],
          ],
          '13' => [
-            'key'     => 'SE_SeeInvis',
+            'name'    => 'SE_SeeInvis',
             'display' => ['format' => 0, 'label' => 'See Invisibile'],
          ],
          '14' => [
-            'key'     => 'SE_WaterBreathing',
+            'name'    => 'SE_WaterBreathing',
             'display' => ['format' => 0, 'label' => 'Water Breathing'],
          ],
          '15' => [
-            'key'  => 'SE_CurrentMana',
+            'name'    => 'SE_CurrentMana',
             'display' => ['format' => 1, 'label' => 'Mana', 'allowDuration' => true],
          ],
          '18' => [
-            'key'  => 'SE_Lull',
+            'name'    => 'SE_Lull',
             'display' => ['format' => 0, 'label' => 'Pacify'],
          ],
          '19' => [
-            'key'  => 'SE_AddFaction',
-            'text' => 'foo'
+            'name'    => 'SE_AddFaction',
+            'display' => ['format' => 1, 'label' => 'Faction'],
          ],
          '20' => [
-            'key'  => 'SE_Blind',
-            'text' => 'foo'
+            'name'    => 'SE_Blind',
+            'display' => [
+               'format' => 8, 
+               'label' => 'Blindness',
+               'values' => [
+                  'strength' => 'conv^convertBlindnessStackingValue^{{effect:base}}'
+               ]
+            ],
          ],
          '21' => [
-            'key'  => 'SE_Stun',
-            'text' => 'foo'
+            'name'    => 'SE_Stun',
+            'display' => ['format' => 9, 'label' => 'Stun'],
          ],
          '22' => [
-            'key'  => 'SE_Charm',
-            'text' => 'foo'
+            'name'    => 'SE_Charm',
+            'display' => ['format' => 10, 'label' => 'Charm'],
          ],
          '23' => [
-            'key'  => 'SE_Fear',
-            'text' => 'foo'
+            'name'    => 'SE_Fear',
+            'display' => ['format' => 10, 'label' => 'Fear'],
          ],
          '24' => [
-            'key'  => 'SE_Stamina',
-            'text' => 'foo'
+            'name' => 'SE_Stamina',
+            'display' => ['format' => 1, 'label' => 'Endurance', 'allowDuration' => true, 'reverseAdjust' => true],
          ],
          '25' => [
-            'key'  => 'SE_BindAffinity',
-            'text' => 'foo'
+            'name'    => 'SE_BindAffinity',
+            'display' => [
+               'format' => 'Bind Location: {{bindType}}', 
+               'values' => [
+                  'bindType' => 'conv^convertBindTypeById^{{effect:base}}',
+               ],
+            ],
          ],
          '26' => [
-            'key'  => 'SE_Gate',
-            'text' => 'foo'
+            'name'    => 'SE_Gate',
+            'display' => [
+               'format' => 'Teleport to Bound Location: {{bindType}}', 
+               'values' => [
+                  'bindType' => 'conv^convertBindTypeById^{{effect:base}}',
+               ],
+            ],
          ],
          '27' => [
-            'key'  => 'SE_CancelMagic',
-            'text' => 'foo'
+            'name'    => 'SE_CancelMagic',
+            'display' => [
+               'format' => 'Dispel Magic: (+{{effect:base}} to caster level effectiveness)', 
+            ],
          ],
          '28' => [
-            'key'  => 'SE_InvisVsUndead',
+            'name' => 'SE_InvisVsUndead',
             'display' => ['format' => 0, 'label' => 'Invisibility versus Undead'],
          ],
          '29' => [
-            'key'     => 'SE_InvisVersusAnimals',
+            'name'    => 'SE_InvisVersusAnimals',
             'display' => ['format' => 0, 'label' => 'Invisibility versus Animals'],
          ],
          '30' => [
-            'key'     => 'SE_ChangeFrenzyRadius',
+            'name'    => 'SE_ChangeFrenzyRadius',
             'display' => ['format' => 6, 'label' => 'Aggro Radius'],
          ],
          '31' => [
-            'key'     => 'SE_Mez',
+            'name'    => 'SE_Mez',
             'display' => ['format' => 3, 'label' => 'Mezmerize'],
          ],
          '32' => [
-            'key'     => 'SE_SummonItem',
+            'name'    => 'SE_SummonItem',
             'display' => [
                'format' => 'Summon: {{itemName}}', 
                'values' => [
@@ -448,87 +467,87 @@ class Convert extends LWPLib\Base
             ],
          ],
          '33' => [
-            'key'  => 'SE_SummonPet',
-            'text' => 'foo'
+            'name'    => 'SE_SummonPet',
+            'display' => ['format' => 11, 'label' => 'Summon Pet'],
          ],
          '35' => [
-            'key'     => 'SE_DiseaseCounter',
+            'name'    => 'SE_DiseaseCounter',
             'display' => ['format' => 1, 'label' => 'Disease Counter'],
          ],
          '36' => [
-            'key'  => 'SE_PoisonCounter',
-            'text' => 'foo'
+            'name'    => 'SE_PoisonCounter',
+            'display' => ['format' => 1, 'label' => 'Poison Counter'],
          ],
          '40' => [
-            'key'  => 'SE_DivineAura',
-            'text' => 'foo'
+            'name'    => 'SE_DivineAura',
+            'display' => ['format' => 0, 'label' => 'Invulnerability'],
          ],
          '41' => [
-            'key'  => 'SE_Destroy',
+            'name'    => 'SE_Destroy',
             'display' => ['format' => 'Destroy {{spell:targetTypeName}} up to L51'],
          ],
          '42' => [
-            'key'  => 'SE_ShadowStep',
-            'text' => 'foo'
+            'name'    => 'SE_ShadowStep',
+            'display' => ['format' => 0, 'label' => 'Shadow Step'],
          ],
          '43' => [
-            'key'  => 'SE_Berserk',
-            'text' => 'foo'
+            'name'    => 'SE_Berserk',
+            'display' => ['format' => 0, 'label' => 'Berserk'],
          ],
          '44' => [
-            'key'  => 'SE_Lycanthropy',
-            'text' => 'foo'
+            'name'    => 'SE_Lycanthropy',
+            'display' => ['format' => 0, 'label' => 'Delayed Heal Marker'],
          ],
          '45' => [
-            'key'  => 'SE_Vampirism',
-            'text' => 'foo'
+            'name'    => 'SE_Vampirism',
+            'display' => ['format' => 0, 'label' => 'Melee Lifetap'],
          ],
          '46' => [
-            'key'  => 'SE_ResistFire',
-            'text' => 'foo'
+            'name' => 'SE_ResistFire',
+            'display' => ['format' => 1, 'label' => 'Fire Resistance'],
          ],
          '47' => [
-            'key'  => 'SE_ResistCold',
-            'text' => 'foo'
+            'name' => 'SE_ResistCold',
+            'display' => ['format' => 1, 'label' => 'Cold Resistance'],
          ],
          '48' => [
-            'key'  => 'SE_ResistPoison',
-            'text' => 'foo'
+            'name' => 'SE_ResistPoison',
+            'display' => ['format' => 1, 'label' => 'Poison Resistance'],
          ],
          '49' => [
-            'key'  => 'SE_ResistDisease',
-            'text' => 'foo'
+            'name' => 'SE_ResistDisease',
+            'display' => ['format' => 1, 'label' => 'Disease Resistance'],
          ],
          '50' => [
-            'key'  => 'SE_ResistMagic',
-            'text' => 'foo'
+            'name' => 'SE_ResistMagic',
+            'display' => ['format' => 1, 'label' => 'Magic Resistance'],
          ],
          '52' => [
-            'key'     => 'SE_SenseDead',
+            'name'    => 'SE_SenseDead',
             'display' => ['format' => 0, 'label' => 'Sense Undead'],
          ],
          '53' => [
-            'key'     => 'SE_SenseSummoned',
+            'name'    => 'SE_SenseSummoned',
             'display' => ['format' => 0, 'label' => 'Sense Summoned'],
          ],
          '54' => [
-            'key'     => 'SE_SenseAnimals',
+            'name'    => 'SE_SenseAnimals',
             'display' => ['format' => 0, 'label' => 'Sense Animals'],
          ],
          '55' => [
-            'key'  => 'SE_Rune',
-            'text' => 'foo'
+            'name' => 'SE_Rune',
+            'display' => ['format' => 1, 'label' => 'Melee Damage Absorbance'],
          ],
          '56' => [
-            'key'     => 'SE_TrueNorth',
+            'name'    => 'SE_TrueNorth',
             'display' => ['format' => 0, 'label' => 'True North'],
          ],
          '57' => [
-            'key'     => 'SE_Levitate',
+            'name'    => 'SE_Levitate',
             'display' => ['format' => 0, 'label' => 'Levitate'],
          ],
          '58' => [
-            'key'  => 'SE_Illusion',
+            'name' => 'SE_Illusion',
             'display' => [
                'format' => 'Illusion: {{raceName}}', 
                'values' => [
@@ -537,127 +556,127 @@ class Convert extends LWPLib\Base
             ],
          ],
          '59' => [
-            'key'  => 'SE_DamageShield',
-            'text' => 'foo'
+            'name' => 'SE_DamageShield',
+            'display' => ['format' => 1, 'label' => 'Damage Shield', 'reverseAdjust' => true],
          ],
          '61' => [
-            'key'     => 'SE_Identify',
+            'name'    => 'SE_Identify',
             'display' => ['format' => 0, 'label' => 'Identify'],
          ],
          '63' => [
-            'key'     => 'SE_WipeHateList',
+            'name'    => 'SE_WipeHateList',
             'display' => ['format' => 4, 'label' => 'Memblur'],
          ],
          '64' => [
-            'key'     => 'SE_SpinTarget',
+            'name'    => 'SE_SpinTarget',
             'display' => ['format' => 0, 'label' => 'Spin Stun'],
          ],
          '65' => [
-            'key'     => 'SE_Infravision',
+            'name'    => 'SE_Infravision',
             'display' => ['format' => 0, 'label' => 'Infravision'],
          ],
          '66' => [
-            'key'     => 'SE_Ultravision',
+            'name'    => 'SE_Ultravision',
             'display' => ['format' => 0, 'label' => 'Ultravision'],
          ],
          '67' => [
-            'key'  => 'SE_EyeOfZoom',
+            'name' => 'SE_EyeOfZoom',
             'text' => 'foo'
          ],
          '68' => [
-            'key'     => 'SE_ReclaimPet',
+            'name'    => 'SE_ReclaimPet',
             'display' => ['format' => 0, 'label' => 'Reclaim Pet'],
          ],
          '69' => [
-            'key'     => 'SE_TotalHP',
+            'name'    => 'SE_TotalHP',
             'display' => ['format' => 1, 'label' => 'Maximum Hitpoints'],
          ],
          '71' => [
-            'key'  => 'SE_NecPet',
+            'name' => 'SE_NecPet',
             'text' => 'foo'
          ],
          '73' => [
-            'key'     => 'SE_Bindsight',
+            'name'    => 'SE_Bindsight',
             'display' => ['format' => 0, 'label' => 'Bind Sight'],
          ],
          '74' => [
-            'key'     => 'SE_FeignDeath',
+            'name'    => 'SE_FeignDeath',
             'display' => ['format' => 0, 'label' => 'Feign Death'],
          ],
          '75' => [
-            'key'     => 'SE_VoiceGraft',
+            'name'    => 'SE_VoiceGraft',
             'display' => ['format' => 0, 'label' => 'Voice Graft'],
          ],
          '76' => [
-            'key'     => 'SE_Sentinel',
+            'name'    => 'SE_Sentinel',
             'display' => ['format' => 0, 'label' => 'Sentinel'],
          ],
          '77' => [
-            'key'     => 'SE_LocateCorpse',
+            'name'    => 'SE_LocateCorpse',
             'display' => ['format' => 0, 'label' => 'Locate Corpse'],
          ],
          '78' => [
-            'key'  => 'SE_AbsorbMagicAttack',
+            'name' => 'SE_AbsorbMagicAttack',
             'text' => 'foo'
          ],
          '79' => [
-            'key'     => 'SE_CurrentHPOnce',
-            'display' => ['format' => 1, 'label' => 'Hitpoints'],
+            'name'    => 'SE_CurrentHPOnce',
+            'display' => ['format' => 1, 'label' => 'Hitpoints initially'],
          ],
          '81' => [
-            'key'     => 'SE_Revive',
+            'name'    => 'SE_Revive',
             'display' => ['format' => 'Resurrect and restore {{effect:base}}% experience'],
          ],
          '82' => [
-            'key'     => 'SE_SummonPC',
+            'name'    => 'SE_SummonPC',
             'display' => ['format' => 0, 'label' => 'Summon Player'],
          ],
          '83' => [
-            'key'     => 'SE_Teleport',
+            'name'    => 'SE_Teleport',
             'display' => ['format' => 5, 'label' => 'Teleport'],
          ],
          '84' => [
-            'key'  => 'SE_TossUp',
+            'name' => 'SE_TossUp',
             'text' => 'foo'
          ],
          '85' => [
-            'key'  => 'SE_WeaponProc',
+            'name' => 'SE_WeaponProc',
             'text' => 'foo'
          ],
          '86' => [
-            'key'     => 'SE_Harmony',
+            'name'    => 'SE_Harmony',
             'display' => ['format' => 6, 'label' => 'Assist Radius'],
          ],
          '87' => [
-            'key'  => 'SE_MagnifyVision',
+            'name' => 'SE_MagnifyVision',
             'text' => 'foo'
          ],
          '88' => [
-            'key'  => 'SE_Succor',
+            'name' => 'SE_Succor',
             'text' => 'foo'
          ],
          '89' => [
-            'key'  => 'SE_ModelSize',
+            'name' => 'SE_ModelSize',
             'text' => 'foo'
          ],
          '91' => [
-            'key'     => 'SE_SummonCorpse',
+            'name'    => 'SE_SummonCorpse',
             'display' => ['format' => 'Summon Corpse up to L{{effect:base}}'],
          ],
          '92' => [
-            'key'  => 'SE_InstantHate',
+            'name' => 'SE_InstantHate',
             'text' => 'foo'
          ],
          '93' => [
-            'key'     => 'SE_StopRain',
+            'name'    => 'SE_StopRain',
             'display' => ['format' => 0, 'label' => 'Stop Rain'],
          ],
          '94' => [
-            'key'  => 'SE_NegateIfCombat',
+            'name' => 'SE_NegateIfCombat',
             'text' => 'foo'
          ],
          '95' => [
-            'key'     => 'SE_Sacrifice',
+            'name'    => 'SE_Sacrifice',
             'display' => [
                'format' => 'Sacrifice Player between L{{sacrificeMinLevel}} and L{{sacrificeMaxLevel}}', 
                'values' => [
@@ -667,303 +686,306 @@ class Convert extends LWPLib\Base
             ],
          ],
          '96' => [
-            'key'  => 'SE_Silence',
+            'name' => 'SE_Silence',
             'text' => 'foo'
          ],
          '97' => [
-            'key'  => 'SE_ManaPool',
+            'name' => 'SE_ManaPool',
             'display' => ['format' => 1, 'label' => 'Maximum Mana'],
          ],
          '98' => [
-            'key'  => 'SE_AttackSpeed2',
+            'name' => 'SE_AttackSpeed2',
             'text' => 'foo'
          ],
          '99' => [
-            'key'     => 'SE_Root',
+            'name'    => 'SE_Root',
             'display' => ['format' => 0, 'label' => 'Root'],
          ],
          '100' => [
-            'key'  => 'SE_HealOverTime',
+            'name' => 'SE_HealOverTime',
             'text' => 'foo'
          ],
          '101' => [
-            'key'  => 'SE_CompleteHeal',
+            'name' => 'SE_CompleteHeal',
             'text' => 'foo'
          ],
          '102' => [
-            'key'  => 'SE_Fearless',
+            'name' => 'SE_Fearless',
             'text' => 'foo'
          ],
          '103' => [
-            'key'  => 'SE_CallPet',
+            'name' => 'SE_CallPet',
             'text' => 'foo'
          ],
          '104' => [
-            'key'  => 'SE_Translocate',
+            'name' => 'SE_Translocate',
             'display' => ['format' => 5, 'label' => 'Translocate'],
          ],
          '105' => [
-            'key'  => 'SE_AntiGate',
+            'name' => 'SE_AntiGate',
             'text' => 'foo'
          ],
          '106' => [
-            'key'  => 'SE_SummonBSTPet',
+            'name' => 'SE_SummonBSTPet',
             'text' => 'foo'
          ],
          '107' => [
-            'key'  => 'SE_AlterNPCLevel',
+            'name' => 'SE_AlterNPCLevel',
             'text' => 'foo'
          ],
          '108' => [
-            'key'  => 'SE_Familiar',
+            'name' => 'SE_Familiar',
             'text' => 'foo'
          ],
          '109' => [
-            'key'  => 'SE_SummonItemIntoBag',
+            'name' => 'SE_SummonItemIntoBag',
             'text' => 'foo'
          ],
          '110' => [
-            'key'  => 'SE_IncreaseArchery',
+            'name' => 'SE_IncreaseArchery',
             'text' => 'foo'
          ],
          '111' => [
-            'key'  => 'SE_ResistAll',
+            'name' => 'SE_ResistAll',
             'text' => 'foo'
          ],
          '112' => [
-            'key'  => 'SE_CastingLevel',
+            'name' => 'SE_CastingLevel',
             'text' => 'foo'
          ],
          '113' => [
-            'key'  => 'SE_SummonHorse',
+            'name' => 'SE_SummonHorse',
             'text' => 'foo'
          ],
          '114' => [
-            'key'  => 'SE_ChangeAggro',
+            'name' => 'SE_ChangeAggro',
             'text' => 'foo'
          ],
          '115' => [
-            'key'  => 'SE_Hunger',
+            'name' => 'SE_Hunger',
             'text' => 'foo'
          ],
          '116' => [
-            'key'  => 'SE_CurseCounter',
+            'name' => 'SE_CurseCounter',
             'text' => 'foo'
          ],
          '117' => [
-            'key'  => 'SE_MagicWeapon',
+            'name' => 'SE_MagicWeapon',
             'text' => 'foo'
          ],
          '118' => [
-            'key'  => 'SE_Amplification',
+            'name' => 'SE_Amplification',
             'text' => 'foo'
          ],
          '119' => [
-            'key'  => 'SE_AttackSpeed3',
+            'name' => 'SE_AttackSpeed3',
             'text' => 'foo'
          ],
          '120' => [
-            'key'  => 'SE_HealRate',
+            'name' => 'SE_HealRate',
             'text' => 'foo'
          ],
          '121' => [
-            'key'  => 'SE_ReverseDS',
+            'name' => 'SE_ReverseDS',
             'text' => 'foo'
          ],
          '123' => [
-            'key'  => 'SE_Screech',
+            'name' => 'SE_Screech',
             'text' => 'foo'
          ],
          '124' => [
-            'key'  => 'SE_ImprovedDamage',
+            'name' => 'SE_ImprovedDamage',
             'text' => 'foo'
          ],
          '125' => [
-            'key'  => 'SE_ImprovedHeal',
+            'name' => 'SE_ImprovedHeal',
             'text' => 'foo'
          ],
          '126' => [
-            'key'  => 'SE_SpellResistReduction',
+            'name' => 'SE_SpellResistReduction',
             'text' => 'foo'
          ],
          '127' => [
-            'key'  => 'SE_IncreaseSpellHaste',
+            'name' => 'SE_IncreaseSpellHaste',
             'text' => 'foo'
          ],
          '128' => [
-            'key'  => 'SE_IncreaseSpellDuration',
+            'name' => 'SE_IncreaseSpellDuration',
             'text' => 'foo'
          ],
          '129' => [
-            'key'  => 'SE_IncreaseRange',
+            'name' => 'SE_IncreaseRange',
             'text' => 'foo'
          ],
          '130' => [
-            'key'  => 'SE_SpellHateMod',
+            'name' => 'SE_SpellHateMod',
             'text' => 'foo'
          ],
          '131' => [
-            'key'  => 'SE_ReduceReagentCost',
+            'name' => 'SE_ReduceReagentCost',
             'text' => 'foo'
          ],
          '132' => [
-            'key'  => 'SE_ReduceManaCost',
+            'name' => 'SE_ReduceManaCost',
             'text' => 'foo'
          ],
          '133' => [
-            'key'  => 'SE_RFcStunTimeMod',
+            'name' => 'SE_RFcStunTimeMod',
             'text' => 'foo'
          ],
          '145' => [
-            'key'  => 'SE_Teleport2',
+            'name' => 'SE_Teleport2',
             'text' => 'foo'
          ],
          '147' => [
-            'key'  => 'SE_PercentHeal',
+            'name' => 'SE_PercentHeal',
             'text' => 'foo'
          ],
          '148' => [
-            'key'  => 'SE_StackingCommandBlock',
+            'name' => 'SE_StackingCommandBlock',
             'text' => 'foo'
          ],
          '149' => [
-            'key'  => 'SE_StackingCommandOverwrite',
+            'name' => 'SE_StackingCommandOverwrite',
             'text' => 'foo'
          ],
          '150' => [
-            'key'  => 'SE_DeathSave',
+            'name' => 'SE_DeathSave',
             'text' => 'foo'
          ],
          '151' => [
-            'key'  => 'SE_SuspendPet',
+            'name' => 'SE_SuspendPet',
             'text' => 'foo'
          ],
          '152' => [
-            'key'  => 'SE_TemporaryPets',
+            'name' => 'SE_TemporaryPets',
             'text' => 'foo'
          ],
          '153' => [
-            'key'  => 'SE_BalanceHP',
+            'name' => 'SE_BalanceHP',
             'text' => 'foo'
          ],
          '154' => [
-            'key'  => 'SE_DispelDetrimental',
+            'name' => 'SE_DispelDetrimental',
             'text' => 'foo'
          ],
          '155' => [
-            'key'  => 'SE_SpellCritDmgIncrease',
+            'name' => 'SE_SpellCritDmgIncrease',
             'text' => 'foo'
          ],
          '156' => [
-            'key'  => 'SE_IllusionCopy',
+            'name' => 'SE_IllusionCopy',
             'text' => 'foo'
          ],
          '157' => [
-            'key'  => 'SE_SpellDamageShield',
+            'name' => 'SE_SpellDamageShield',
             'text' => 'foo'
          ],
          '158' => [
-            'key'  => 'SE_Reflect',
+            'name' => 'SE_Reflect',
             'text' => 'foo'
          ],
          '159' => [
-            'key'  => 'SE_AllStats',
+            'name' => 'SE_AllStats',
             'text' => 'foo'
          ],
          '161' => [
-            'key'  => 'SE_MitigateSpellDamage',
+            'name' => 'SE_MitigateSpellDamage',
             'text' => 'foo'
          ],
          '162' => [
-            'key'  => 'SE_MitigateMeleeDamage',
+            'name' => 'SE_MitigateMeleeDamage',
             'text' => 'foo'
          ],
          '163' => [
-            'key'  => 'SE_NegateAttacks',
+            'name' => 'SE_NegateAttacks',
             'text' => 'foo'
          ],
          '167' => [
-            'key'  => 'SE_PetPowerIncrease',
+            'name' => 'SE_PetPowerIncrease',
             'text' => 'foo'
          ],
          '168' => [
-            'key'  => 'SE_MeleeMitigation',
-            'text' => 'foo'
+            'name'    => 'SE_MeleeMitigation',
+            'display' => ['format' => 7, 'label' => 'Incoming Melee Damage'],
          ],
          '169' => [
-            'key'  => 'SE_CriticalHitChance',
-            'text' => 'foo'
+            'name'    => 'SE_CriticalHitChance',
+            'display' => ['format' => 7, 'label' => 'Melee Critical Hit Chance'],
+            'exceptions' => [
+               '4499' => ['label' => 'Set Melee Critical Hit Chance to {{chance}}%', 'values' => ['chance' => 'raw^0']]
+            ],
          ],
          '170' => [
-            'key'  => 'SE_SpellCritChance',
+            'name' => 'SE_SpellCritChance',
             'text' => 'foo'
          ],
          '171' => [
-            'key'  => 'SE_CripplingBlowChance',
+            'name' => 'SE_CripplingBlowChance',
             'text' => 'foo'
          ],
          '172' => [
-            'key'  => 'SE_AvoidMeleeChance',
+            'name' => 'SE_AvoidMeleeChance',
             'text' => 'foo'
          ],
          '173' => [
-            'key'  => 'SE_RiposteChance',
+            'name' => 'SE_RiposteChance',
             'text' => 'foo'
          ],
          '174' => [
-            'key'  => 'SE_DodgeChance',
+            'name' => 'SE_DodgeChance',
             'text' => 'foo'
          ],
          '175' => [
-            'key'  => 'SE_ParryChance',
+            'name' => 'SE_ParryChance',
             'text' => 'foo'
          ],
          '176' => [
-            'key'  => 'SE_DualWieldChance',
+            'name' => 'SE_DualWieldChance',
             'text' => 'foo'
          ],
          '177' => [
-            'key'  => 'SE_DoubleAttackChance',
+            'name' => 'SE_DoubleAttackChance',
             'text' => 'foo'
          ],
          '178' => [
-            'key'  => 'SE_MeleeLifetap',
+            'name' => 'SE_MeleeLifetap',
             'text' => 'foo'
          ],
          '179' => [
-            'key'  => 'SE_AllInstrumentMod',
+            'name' => 'SE_AllInstrumentMod',
             'text' => 'foo'
          ],
          '180' => [
-            'key'  => 'SE_ResistSpellChance',
+            'name' => 'SE_ResistSpellChance',
             'text' => 'foo'
          ],
          '181' => [
-            'key'  => 'SE_ResistFearChance',
+            'name' => 'SE_ResistFearChance',
             'text' => 'foo'
          ],
          '182' => [
-            'key'  => 'SE_HundredHands',
+            'name' => 'SE_HundredHands',
             'text' => 'foo'
          ],
          '183' => [
-            'key'  => 'SE_MeleeSkillCheck',
+            'name' => 'SE_MeleeSkillCheck',
             'text' => 'foo'
          ],
          '184' => [
-            'key'  => 'SE_HitChance',
+            'name' => 'SE_HitChance',
             'text' => 'foo'
          ],
          '185' => [
-            'key'  => 'SE_DamageModifier',
-            'text' => 'foo'
+            'name' => 'SE_DamageModifier',
+            'display' => ['format' => 7, 'label' => 'Melee Damage'],
          ],
          '186' => [
-            'key'  => 'SE_MinDamageModifier',
+            'name' => 'SE_MinDamageModifier',
             'text' => 'foo'
          ],
          '254' => [
-            'key'  => 'SE_Blank',
+            'name' => 'SE_Blank',
             'text' => 'foo'
          ],
       ];
@@ -1186,6 +1208,18 @@ class Convert extends LWPLib\Base
    
       return $spellTargetTypeList[$spellTargetTypeId] ?: null;
    }
+
+   public function convertBlindnessStackingValue($effectValue)
+   {
+      $valueList = [
+         '-1' => 'Low',
+         '1'  => 'Normal',
+         '2'  => 'Medium',
+         '3'  => 'High',
+      ];
+
+      return $valueList[$effectValue] ?: null;
+   }
    
    public function convertBuffDuration($casterLevel, $formula, $duration) 
    {
@@ -1260,6 +1294,17 @@ class Convert extends LWPLib\Base
       ];
    
       return $emoteTypeList[$emoteTypeId] ?: 'say';
+   }
+
+   public function convertBindTypeById($bindId)
+   {
+      $bindTypeList = [
+         '1' => 'Primary',
+         '2' => 'Secondary',
+         '3' => 'Tertiary',
+      ];
+   
+      return $bindTypeList[$bindId] ?: $bindTypeList['1'];
    }
    
    public function convertNpcEvent($npcEventTypeId)
