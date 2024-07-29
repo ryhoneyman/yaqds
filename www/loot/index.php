@@ -306,15 +306,29 @@ function describeLootOutcome($tableData)
    }
    else {
       $maxDrops = $multiplier * $dropLimit;
-      $minDrops = ($probability == 100) ? ($multiplier * $minDrop) : (($multiplierMin > 0) ? $multiplierMin : 0);
+      $minDrops = ($probability == 100) ? ($multiplier * $minDrop) : (($minDrop > $multiplierMin) ? $minDrop : (($multiplierMin > 0) ? $multiplierMin : 0));
 
-      $description = ($probability == 100) ? "This table will set minimum drops to multiplier ($multiplier) times minimum drop ($minDrop) due to probability at 100%." :
-                     ((($multiplierMin > 0)) ? "This table will have minimum drops equal to multiplier_min ($multiplierMin)." : "This table has no guaranteed drops.");
+      if ($maxDrops - $minDrops > $dropCount) { 
+         $minDrops += $dropCount; 
+         $maxDrops = $minDrops; 
 
-      $description .= " The maximum amount of drops is multiplier ($multiplier) times drop limit ($dropLimit).";
+         $description = ($probability == 100) ? "This table will set minimum drops to multiplier ($multiplier) times minimum drop ($minDrop) due to probability at 100%." :
+                        ((($minDrops > 0)) ? "This table will have minimum drops equal to minimum drop plus one ($minDrops)." : 
+                        "This table has no guaranteed drops.");
 
-      if ($minDrops > 0 && $minDrops < $maxDrops) { 
-         $description .= " There is a $probability% chance of additional drops after the guaranteed $minDrops drop".(($minDrops != 1) ? 's' :'')."."; 
+         $description .= " The maximum amount of drops is artificially locked to ($maxDrops) due to smaller size of the drop item list.";
+
+      }
+      else {
+         $description = ($probability == 100) ? "This table will set minimum drops to multiplier ($multiplier) times minimum drop ($minDrop) due to probability at 100%." :
+                        ((($minDrops > 0)) ? "This table will have minimum drops equal to minimum drop ($minDrops)." : 
+                        "This table has no guaranteed drops.");
+
+         $description .= " The maximum amount of drops is multiplier ($multiplier) times drop limit ($dropLimit).";
+
+         if ($minDrops > 0 && $minDrops < $maxDrops) { 
+            $description .= " There is a $probability% chance of additional drops after the guaranteed $minDrops drop".(($minDrops != 1) ? 's' :'')."."; 
+         }
       }
    }
 
