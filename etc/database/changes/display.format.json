@@ -108,7 +108,7 @@
             "default": ["STATE","skillName","className","level","cap"]
         },
         "npc_faction": {
-            "default": ["STATE","id","name","primayfaction","ignore_primary_assist"]
+            "default": ["STATE","id","name","primaryfaction","ignore_primary_assist"]
         },
         "npc_faction_entries": {
             "default": ["STATE","npc_faction_id","npcFactionName","factionName","value","npc_value"]
