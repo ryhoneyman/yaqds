@@ -37,7 +37,7 @@ $searchTypeList = [
    ],
    'items.Name' => [
       'label' => 'Item Name',
-      'scanOrder' => ['items' => 'name','lootdrop_entries' => 'item_id','loottable_entries' => 'lootdrop_id','npc_types' => 'loottable_id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name'],
+      'scanOrder' => ['items' => 'Name','lootdrop_entries' => 'item_id','loottable_entries' => 'lootdrop_id','npc_types' => 'loottable_id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name'],
    ],
    'npc_types.id' => [
       'label' => 'NPC ID',
