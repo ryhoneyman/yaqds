@@ -30,6 +30,19 @@
 <script src="/assets/alte/current/plugins/select2/js/select2.min.js" type="text/javascript"></script>
 <!-- local js -->
 <script src="/assets/js/yaqds.js?t=<?php print $main->now; ?>" type="text/javascript"></script>
+<!-- Datatables -->
+<script src="/assets/alte/current/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="/assets/alte/current/plugins/jszip/jszip.min.js"></script>
+<script src="/assets/alte/current/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="/assets/alte/current/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="/assets/alte/current/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="/assets/alte/current/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 
 <!-- fontawesome -->
 <link rel="stylesheet" href="/assets/fa/css/all.min.css">
