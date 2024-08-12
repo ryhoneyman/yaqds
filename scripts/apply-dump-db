@@ -1,0 +1,289 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => false,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$main->connectDatabase('db.takpmerge.conf','takpmerge');
+
+$db = $main->db('takpmerge');
+
+$fileName = '/opt/yaqds/takp/diffs/pretty.diff.20240421.20240717.json';
+//$fileName = '/opt/yaqds/takp/diffs/pretty.diff.20240203.20240421.json';
+
+$data     = json_decode(file_get_contents($fileName),true);
+$keys     = $data['tableInfo']['keys'];
+$columns  = $data['tableInfo']['columns'];
+$stats    = [];
+$sqlFile  = 'apply.sql';
+$sqlData  = [];
+$execSql  = true;
+$doRemove = true;
+$doAdd    = true;
+$doChange = true;
+
+$skipTables = [
+   "spawn_events",
+   "spawn_condition_values",
+];
+
+$skipRows = [
+   "lootdrop_entries" => [
+      //"108440^5664",          // Jade Reaver
+   ],
+   "npc_faction_entries" => [
+      "456^307",
+      "493^307",
+   ],
+];
+
+$changeLimit = 0;
+
+if ($doRemove) {
+   foreach ($data['analysis']['removed'] as $tableName => $tableChanges) {
+      if (in_array($tableName,$skipTables)) { continue; }
+
+      $indexKeys = $keys[$tableName];
+
+      if (!$indexKeys) {
+         print "[NO INDEX KEYS] $tableName\n";
+         exit;
+      }
+
+      foreach ($tableChanges as $tableKey => $tableChangeItems) {
+         // Build the where condition from the table primary keys and the key value for this row
+         $whereCond = [];
+         $whereFields = array_combine($indexKeys,explode('^',$tableKey));
+         foreach ($whereFields as $fieldName => $fieldValue) {
+            $whereCond[] = "`$fieldName` = ".((preg_match('/(?:float|int)$/',$columns[$tableName][$fieldName])) ? $fieldValue : "\"$fieldValue\"");
+         }
+
+         if (empty($whereCond)) { 
+            print "[NO WHERE CONDITION] (removed) $tableName / $tableKey / ".json_encode($indexKeys)."\n";
+            continue; 
+         }
+
+         $stats['removed'][$tableName]++;
+         $stats['table'][$tableName]++;
+
+         //$comment = sprintf("/* %s(%s) = %s */",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
+         $delete  = sprintf("DELETE FROM $tableName WHERE %s",implode(' AND ', $whereCond));
+
+         print "[DEBUG] (removed) $delete\n";
+
+         //$sqlData[] = $comment;
+         $sqlData[] = $delete.';';
+
+         if ($execSql) {
+            $result = $db->execute($delete);
+
+            print "[UPDATE] (removed) ($result) $delete\n";
+
+            if ($result === false) {
+               print "[SQL UPDATE ERROR] (removed) $tableName / $tableKey / $delete / (".$db->lastError.")\n";
+               continue;
+            }
+
+            print "[SUCCESS] (removed) $tableName / $tableKey\n";
+
+            $stats['success']++;
+
+            if ($changeLimit && $stats['success'] >= $changeLimit) { break 2; }
+         }
+      }
+   }
+}
+
+if ($doAdd) {
+   foreach ($data['analysis']['added'] as $tableName => $tableChangeItems) {
+      if (in_array($tableName,$skipTables)) { continue; }
+
+      $columnList = $columns[$tableName];
+      
+      foreach ($tableChangeItems as $tableKey => $tableItems) {
+         $tableItemData = $tableItems['objectData'];
+         $valuesFields  = [];
+         $valuesInsert  = [];
+         $insertList    = array_intersect_key($tableItemData,$columnList);
+
+         foreach ($insertList as $fieldName => $fieldValue) {
+            $valuesFields[] = (is_null($fieldValue)) ? 'NULL' : ((preg_match('/(?:float|int)$/',$columns[$tableName][$fieldName])) ? $fieldValue : "\"$fieldValue\"");
+            $valuesInsert[] = "`$fieldName`";
+         }
+
+         if (empty($valuesFields)) { 
+            print "[NO VALUE FIELDS] (added) $tableName / $tableKey / ".json_encode($tableItemData)."\n";
+            continue; 
+         }
+
+         $stats['added'][$tableName]++;
+         $stats['table'][$tableName]++;
+
+         //$comment = sprintf("/* %s(%s) = %s */",$tableItems['objectKey'],$tableItems['objectValue'],$tableItems['objectInfo']);
+         $insert  = sprintf("INSERT INTO $tableName (%s) VALUES (%s)",implode(', ',$valuesInsert),implode(', ',$valuesFields));
+
+         print "[DEBUG] (added) $insert\n";
+
+         //$sqlData[] = $comment;
+         $sqlData[] = $insert.';';
+
+         if ($execSql) {
+            $result = $db->execute($insert);
+
+            print "[INSERT] (added) ($result) $insert\n";
+
+            if ($result === false) {
+               print "[SQL UPDATE ERROR] (added) $tableName / $tableKey / $insert / (".$db->lastError.")\n";
+               continue;
+            }
+
+            print "[SUCCESS] (added) $tableName / $tableKey\n";
+
+            $stats['success']++;
+
+            if ($changeLimit && $stats['success'] >= $changeLimit) { break 2; }
+         }
+      }
+   }
+}
+
+if ($doChange) {
+   foreach ($data['analysis']['changed'] as $tableName => $tableChanges) {
+      if (in_array($tableName,$skipTables)) { 
+         print "[SKIPPED TABLE] (changed) $tableName\n";
+         continue; 
+      }
+      
+      $indexKeys = $keys[$tableName];
+
+      $stats['diff'][$tableName] = 0;
+
+      foreach ($tableChanges as $tableKey => $tableChangeItems) {
+         if (in_array($tableKey,$skipRows[$tableName] ?: [])) { 
+            print "[SKIPPED ROW] (changed) $tableName / $tableKey\n";
+            continue; 
+         }
+         // Construct the values to set from the after object
+         $setFields = [];
+         $getFields = [];
+         foreach ($tableChangeItems['after'] as $fieldName => $fieldValue) {
+            $setFields[] = "`$fieldName` = ".((preg_match('/(?:float|int)$/',$columns[$tableName][$fieldName])) ? $fieldValue : "\"$fieldValue\"");
+            $getFields[] = "`$fieldName`";
+         }
+
+         if (empty($setFields)) { 
+            print "[NO SET FIELDS] (changed) $tableName / $tableKey / ".json_encode($tableChangeItems)."\n";
+            continue; 
+         }
+
+         // Build the where condition from the table primary keys and the key value for this row
+         $whereCond = [];
+         $whereFields = array_combine($indexKeys,explode('^',$tableKey));
+         foreach ($whereFields as $fieldName => $fieldValue) {
+            $whereCond[] = "`$fieldName` = ".((preg_match('/(?:float|int)$/',$columns[$tableName][$fieldName])) ? $fieldValue : "\"$fieldValue\"");
+         }
+
+         if (empty($whereCond)) { 
+            print "[NO WHERE CONDITION] (changed) $tableName / $tableKey / ".json_encode($indexKeys)."\n";
+            continue; 
+         }
+
+         $stats['changed'][$tableName]++;
+         $stats['table'][$tableName]++;
+
+         $comment = sprintf("/* %s(%s) = %s */",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
+         $update  = sprintf("UPDATE $tableName SET %s WHERE %s",implode(', ',$setFields),implode(' AND ', $whereCond));
+
+         $sqlData[] = $comment;
+         $sqlData[] = $update.';';
+
+         $query   = sprintf("SELECT %s FROM $tableName WHERE %s",implode(', ',$getFields),implode(' AND ', $whereCond));
+         $current = $db->query($query,['single' => true]);
+
+         if ($current === false) {
+            print "[SQL SELECT ERROR] (changed) $tableName / $tableKey / $query / (".$db->lastError.")\n";
+            $stats['error'][$tableName]++;
+            continue;
+         }
+
+         if (is_null($current)) { $current = []; }
+
+         $previous = $tableChangeItems['before'] ?: [];
+         $desired  = $tableChangeItems['after'];
+         $diff     = array_diff($current,$previous);  // Compare us to the previous TAKP (useful when we are not caught up to it)
+         $match    = array_diff($desired,$current);
+
+         if (empty($match)) { 
+            print "[ALREADY MATCHES] (changed) $tableName / $tableKey / ".json_encode($desired)."\n";
+            $stats['match'][$tableName]++;
+            continue; 
+         }
+
+         /*
+         if (empty($diff)) { continue; }
+
+         if (count($current) == 2 && $current['min_expansion'] == -1 && $current['max_expansion'] == -1 && empty($previous)) { continue; }
+
+         if (count($diff) == 2 && isset($diff['min_expansion']) && isset($diff['max_expansion'])) { continue; }
+
+         if (count($diff) == 1 && isset($diff['expansion'])) { continue; }
+
+         if (count($diff) == 1 && isset($diff['content_flags'])) { continue; }
+         */
+
+         $stats['diff'][$tableName]++;
+
+         print "[DEBUG] (changed) ".json_encode(['tableName' => $tableName, 'tableKey' => $tableKey, 'objectKey' => $tableChangeItems['objectKey'], 'objectValue' => $tableChangeItems['objectValue'], 'objectInfo' => $tableChangeItems['objectInfo'], 'current' => $current, 'previous' => $previous, 'desired' => $desired, 'diff' => $diff, 'changes' => $match],JSON_PRETTY_PRINT)."\n";
+
+         if ($execSql) {
+            $update = sprintf("UPDATE $tableName SET %s WHERE %s",implode(', ',$setFields),implode(' AND ', $whereCond));
+            $result = $db->execute($update);
+
+            print "[UPDATE] (changed) ($result) $update\n";
+
+            if ($result === false) {
+               print "[SQL UPDATE ERROR] (changed) $tableName / $tableKey / $update / (".$db->lastError.")\n";
+               continue;
+            }
+
+            print "[SUCCESS] (changed) $tableName / $tableKey\n";
+
+            $stats['success']++;
+
+            if ($changeLimit && $stats['success'] >= $changeLimit) { break 2; }
+         }
+      }
+   }
+}
+
+print "\n".json_encode(['diff' => $stats['diff'], 'error' => $stats['error']],JSON_PRETTY_PRINT)."\n";
+
+file_put_contents($sqlFile,implode("\n",$sqlData));
+
+ksort($stats['table']);
+
+fwrite(STDERR, sprintf("\n%7s %7s %7s %s\n",'Removed','Added','Changed','Table Name'));
+foreach ($stats['table'] as $tableName => $changeCount) {
+   $removed = $stats['removed'][$tableName] ?: 0;
+   $added   = $stats['added'][$tableName] ?: 0;
+   $changed = $stats['changed'][$tableName] ?: 0;
+
+   fwrite(STDERR, sprintf("%7d %7d %7d %s\n",$removed,$added,$changed,$tableName));
+}
+
+?>

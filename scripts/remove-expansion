@@ -1,0 +1,52 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$data    = json_decode(file_get_contents('/opt/yaqds/takp/diffs/diff.20240203.20240421.json'),true);
+$newData = [];
+
+foreach ($data['analysis']['changed'] as $tableName => $tableChanges) {
+   foreach ($tableChanges as $tableKey => $tableChangeItems) {
+      $before = $tableChangeItems['before'];
+      $after  = $tableChangeItems['after'];
+
+      foreach ($after as $afterKey => $afterValue) {
+         if ($before[$afterKey] == $afterValue) { 
+            unset($data['analysis']['changed'][$tableName][$tableKey]['before'][$afterKey]); 
+            unset($data['analysis']['changed'][$tableName][$tableKey]['after'][$afterKey]); 
+         }
+         else {
+            if ($after['min_expansion'] == -1 && $after['max_expansion'] == -1 && $after['content_flags'] == null && $after['content_flags_disabled'] == null) {
+               foreach (['min_expansion','max_expansion','content_flags','content_flags_disabled'] as $flag) {
+                  unset($data['analysis']['changed'][$tableName][$tableKey]['after'][$flag]);
+               }
+            }
+         }
+      }
+
+      if (empty($data['analysis']['changed'][$tableName][$tableKey]['after'])) {
+         unset($data['analysis']['changed'][$tableName][$tableKey]);
+      }
+   }
+}
+
+file_put_contents('/opt/yaqds/takp/diffs/altered.diff.20240203.20240421.json',json_encode($data,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT))
+
+?>

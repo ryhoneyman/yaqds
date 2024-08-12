@@ -1,0 +1,1770 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+define('RULE_NPC_STARTENRAGEVALUE',10);
+define('RULE_COMBAT_MAXRAMPAGETARGET',3);
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => false,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
+if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
+
+$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache'));
+$diff      = $opts['diff'] ?: null;
+$filter    = strtolower($opts['filter']) ?: null;
+$limit     = $opts['limit'] ?: null;
+$force     = isset($opts['force']) ? true : false;
+$skipCache = isset($opts['skipcache']) ? true : false;
+
+$main->var('maxServerLevel',65);
+$main->var('tableFilter',$filter);
+$main->var('tableLimit',$limit);
+$main->var('skipCache',$skipCache);
+
+$main->var('lookup',[
+   'items' => [
+      'objectKey' => 'Name',
+   ],
+]);
+
+$main->var('rules',[
+   'ignore-peq-expansion' => true,
+   'strip-custom-keys' => true,
+   'skip-lookup-mapping' => true,
+   'remove-blank-keys' => true,
+   'ignore-updated-field' => true,
+]);
+
+$dbDir     = APP_BASEDIR.'/takp/db';
+$dbFiles   = getDatabaseFiles($dbDir);
+$processed = [];
+
+$diffAvailable = [$diff];
+
+foreach ($diffAvailable as $diffKey) {
+   list($dbOldDate,$dbNewDate) = explode('-',$diffKey);
+
+   $diffFile  = APP_BASEDIR."/takp/diffs/diff.$dbOldDate.$dbNewDate.json";
+   $diffGz    = APP_BASEDIR."/takp/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
+   
+   if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && !$force)) { continue; }
+
+   $main->var('oldFile',$dbFiles[$dbOldDate]);
+   $main->var('newFile',$dbFiles[$dbNewDate]);
+   $main->var('cacheFileBase',APP_VARDIR.sprintf("/cache/diff-database/takp.%s.%s",$dbOldDate,$dbNewDate));
+
+   $main->var('data',[
+      'old' => processDatabaseFile($main,$main->var('oldFile')),
+      'new' => processDatabaseFile($main,$main->var('newFile')),
+   ]);
+   
+   $main->var('results',[
+      'meta' => [
+         'newFile' => basename($main->var('newFile')),
+         'oldFile' => basename($main->var('oldFile')),
+      ],
+      'analysis' => [],
+      'modifiedTables' => [],
+      'tableInfo' => $main->var('tableInfo'),
+   ]);
+   
+   $cache = [];
+
+   print "--- Processing deletes ($diffKey) [$diffFile]\n";
+   processDeletes($main);
+
+   print "--- Processing adds and changes ($diffKey) [$diffFile]\n";
+   processChanges($main);
+
+   if (!$filter) {
+      print "--- Writing JSON file ($diffKey) [$diffFile]\n";
+      file_put_contents("compress.zlib://$diffGz",json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+      file_put_contents($diffFile,json_encode($main->var('results'),JSON_UNESCAPED_SLASHES));
+   }
+   else {
+      print json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+   }
+
+   print "--- Cleaning up cache ($diffKey)\n";
+   foreach (['deletes','changes'] as $cacheType) {
+      $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),$cacheType);
+      if (file_exists($cacheFile)) { 
+         print "       * Removing $cacheFile\n";
+         unlink($cacheFile); 
+      }
+   }
+
+   $processed[$diffKey] = true;
+
+   print "\n";
+}
+
+?>
+<?php
+
+function processChanges($main)
+{
+   $data      = $main->var('data');
+   $filter    = $main->var('tableFilter');
+   $skipCache = $main->var('skipCache');
+   $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'changes');
+
+   $changes = (!$skipCache && file_exists($cacheFile)) ? json_decode(file_get_contents($cacheFile),true) ?: [] : [];
+
+   $maxLength = 0;
+   foreach (array_keys($data['old']) as $tableName) {
+      if ($filter && $tableName != $filter) { continue; }
+
+      $tableNameLength = strlen($tableName);
+
+      if ($tableNameLength > $maxLength) { $maxLength = $tableNameLength; }
+   }
+   $maxLength += 2;
+
+   foreach ($data['new'] as $tableName => $newTableInfo) {
+      if ($filter && $tableName != $filter) { continue; }
+
+      $count       = 0;
+      $total       = count($newTableInfo['refs']['primary'] ?: []);
+      $addsLeft    = $main->var('tableLimit') ?: null;
+      $changesLeft = $main->var('tableLimit') ?: null;
+
+      printf("  %s%s: %6d ",$tableName,str_repeat('.',$maxLength-strlen($tableName)),$total);
+      $oldTableInfo = $data['old'][$tableName];
+
+      foreach ($newTableInfo['refs']['primary'] as $newRowKey => $newDataRef) {
+         // We had this table cached as processed
+         if ($changes['processedTables'][$tableName]) { 
+            print "cached --> ";
+            break; 
+         }
+         
+         $newDataJson = $newTableInfo['data'][$newDataRef];
+         $oldDataJson = $oldTableInfo['data'][$oldTableInfo['refs']['primary'][$newRowKey]];
+
+         if ($total && $count++ % ceil($total/50) == 0) { print "*"; }
+   
+         if ($newDataJson != $oldDataJson) { 
+            $main->debug->trace(9,"CHANGE DETECTED! $tableName, primary/$newRowKey"); 
+
+            $newData = array_combine($newTableInfo['columns'],json_decode($newDataJson,true));
+   
+            if ($newDataJson && $oldDataJson && (is_null($changesLeft) || $changesLeft > 0)) {
+               $state = 'changed';
+               $changesLeft--;
+
+               $oldData = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));
+               
+               $analysis = provideAnalysis($main,$tableName,$state,$newData,$oldData);
+
+               if ($analysis) {
+                  $changes['analysis'][$state][$tableName][$newRowKey] = $analysis;
+                  $changes['modifiedTables'][$tableName][$state]++;
+               }
+            }
+            else if (is_null($changesLeft) || $addsLeft > 0) {
+               $main->debug->trace(9,"ADDED: $newDataJson");
+
+               $state = 'added';
+               $addsLeft--;
+
+               $analysis = provideAnalysis($main,$tableName,$state,$newData,$oldData);
+
+               if ($analysis) {
+                  $changes['analysis'][$state][$tableName][$newRowKey] = $analysis;
+                  $changes['modifiedTables'][$tableName][$state]++;
+               }
+            }
+         }
+      }
+      printf(" [%d added, %d changed]\n",count($changes['analysis']['added'][$tableName] ?: []),count($changes['analysis']['changed'][$tableName] ?: []));
+
+      $changes['processedTables'][$tableName] = true;
+
+      file_put_contents($cacheFile,json_encode($changes));
+   }
+
+   if ($changes) { $main->var('results',array_merge_recursive($main->var('results'),$changes)); }
+}
+
+function processDeletes($main)
+{
+   $data      = $main->var('data');
+   $filter    = $main->var('tableFilter');
+   $skipCache = $main->var('skipCache');
+   $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'deletes');
+   $state     = 'removed';
+
+   $changes = (!$skipCache && file_exists($cacheFile)) ? json_decode(file_get_contents($cacheFile),true) ?: [] : [];
+
+   $maxLength = 0;
+   foreach (array_keys($data['old']) as $tableName) {
+      if ($filter && $tableName != $filter) { continue; }
+
+      $tableNameLength = strlen($tableName);
+
+      if ($tableNameLength > $maxLength) { $maxLength = $tableNameLength; }
+   }
+   $maxLength += 2;
+
+   foreach ($data['old'] as $tableName => $oldTableInfo) {
+      if ($filter && $tableName != $filter) { continue; }
+
+      $count       = 0;
+      $total       = count($oldTableInfo['refs']['primary'] ?: []);
+      $deletesLeft = $main->var('tableLimit');
+
+      printf("  %s%s: %6d ",$tableName,str_repeat('.',$maxLength-strlen($tableName)),$total);
+    
+      $newTableInfo = $data['new'][$tableName];
+
+      foreach ($oldTableInfo['refs']['primary'] as $oldRowKey => $oldDataRef) {
+         if (!$oldDataRef) { continue; }
+
+         // We had this table cached as processed
+         if ($changes['processedTables'][$tableName]) { 
+            print "cached --> ";
+            break; 
+         }
+
+         if ($total && $count++ % ceil($total/50) == 0) { print "*"; }
+
+         $oldDataJson = $oldTableInfo['data'][$oldDataRef];
+         $newDataJson = $newTableInfo['data'][$newTableInfo['refs']['primary'][$oldRowKey]];
+
+         if ($oldDataJson && !$newDataJson && (is_null($deletesLeft) || $deletesLeft > 0)) { 
+            $main->debug->trace(9,"DELETE DETECTED! $tableName, primary/$oldRowKey");
+
+            $deletesLeft--;
+
+            $oldData = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));
+
+            $analysis = provideAnalysis($main,$tableName,$state,$oldData,[]);
+
+            if ($analysis) {
+               $changes['analysis'][$state][$tableName][$oldRowKey] = $analysis;
+               $changes['modifiedTables'][$tableName][$state]++;
+            }
+         }
+      }
+      printf(" [%d removed]\n",count($changes['analysis']['removed'][$tableName] ?: []));
+
+      $changes['processedTables'][$tableName] = true;
+
+      file_put_contents($cacheFile,json_encode($changes));
+   }
+
+   if ($changes) { $main->var('results',array_merge_recursive($main->var('results'),$changes)); }
+}
+
+function processDatabaseDB($main, $dbName)
+{
+   $tableOpts = [
+      'eqtime' => [
+         'skip' => true,
+      ],
+      'keyring_data' => [
+         'keys' => ['key_item'],
+      ],
+      'skill_difficulty' => [
+         'keys' => ['skillid'],
+      ],
+      'saylink' => [
+         'keys' => ['id'],
+      ],
+   ];
+   
+   $tableName   = null;
+   $tableCreate = false;
+   $tableInfo   = [];
+
+   $dbConfigFile = ($main->dbConfigDir ?: __DIR__).'/db.conf'; 
+   $dbConnect    = json_decode(base64_decode(file_get_contents($dbConfigFile)),true);
+
+   if (!$dbConnect) { $main->debug(0,"Couldn't get database configuration for $dbName"); exit; }
+
+   $buildResult = $main->buildClass("db.$dbName",'LWPLib\MySQL',null,'mysql.class.php');
+     
+   if (!$buildResult) { $main->debug(0,"Couldn't load database class for $dbName"); exit; }
+
+   $main->db($dbName)->prepare($dbConnect['hostname'],$dbConnect['username'],$dbConnect['password'],$dbName);
+
+   print "@@@ Processing $dbName\n";
+
+
+
+   foreach (explode("\n",$data) as $line) {
+      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
+         $tableFound = $match[1];
+         
+         if (isset($tableOpts[$tableFound]['skip'])) { continue; }
+         if (isset($tableOpts[$tableFound]['keys'])) { $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; }
+
+         $tableName   = $tableFound;
+         $tableCreate = true;
+         $tableInfo[$tableName]['name']     = $tableName;
+         $tableInfo[$tableName]['exists']   = true;
+         $tableInfo[$tableName]['rowCount'] = 0;
+
+      }
+      else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+/',$line,$match)) {
+         $tableInfo[$tableName]['columns'][] = $match[1];
+      }
+      else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
+         $tableKeys = explode(',',str_replace('`','',$match[1]));
+         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
+         $keyName   = strtolower($match[1]);
+         $tableKeys = explode(',',str_replace('`','',$match[2]));
+         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
+         $tableInsert = $match[1];
+         $tableCreate = false;
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
+         $tableKeys   = $tableInfo[$tableInsert]['keys'];
+
+         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
+
+         $rowList = preg_split('/\)\,\(/',$match[2]);
+
+         foreach ($rowList as $row) {
+            $rowCount   = $tableInfo[$tableName]['rowCount']++;
+            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
+            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
+            //print "PROCESSES: ".json_encode($rowColumns)."\n";
+
+            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
+
+            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
+
+            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
+               $rowKeyList = [];
+
+               foreach ($tableKeyColumns as $tableKeyColumn) {
+                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
+               }
+
+               $rowKey = implode('^',$rowKeyList);
+
+               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+            }
+         }
+      }
+   }
+
+   return $tableInfo;
+}
+
+function processDatabaseFile($main, $fileName)
+{
+   $tableOpts = [
+      'eqtime' => [
+         'skip' => true,
+      ],
+      'keyring_data' => [
+         'keys' => ['key_item'],
+      ],
+      'skill_difficulty' => [
+         'keys' => ['skillid'],
+      ],
+      'saylink' => [
+         'keys' => ['id'],
+      ],
+   ];
+   
+   $tableName   = null;
+   $tableCreate = false;
+   $tableInfo   = [];
+   $export      = $main->var('tableInfo') ?: ['keys' => [], 'columns' => []];
+
+   $data = file_get_contents($fileName);
+
+   print "@@@ Processing $fileName\n";
+
+   foreach (explode("\n",$data) as $line) {
+      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
+         $tableFound = $match[1];
+         
+         if (isset($tableOpts[$tableFound]['skip'])) { continue; }
+         if (isset($tableOpts[$tableFound]['keys'])) { 
+            //print "+++ Using static keys for $tableFound (".json_encode($tableOpts[$tableFound]['keys']).")\n";
+            $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; 
+         }
+
+         $tableName   = $tableFound;
+         $tableCreate = true;
+         $tableInfo[$tableName]['name']     = $tableName;
+         $tableInfo[$tableName]['exists']   = true;
+         $tableInfo[$tableName]['rowCount'] = 0;
+
+      }
+      else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+(\w+)/',$line,$match)) {
+         $tableInfo[$tableName]['columns'][] = $match[1];
+         $export['columns'][$tableName][$match[1]] = $match[2];
+      }
+      else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
+         $tableKeys = explode(',',str_replace('`','',$match[1]));
+         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
+         $keyName   = strtolower($match[1]);
+         $tableKeys = explode(',',str_replace('`','',$match[2]));
+         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
+         $tableInsert = $match[1];
+         $tableCreate = false;
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
+         $tableKeys   = $tableInfo[$tableInsert]['keys'];
+
+         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
+
+         if (!isset($export['keys'][$tableInsert])) { 
+            //print "=== Exporting keys for $tableInsert (".json_encode($tableKeys['primary']).")\n";
+            $export['keys'][$tableInsert] = $tableKeys['primary']; 
+         }
+
+         $rowList = preg_split('/\)\,\(/',$match[2]);
+
+         foreach ($rowList as $row) {
+            $rowCount   = $tableInfo[$tableName]['rowCount']++;
+            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
+            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
+            //print "PROCESSES: ".json_encode($rowColumns)."\n";
+
+            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
+
+            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
+
+            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
+               $rowKeyList = [];
+
+               foreach ($tableKeyColumns as $tableKeyColumn) {
+                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
+               }
+
+               $rowKey = implode('^',$rowKeyList);
+
+               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+            }
+         }
+      }
+   }
+
+   $main->var('tableInfo',$export);
+
+   return $tableInfo;
+}
+
+function provideAnalysis($main, $tableName, $state, $objectData, $previousData = null)
+{
+   $conv     = $main->obj('conv');
+   $spell    = $main->obj('spell');
+   $data     = $main->var('data');
+   $lookup   = $main->var('lookup');
+   $rules    = $main->var('rules');
+   $analysis = null;
+
+   $skipLookup = $rules['skip-lookup-mapping'] ? true : false;
+
+   $sourceData = ($state == 'added') ? $data['new'] : $data['old'];
+
+   if ($state == 'changed') {
+      $diff        = array_diff_assoc($objectData,$previousData);
+      $before      = array_intersect_key($previousData,$diff);
+      $after       = array_diff_assoc($objectData,$previousData);
+      $objectKey   = $lookup[$tableName]['objectKey'] ?: key($objectData);
+      $objectValue = $objectData[$objectKey];
+
+      $analysis = [
+         'objectKey'   => $objectKey,
+         'objectValue' => $objectValue,
+         'objectInfo'  => '',
+         'before'      => $before,
+         'after'       => $after,
+      ];
+
+      // We will prefix any translations of a key with an underscore in order to retain the original values.
+      // It will be up to display engines to pick one or the other (or both) to show.
+      foreach (['max','min'] as $qualifier) {
+         if (isset($after[$qualifier.'_expansion'])) {
+            $analysis['before']['_'.$qualifier.'_expansion'] = $conv->convertExpansionName($analysis['before'][$qualifier.'_expansion']);
+            $analysis['after']['_'.$qualifier.'_expansion']  = $conv->convertExpansionName($analysis['after'][$qualifier.'_expansion']);
+         }
+      }
+
+      // Custom changes per table
+
+      if ($tableName == 'npc_types') {
+         if (isset($after['special_abilities'])) {
+            $analysis['before']['_special_abilities'] = $conv->convertNpcSpecialAbilities($analysis['before']['special_abilities']);
+            $analysis['after']['_special_abilities']  = $conv->convertNpcSpecialAbilities($analysis['after']['special_abilities']);
+         }
+      }
+      else if ($tableName == 'grid') {
+         if (isset($after['type'])) {
+            $analysis['before']['_type'] = $conv->convertGridType($analysis['before']['type'],'wander');
+            $analysis['after']['_type']  = $conv->convertGridType($analysis['after']['type'],'wander');
+         }
+         if (isset($after['type2'])) {
+            $analysis['before']['_type2'] = $conv->convertGridType($analysis['before']['type2'],'pause');
+            $analysis['after']['_type2']  = $conv->convertGridType($analysis['after']['type2'],'pause');
+         }
+      }
+   }
+
+   if ($tableName == 'spawn2') {
+      $spawnId         = $objectData['id'];
+      $spawnGroupId    = $objectData['spawngroupID'];
+      $zoneName        = $objectData['zone'];
+      $posX            = $objectData['x'];
+      $posY            = $objectData['y'];
+      $posZ            = $objectData['z'];
+      $respawnMs       = $objectData['respawntime'];
+      $respawnVariance = $objectData['variance'];
+      $respawnDuration = $main->obj('format')->formatDurationShort($respawnMs/1000);
+      $pathGrid        = $objectData['pathgrid'];
+      $enabled         = $objectData['enabled'];
+      $minExpansion    = $objectData['min_expansion'];
+      $maxExpansion    = $objectData['max_expansion'];
+      $npcIdList       = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawnentry'],'spawngroupID',$spawnGroupId,'npcID');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'              => $spawnId,
+            'spawngroupID'    => $spawnGroupId,
+            'zone'            => $zoneName,
+            'npcIdList'       => $npcIdList,
+            'npcNameList'     => $npcNameList,
+            'x'               => $posX,
+            'y'               => $posY,
+            'z'               => $posZ,
+            'respawntime'     => $respawnMs,
+            'respawnDuration' => $respawnDuration,
+            'variance'        => $respawnVariance,
+            'location'        => sprintf("y:%s,x:%s",$posY,$posX),
+            'pathgrid'        => $pathGrid,
+            'min_expansion'   => $minExpansion,
+            'max_expansion'   => $maxExpansion,
+            '_min_expansion'  => $conv->convertExpansionName($minExpansion),
+            '_max_expansion'  => $conv->convertExpansionName($maxExpansion),
+            'enabled'         => $enabled,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $npcNameList;
+      }
+      
+   }
+   else if ($tableName == 'npc_types') {
+      $npcId   = $objectData['id'];
+      $npcName = $objectData['name'];
+        
+      if ($state == 'added' || $state == 'removed') {
+         $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawnentry'],'npcID',$npcId,'spawngroupID');
+         $zoneNameList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupIdList,'zone');
+       
+         $analysis = [
+            'id'               => $npcId,
+            'name'             => $npcName,
+            'spawnGroupIdList' => $spawnGroupIdList,
+            'zoneNameList'     => $zoneNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $npcName;
+      }
+   }
+   else if ($tableName == 'items') {
+      $itemId       = $objectData['id'];
+      $itemName     = $objectData['Name'];
+      $minExpansion = $objectData['min_expansion'];
+      $maxExpansion = $objectData['max_expansion'];
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'             => $itemId,
+            'Name'           => $itemName,
+            'min_expansion'  => $minExpansion,
+            'max_expansion'  => $maxExpansion,
+            '_min_expansion' => $conv->convertExpansionName($minExpansion),
+            '_max_expansion' => $conv->convertExpansionName($maxExpansion),
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $itemId;
+      }
+   }
+   else if ($tableName == 'zone') {
+      $zoneIdNumber       = $objectData['zoneidnumber'];
+      $zoneName           = $objectData['short_name'];
+      $zoneLongName       = $objectData['long_name'];
+      $minLevel           = $objectData['min_level'];
+      $zoneExpMultiplier  = $objectData['zone_exp_multiplier'];
+      $expansion          = $objectData['expansion'];
+      $canBind            = $objectData['canbind'];
+      $outdoor            = $objectData['castoutdoor'];
+      $dungeon            = $objectData['castdungeon'];
+      $reducedSpawnTimers = $objectData['reducedspawntimers'];
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'zoneidnumber'        => $zoneIdNumber,
+            'short_name'          => $zoneName,
+            'long_name'           => $zoneLongName,
+            'min_level'           => $minLevel,
+            'zone_exp_multiplier' => $zoneExpMultiplier,
+            'zemPercent'          => sprintf("%d",($zoneExpMultiplier/0.75)*100),
+            'expansion'           => $expansion,
+            'canbind'             => $canBind,
+            'outdoor'             => $outdoor,
+            'dungeon'             => $dungeon,
+            '_canbind'            => ($canBind == 2) ? 'everyone' : (($canBind == 1) ? 'casters' : 'nobody'),
+            '_outdoor'            => ($outdoor) ? true : false,
+            '_dungeon'            => ($dungeon) ? true : false,
+            '_reducedspawntimers' => ($reducedSpawnTimers) ? true : false,
+            '_expansion'          => $conv->convertExpansionName($expansion),
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $zoneLongName;
+      }
+   }
+   else if ($tableName == 'zone_points') {
+      $zonePointId     = $objectData['id'];
+      $zonePointNumber = $objectData['number'];
+      $zoneName        = $objectData['zone'];
+      $zoneX           = $objectData['x'];
+      $zoneY           = $objectData['y'];
+      $zoneZ           = $objectData['z'];
+      $targetX         = $objectData['target_x'];
+      $targetY         = $objectData['target_y'];
+      $targetZ         = $objectData['target_z'];
+      $targetZoneId    = $objectData['target_zone_id'];
+      $targetZoneName  = getTableDataByKey($sourceData['zone'],$targetZoneId,'zoneidnumber','short_name') ?: $zoneName;
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'             => $zonePointId,
+            'zone'           => $zoneName,
+            'number'         => $zonePointNumber,
+            'x'              => $zoneX,
+            'y'              => $zoneY,
+            'z'              => $zoneZ,
+            'target_x'       => $targetX,
+            'target_y'       => $targetY,
+            'target_z'       => $targetZ,
+            'target_zone_id' => $targetZoneId,
+            'targetZoneName' => $targetZoneName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$zoneName,$targetZoneName);
+      }
+   }
+   else if ($tableName == 'merchantlist') {
+      $merchantId       = $objectData['merchantid'];
+      $itemId           = $objectData['item'];
+      $itemName         = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $npcIdList        = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'merchant_id',$merchantId,'id');
+      $npcNameList      = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
+      $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawnentry'],'npcID',$npcIdList,'spawngroupID');
+      $zoneNameList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupIdList,'zone');
+         
+      if ($state == 'added' || $state == 'removed') {    
+         $analysis = [
+            'id'               => $merchantId,
+            'item'             => $itemId,
+            'itemName'         => $itemName,
+            'npcIdList'        => $npcIdList,
+            'npcNameList'      => $npcNameList,
+            'spawnGroupIdList' => $spawnGroupIdList,
+            'zoneNameList'     => $zoneNameList,
+         ];
+      }
+   }
+   else if ($tableName == 'grid_entries') {
+      $gridId     = $objectData['gridid'];
+      $zoneId     = $objectData['zoneid'];
+      $gridNumber = $objectData['number'];
+      $posX       = $objectData['x'];
+      $posY       = $objectData['y'];
+      $posZ       = $objectData['z'];
+      $zoneName   = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'gridid'   => $gridId,
+            'zoneid'   => $zoneId,
+            'number'   => $gridNumber,
+            'x'        => $posX,
+            'y'        => $posY,
+            'z'        => $posZ,
+            'zoneName' => $zoneName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$zoneName,$gridNumber);
+      }
+   }
+   else if ($tableName == 'spawngroup') {
+      $spawnGroupId   = $objectData['id'];
+      $spawnGroupName = $objectData['name'];
+      
+      if ($state == 'added' || $state == 'removed') {
+         $npcIdList    = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawnentry'],'spawngroupID',$spawnGroupId,'npcID');
+         $zoneNameList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupId,'zone');
+         $npcNameList  = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
+      
+         $analysis = [
+            'id'           => $spawnGroupId,
+            'name'         => $spawnGroupName,
+            'zoneNameList' => $zoneNameList,
+            'npcIdList'    => $npcIdList,
+            'npcNameList'  => $npcNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $spawnGroupName;
+      }
+   }
+   else if ($tableName == 'spawnentry') {
+      $spawnGroupId = $objectData['spawngroupID'];
+      $npcId        = $objectData['npcID'];
+      $npcName      = getTableDataByKey($sourceData['npc_types'],$npcId,'primary','name');
+      
+      if ($state == 'added' || $state == 'removed') {
+         $spawnGroupName = getTableDataByKey($sourceData['spawnGroup'],$spawnGroupId,'primary','name');
+
+         $analysis = [
+            'spawngroupID'   => $spawnGroupId,
+            'npcID'          => $npcId,
+            'spawnGroupName' => $spawnGroupName,
+            'npcName'        => $npcName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $npcName;
+         
+         if ($analysis['after']['npcID']) {
+            $analysis['before']['npcName'] = getTableDataByKey($previousData['npc_types'],$analysis['before']['npcID'],'primary','name');
+            $analysis['after']['npcName']  = getTableDataByKey($sourceData['npc_types'],$analysis['after']['npcID'],'primary','name');
+         }
+      }
+   }
+   else if ($tableName == 'object') {
+      $zoneId   = $objectData['zoneid'];
+      $posX     = $objectData['xpos'];
+      $posY     = $objectData['ypos'];
+      $posZ     = $objectData['zpos'];
+      $itemId   = $objectData['itemid'];
+      $itemName = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $zoneName = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'zoneid'   => $zoneId,
+            'zoneName' => $zoneName,
+            'itemid'   => $itemId,
+            'itemName' => $itemName,
+            'xpos'     => $posX,
+            'ypos'     => $posY,
+            'zpos'     => $posZ,
+         ];
+      }
+   }
+   else if ($tableName == 'lootdrop') {
+      $lootdropId      = $objectData['id'];
+      $lootdropName    = $objectData['name'];
+      $itemIdList      = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropId,'item_id');
+      $itemNameList    = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
+      $loottableIdList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['loottable_entries'],'lootdrop_id',$lootdropId,'loottable_id');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableIdList,'name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'              => $lootdropId,
+            'name'            => $lootdropName,
+            'itemIdList'      => $itemIdList,
+            'itemNameList'    => $itemNameList,
+            'loottableIdList' => $loottableIdList,
+            'npcNameList'     => $npcNameList,
+         ];
+      }
+   }
+   else if ($tableName == 'lootdrop_entries') {
+      $lootdropId      = $objectData['lootdrop_id'];
+      $itemId          = $objectData['item_id'];
+      $dropChance      = $objectData['chance'];
+      $itemName        = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $loottableIdList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['loottable_entries'],'lootdrop_id',$lootdropId,'loottable_id');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableIdList,'name');
+
+      if ($state == 'added' || $state == 'removed') { 
+         $analysis = [
+            'lootdrop_id'     => $lootdropId,
+            'item_id'         => $itemId,
+            'itemName'        => $itemName,
+            'chance'          => $dropChance,
+            'loottableIdList' => $loottableIdList,
+            'npcNameList'     => $npcNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $itemName;
+      }
+   }
+   else if ($tableName == 'loottable') {
+      $loottableId    = $objectData['id'];
+      $loottableName  = $objectData['name'];
+      $minCash        = $objectData['mincash'];
+      $maxCash        = $objectData['maxcash'];
+      $lootdropIdList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['loottable_entries'],'loottable_id',$loottableId,'lootdrop_id');
+      $itemIdList     = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropIdList,'item_id');
+      $itemNameList   = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
+      $npcNameList    = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableId,'name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'              => $loottableId,
+            'name'            => $loottableName,
+            'mincash'         => $minCash,
+            'maxcash'         => $maxCash,
+            'loottdropIdList' => $lootdropIdList,
+            'itemIdList'      => $itemIdList,
+            'itemNameList'    => $itemNameList,
+            'npcNameList'     => $npcNameList,
+         ];
+      }
+   }
+   else if ($tableName == 'loottable_entries') {
+      $loottableId = $objectData['loottable_id'];
+      $lootdropId  = $objectData['lootdrop_id'];
+      $npcNameList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableId,'name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $itemIdList   = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropId,'item_id');
+         $itemNameList = ($skipLookup) ? [] : findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
+
+         $analysis = [
+            'loottable_id'  => $loottableId,
+            'lootdrop_id'   => $lootdropId,
+            'itemIdList'   => $itemIdList,
+            'itemNameList' => $itemNameList,
+            'npcNameList'  => $npcNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $npcNameList;
+      }
+   }
+   else if ($tableName == 'doors') {
+      $doorId     = $objectData['id'];
+      $doorType   = $objectData['name'];
+      $zoneDoorId = $objectData['doorid'];
+      $zoneName   = $objectData['zone'];
+      $posX       = $objectData['pos_x'];
+      $posY       = $objectData['pos_y'];
+      $posZ       = $objectData['pos_z'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'     => $doorId,
+            'name'   => $doorType,
+            'doorid' => $zoneDoorId,
+            'zone'   => $zoneName,
+            'pos_x'  => $posX,
+            'pos_y'  => $posY,
+            'pos_z'  => $posZ,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $zoneName;
+      }
+   }
+   else if ($tableName == 'traps') {
+      $trapId       = $objectData['id'];
+      $zoneName     = $objectData['zone'];
+      $posX         = $objectData['x'];
+      $posY         = $objectData['y'];
+      $posZ         = $objectData['z'];
+      $trapChance   = $objectData['chance'];
+      $radius       = $objectData['radius'];
+      $effectTypeId = $objectData['effect'];
+      $effectValue  = $objectData['effectvalue'];
+      $effectValue2 = $objectData['effectvalue2'];
+      $respawnTime  = $objectData['respawn_time'];
+      $disarmSkill  = $objectData['skill'];
+      $impact       = '';
+
+      switch ($effectTypeId) {
+         case 0: {
+            $spellId   = $effectValue;
+            $spellName = getTableDataByKey($sourceData['spells_new'],$spellId,'primary','name');
+            $impact    = sprintf("cast spell %d/%s",$spellId,$spellName);
+            break;
+         };
+         case 1: {
+            $distance        = pow($effectValue,2);
+            $evaluateFaction = ($effectValue2) ? true : false;
+            $impact          = sprintf("sound alarm, notify NPCs within %s distance, %s".$distance,(($evaluateFaction) ? 'check faction before adding to hatelist' : 'add to hatelist'));
+            break;
+         };
+         case 2: {
+            $npcId    = $effectValue;
+            $npcName  = getTableDataByKey($sourceData['npc_types'],$npcId,'primary','name');
+            $npcCount = $effectValue2;
+            $impact   = sprintf("summon %dx %s nearby",$npcCount,$npcName);
+            break;
+         };
+         case 3: {
+            $npcId    = $effectValue;
+            $npcName  = getTableDataByKey($sourceData['npc_types'],$npcId,'primary','name');
+            $npcCount = $effectValue2;
+            $impact   = sprintf("summon %dx %s next to player",$npcCount,$npcName);
+            break;
+         };
+         case 4: {
+            $minDamage = $effectValue;
+            $maxDamage = $effectValue2;
+            $impact    = sprintf("%s-%s direct damage",$minDamage,$maxDamage);
+            break;
+         };
+      }
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'           => $trapId,
+            'zone'         => $zoneName,
+            'x'            => $posX,
+            'y'            => $posY,
+            'z'            => $posZ,
+            'chance'       => $trapChance,
+            'radius'       => $radius,
+            'effect'       => $effectTypeId,
+            'effectvalue'  => $effectValue,
+            'effectvalue2' => $effectValue2,
+            'respawn_time' => $respawnTime,
+            'skill'        => $disarmSkill,
+            'impact'       => $impact,
+         ];
+      }
+   }
+   else if ($tableName == 'fishing') {
+      $fishingId   = $objectData['id'];
+      $zoneId      = $objectData['zoneid'];
+      $itemId      = $objectData['Itemid'];
+      $skillLevel  = $objectData['skill_level'];
+      $catchChance = $objectData['chance'];
+      $itemName    = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $zoneName    = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'          => $fishingId,
+            'zoneid'      => $zoneId,
+            'zoneName'    => $zoneName,
+            'Itemid'      => $itemId,
+            'itemName'    => $itemName,
+            'skill_level' => $skillLevel,
+            'chance'      => $catchChance,
+         ];
+      }
+   }
+   else if ($tableName == 'tradeskill_recipe') {
+      $recipeId     = $objectData['id'];
+      $recipeName   = $objectData['name'];
+      $tradeskillId = $objectData['tradeskill'];
+      $skillNeeded  = $objectData['skillneeded'];
+      $trivial      = $objectData['trivial'];
+      $noFail       = $objectData['nofail'];
+      $notes        = $objectData['notes'];
+      $quest        = $objectData['quest'];
+      $enabled      = $objectData['enabled'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'          => $recipeId,
+            'name'        => $recipeName,
+            'tradeskill'  => $tradeskillId,
+            'skillneeded' => $skillNeeded,
+            'trivial'     => $trivial,
+            'nofail'      => $noFail,
+            'notes'       => $notes,
+            'quest'       => $quest,
+            'enabled'     => $enabled,
+         ];
+      }
+   }
+   else if ($tableName == 'tradeskill_recipe_entries') {
+      $recipeEntryId    = $objectData['id'];
+      $recipeId         = $objectData['recipe_id'];
+      $itemId           = $objectData['item_id'];
+      $recipeName       = getTableDataByKey($sourceData['tradeskill_recipe'],$recipeId,'primary','name');
+      $itemName         = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $successCount     = $objectData['successcount'];
+      $componentCount   = $objectData['componentcount'];
+      $isContainer      = $objectData['iscontainer'];
+      $recipeEntryType  = ($isContainer) ? 'container' : (($componentCount) ? 'component' : (($successCount > 1) ? 'result:recharged' : 'result'));
+      $recipeEntryCount = ($successCount) ? $successCount : (($componentCount) ? $componentCount : 1);
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'               => $recipeEntryId,
+            'recipe_id'        => $recipeId,
+            'recipeName'       => $recipeName,
+            'item_id'          => $itemId,
+            'itemName'         => $itemName,
+            'successcount'     => $successCount,
+            'componentcount'   => $componentCount,
+            'iscontainer'      => $isContainer,
+            'recipeEntryType'  => $recipeEntryType,
+            'recipeEntryCount' => $recipeEntryCount,
+         ];
+      }
+   }
+   else if ($tableName == 'ground_spawns') {
+      $groundSpawnId = $objectData['id'];
+      $zoneId        = $objectData['zoneid'];
+      $itemId        = $objectData['item'];
+      $posX1         = $objectData['min_x'];
+      $posX2         = $objectData['max_x'];
+      $posY1         = $objectData['min_y']; 
+      $posY2         = $objectData['max_y'];
+      $posZ1         = $objectData['max_z'];  // There's no min_z
+      $posZ2         = $objectData['max_z'];
+      $respawnMs     = $objectData['respawn_timer'];
+      $comment       = $objectData['comment'];
+      $respawnTime   = $main->obj('format')->formatDurationShort($respawnMs/1000);
+      $itemName      = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+      $zoneName      = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'             => $groundSpawnId,
+            'zoneid'         => $zoneId,
+            'zoneName'       => $zoneName,
+            'item'           => $itemId,
+            'itemName'       => $itemName,
+            'respawn_timer'  => $respawnMs,
+            '_respawn_timer' => $respawnTime,
+            'min_x'          => $posX1,
+            'min_y'          => $posY1,
+            'min_z'          => $posZ1,
+            'max_x'          => $posX2,
+            'max_y'          => $posY2,
+            'max_z'          => $posZ2,
+            'location'       => ($posX1 == $posX2 && $posY1 == $posY2) ? sprintf("y:%s,x:%s",$posY1,$posX1) : sprintf("y1:%s,x1:%s,y2:%s,x2:%s",$posY1,$posX1,$posY2,$posX2),
+            'comment'        => $comment,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $itemName;
+      }
+   }
+   else if ($tableName == 'spawn_conditions') {
+      $zoneName            = $objectData['zone'];
+      $spawnConditionId    = $objectData['id'];
+      $spawnConditionValue = $objectData['value'];
+      $onChange            = $objectData['onchange'];
+      $spawnConditionName  = $objectData['name'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'zone'     => $zoneName,
+            'id'       => $spawnConditionId,
+            'value'    => $spawnConditionValue,
+            'onchange' => $onChange,
+            'name'     => $spawnConditionName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $spawnConditionName;
+      }
+   }
+   else if ($tableName == 'spawn_condition_values') {
+      $spawnConditionId    = $objectData['id'];
+      $spawnConditionValue = $objectData['value'];
+      $zoneName            = $objectData['zone'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'    => $spawnConditionId,
+            'value' => $spawnConditionValue,
+            'zone'  => $zoneName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $zoneName;
+      }
+   }
+   else if ($tableName == 'spawn_events') {
+      $spawnEventId   = $objectData['id'];
+      $zoneName       = $objectData['zone'];
+      $conditionId    = $objectData['cond_id'];
+      $spawnEventName = $objectData['name'];
+      $period         = $objectData['period'];
+      $nextMinute     = $objectData['next_minute'];
+      $nextHour       = $objectData['next_hour'];
+      $nextDay        = $objectData['next_day'];
+      $nextMonth      = $objectData['next_month'];
+      $nextYear       = $objectData['next_year'];
+      $enabled        = $objectData['enabled'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'          => $spawnEventId,
+            'zone'        => $zoneName,
+            'cond_id'     => $conditionId,
+            'name'        => $spawnEventName,
+            'period'      => $period,
+            'next_minute' => $nextMinute,
+            'next_hour'   => $nextHour,
+            'next_day'    => $nextDay,
+            'next_month'  => $nextMonth,
+            'next_year'   => $nextYear,
+            'enabled'     => $enabled,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$zoneName,$spawnEventName);
+      }
+   }
+   else if ($tableName == 'grid') {
+      $gridId           = $objectData['id'];
+      $zoneId           = $objectData['zoneid'];
+      $wanderType       = $objectData['type'];
+      $pauseType        = $objectData['type2'];
+      $zoneName         = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+      $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawn2'],['pathgrid' => $gridId, 'zone' => $zoneName],'spawngroupID');
+      $npcIdList        = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['spawngroupID' => $spawnGroupIdList],'npcID');
+      $npcNameList      = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
+
+      if ($state == 'added' || $state == 'removed') {  
+         $analysis = [
+            'id'               => $gridId,
+            'zoneid'           => $zoneId,
+            'zoneName'         => $zoneName,
+            'type'             => $wanderType,
+            'type2'            => $pauseType,
+            '_type'            => $conv->convertGridType($wanderType,'wander'),
+            '_type2'           => $conv->convertGridType($pauseType,'pause'),
+            'spawnGroupIdList' => $spawnGroupIdList,
+            'npcIdList'        => $npcIdList,
+            'npcNameList'      => $npcNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$zoneName,implode('; ',$npcNameList));
+      }
+   }
+   else if ($tableName == 'graveyard') {
+      if ($state == 'added' || $state == 'removed') {
+         $graveyardId = $objectData['id'];
+         $zoneId      = $objectData['zone_id'];
+         $posX        = $objectData['x'];
+         $posY        = $objectData['y'];
+         $posZ        = $objectData['z'];
+         $zoneName    = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+
+         $analysis = [
+            'id'       => $graveyardId,
+            'zone_id'  => $zoneId,
+            'zoneName' => $zoneName,
+            'x'        => $posX,
+            'y'        => $posY,
+            'z'        => $posZ,
+         ];
+      }
+      else if ($state == 'changed') {
+         $zoneName = getTableDataByKey($sourceData['zone'],$objectData['zone_id'],'zoneidnumber','short_name');
+
+         $analysis['objectInfo'] = $zoneName;
+      }
+   }
+   else if ($tableName == 'faction_list') {
+      $factionListId   = $objectData['id'];
+      $factionListName = $objectData['name'];
+      $base            = $objectData['base'];
+      $seeIllusion     = $objectData['see_illusion'];
+      $minCap          = $objectData['min_cap'];
+      $maxCap          = $objectData['max_cap'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'           => $factionListId,
+            'name'         => $factionListName,
+            'base'         => $base,
+            'see_illusion' => $seeIllusion,
+            'min_cap'      => $minCap,
+            'max_cap'      => $maxCap,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $factionListName;
+      }
+   }
+   else if ($tableName == 'faction_list_mod') {
+      $factionListModId = $objectData['id'];
+      $factionId        = $objectData['faction_id'];
+      $modAmount        = $objectData['mod'];
+      $modName          = $objectData['mod_name'];
+      $factionName      = getTableDataByKey($sourceData['faction_list'],$factionId,'primary','name');
+      
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'          => $factionListModId,
+            'faction_id'  => $factionId,
+            'factionName' => $factionName,
+            'mod'         => $modAmount,
+            'mod_name'    => $modName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $factionName;
+      }
+   }
+   else if ($tableName == 'npc_faction') {
+      $npcFactionId        = $objectData['id'];
+      $npcFactionName      = $objectData['name'];
+      $primaryFactionId    = $objectData['primaryfaction'];
+      $ignorePrimaryAssist = $objectData['ignore_primary_assist'];
+      $primaryFactionName  = getTableDataByKey($sourceData['faction_list'],$primaryFactionId,'primary','name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'                    => $npcFactionId,
+            'name'                  => $npcFactionName,
+            'primaryfaction'        => $primaryFactionId,
+            'ignore_primary_assist' => $ignorePrimaryAssist,
+            'primaryFactionName'    => $primaryFactionName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $npcFactionName;
+      }
+   }
+   else if ($tableName == 'npc_faction_entries') {
+      $npcFactionId   = $objectData['npc_faction_id'];
+      $factionId      = $objectData['faction_id'];
+      $factionValue   = $objectData['value'];
+      $npcValue       = $objectData['npc_value'];
+      $temp           = $objectData['temp'];
+      $sortOrder      = $objectData['sort_order'];
+      $npcFactionName = getTableDataByKey($sourceData['npc_faction'],$npcFactionId,'primary','name');
+      $factionName    = getTableDataByKey($sourceData['faction_list'],$factionId,'primary','name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'npc_faction_id' => $npcFactionId,
+            'faction_id'     => $factionId,
+            'value'          => $factionValue,
+            'npc_value'      => $npcValue,
+            'temp'           => $temp,
+            'sort_order'     => $sortOrder,
+            'npcFactionName' => $npcFactionName,
+            'factionName'    => $factionName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$npcFactionName,$factionName);
+      }
+   }
+   else if ($tableName == 'npc_emotes') {
+      $npcEmoteId    = $objectData['id'];
+      $emoteId       = $objectData['emoteid'];
+      $npcEventId    = $objectData['event_'];
+      $emoteTypeId   = $objectData['type'];
+      $emoteText     = $objectData['text'];
+      $npcEventName  = $conv->convertNpcEvent($npcEventId);
+      $emoteTypeName = $conv->convertEmoteType($emoteTypeId);
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'            => $npcEmoteId,
+            'emoteid'       => $emoteId,
+            'event_'        => $emoteEventId,
+            'type'          => $emoteTypeId,
+            'text'          => $emoteText,
+            'npcEventName'  => $npcEventName,
+            'emoteTypeName' => $emoteTypeName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$npcEventName,$emoteTypeName);
+      }
+   }
+   else if ($tableName == 'npc_spells') {
+      if ($state == 'added' || $state == 'removed') {
+         $id   = $objectData['id'];
+         
+         $analysis = [
+            'id'    => $id,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $objectData['id'];
+      }
+   }
+   else if ($tableName == 'npc_spells_entries') {
+      $id   = $objectData['id'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'    => $id,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $objectData['id'];
+      }
+   }
+   else if ($tableName == 'blocked_spells') {
+      $blockedSpellId = $objectData['id'];
+      $spellId        = $objectData['spellid'];
+      $areaType       = $objectData['type'];
+      $zoneId         = $objectData['zoneid'];
+      $posX           = $objectData['x'];
+      $posY           = $objectData['y'];
+      $posZ           = $objectData['z'];
+      $diffX          = $objectData['x_diff'];
+      $diffY          = $objectData['y_diff'];
+      $diffZ          = $objectData['z_diff'];
+      $message        = $objectData['message'];
+      $description    = $objectData['description']; 
+      $locX           = sprintf("%s ± %s",$posX,$diffX);
+      $locY           = sprintf("%s ± %s",$posY,$diffY);
+      $locZ           = sprintf("%s ± %s",$posZ,$diffZ);
+      $location       = ($areaType == 1) ? 'Anywhere' : sprintf("y:%s,x:%s,z:%s",$locY,$locX,$locZ);
+      $spellName      = ($spellId == 0) ? 'Any' : getTableDataByKey($sourceData['spells_new'],$spellId,'primary','name');
+      $zoneName       = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+         
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'          => $blockedSpellId,
+            'spellid'     => $spellId,
+            'spellName'   => $spellName,
+            'type'        => $type,
+            'zoneid'      => $zoneId,
+            'zoneName'    => $zoneName,
+            'x'           => $posX,
+            'y'           => $posY,
+            'z'           => $posZ,
+            'x_diff'      => $diffX,
+            'y_diff'      => $diffY,
+            'z_diff'      => $diffZ,
+            'locX'        => $locX,
+            'locY'        => $locY,
+            'locZ'        => $locZ,
+            'message'     => $message,
+            'description' => $description,
+            'location'    => $location,
+            '_type'       => ($areaType == 1) ? 'Anywhere' : 'Boundary',
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$spellName,$zoneName);
+      }
+   }
+   else if ($tableName == 'forage') {
+      $forageId = $objectData['id'];
+      $zoneId   = $objectData['zoneid'];
+      $itemId   = $objectData['Itemid'];
+      $level    = $objectData['level'];
+      $chance   = $objectData['chance'];
+      $zoneName = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+      $itemName = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'       => $forageId,
+            'zoneid'   => $factionId,
+            'Itemid'   => $factionName,
+            'level'    => $level,
+            'chance'   => $chance,
+            'zoneName' => $zoneName,
+            'itemName' => $itemName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$zoneName,$itemName);
+      }
+   }
+   else if ($tableName == 'keyring_data') {
+      $keyItem  = $objectData['key_item'];
+      $keyName  = $objectData['key_name'];
+      $zoneId   = $objectData['zoneid'];
+      $stage    = $objectData['stage'];
+      $zoneName = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
+      $itemName = getTableDataByKey($sourceData['items'],$keyItem,'primary','Name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'key_item' => $keyItem,
+            'key_name' => $keyName,
+            'zoneid'   => $zoneId,
+            'stage'    => $stage,
+            'zoneName' => $zoneName,
+            'itemName' => $itemName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $keyName;
+      }
+   }
+   else if ($tableName == 'saylink') {
+      $sayLinkId = $objectData['id'];
+      $phrase    = $objectData['phrase'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'     => $sayLinkId,
+            'phrase' => $phrase,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $phrase;
+      }
+   }
+   else if ($tableName == 'skill_caps') {
+      $skillId     = $objectData['skillID'];
+      $classId     = $objectData['class'];
+      $level       = $objectData['level'];
+      $cap         = $objectData['cap'];
+      $classUnused = $objectData['class_'];
+      $skillName   = $conv->convertSkill($skillId);
+      $className   = $conv->convertClass($classId);
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'skillID'   => $skillId,
+            'class'     => $class,
+            'level'     => $level,
+            'cap'       => $cap,
+            'class_'    => $classUnused,
+            'skillName' => $skillName,
+            'className' => $className,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s/L%s",$className,$skillName,$level);
+      }
+   }
+   else if ($tableName == 'spells_new') {
+      $spellId             = $objectData['id'];
+      $spellName           = $objectData['name'];
+      $range               = $objectData['range'];
+      $castTime            = $objectData['cast_time'];
+      $recoveryTime        = $objectData['recovery_time'];
+      $recastTime          = $objectData['recast_time'];
+      $buffDurationFormula = $objectData['buffdurationformula'];
+      $buffDuration        = $objectData['buffduration'];
+      $manaCost            = $objectData['mana'];
+      $castingSkill        = $objectData['skill'];
+      $targetType          = $objectData['targettype'];
+      $resistType          = $objectData['resistType'];
+      $resistDiff          = $objectData['ResistDiff'];
+
+      $effectList    = $conv->convertSpellEffectList($objectData);
+      $classList     = $conv->convertSpellClasses($objectData);
+      $minClassLevel = (count($classList ?: []) > 0) ? min($classList) : $main->var('maxServerLevel');
+      $minDuration   = $spell->calculateBuffDurationFormula($minClassLevel,$buffDurationFormula,$buffDuration);
+      $maxDuration   = $spell->calculateBuffDurationFormula($main->var('maxServerLevel'),$buffDurationFormula,$buffDuration);
+      $duration      = ($minDuration == $maxDuration) ? $maxDuration : sprintf("%s - %s",$minDuration,$maxDuration);
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'                  => $spellId,
+            'name'                => $spellName,
+            'range'               => $range,
+            'cast_time'           => $castTime,
+            'recovery_time'       => $recoveryTime,
+            'recast_time'         => $recastTime,
+            'buffdurationformula' => $buffDurationFormula,
+            'buffduration'        => $buffDuration,
+            'mana'                => $manaCost,
+            'skill'               => $castingSkill,
+            'targettype'          => $targetType,
+            'resistType'          => $resistType,
+            'ResistDiff'          => $resistDiff,
+            'effectList'          => $effectList,
+            'classList'           => $classList,
+            'minDuration'         => $minDuration,
+            'maxDuration'         => $maxDuration,
+            'duration'            => $duration,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $spellName;
+      }
+   }
+   else if ($tableName == 'books') {
+      $bookName = $objectData['name'];
+      $bookText = $objectData['txtfile'];
+      
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'name'    => $bookName,
+            'txtfile' => $bookText,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $bookName;
+      }
+   }
+
+   if (!$analysis) { print "!!! UNKNOWN DECODE: $tableName/$state, ".(substr(json_encode($objectData),0,1024))."\n"; }
+
+   if ($state == 'added') {
+      $analysis['objectData'] = $objectData;
+   }
+
+   // PEQ expansion fixes.  All min/max expansion values were changed and this causes every object using them to be changed.
+   if ($rules['ignore-peq-expansion'] && $analysis && $state == 'changed') {
+      $before = $analysis['before'];
+      $after  = $analysis['after'];
+   
+      foreach ($after as $afterKey => $afterValue) {
+         if ($before[$afterKey] == $afterValue) { 
+            unset($analysis['before'][$afterKey]); 
+            unset($analysis['after'][$afterKey]); 
+         }
+         else {
+            if ($after['min_expansion'] == -1 && $after['max_expansion'] == -1 && $after['content_flags'] == null && $after['content_flags_disabled'] == null) {
+               foreach (['min_expansion','max_expansion','content_flags','content_flags_disabled'] as $flag) {
+                  unset($analysis['after'][$flag]);
+               }
+            }
+            else if (!isset($before['min_expansion']) && !isset($before['max_expansion']) && $after['min_expansion'] == -1 && $after['max_expansion'] == -1) {
+               foreach (['min_expansion','max_expansion'] as $flag) {
+                  unset($analysis['after'][$flag]);
+               }
+            }
+         }
+      }
+   
+      if (!isset($analysis['after']) || empty($analysis['after'])) { unset($analysis); }
+   }
+
+   if ($rules['strip-custom-keys']) {
+      if ($state == 'changed') {
+         $before = $analysis['before'] ?: [];
+         $after  = $analysis['after'] ?: [];
+
+         foreach ($before as $beforeKey => $beforeValue) { 
+            if (preg_match('/^_/',$beforeKey)) { unset($analysis['before'][$beforeKey]); }
+         }
+         foreach ($after as $afterKey => $afterValue) { 
+            if (preg_match('/^_/',$afterKey)) { unset($analysis['after'][$afterKey]); }
+         }
+      }
+      else if ($state == 'added' || $state == 'removed') {
+         foreach ($analysis as $analysisKey => $analysisValue) {
+            if (preg_match('/^_/',$analysisKey)) { unset($analysis[$analysisKey]); }
+         }
+      }
+   }
+
+   if ($rules['ignore-updated-field']) {
+      if ($state == 'changed') {
+         $before = $analysis['before'] ?: [];
+         $after  = $analysis['after'] ?: [];
+
+         foreach ($before as $beforeKey => $beforeValue) { 
+            if ($beforeKey == 'updated') { unset($analysis['before'][$beforeKey]); }
+         }
+         foreach ($after as $afterKey => $afterValue) { 
+            if ($afterKey == 'updated') { unset($analysis['after'][$afterKey]); }
+         }
+      }
+   }
+
+   if ($rules['remove-blank-keys']) {
+      foreach ($analysis as $analysisKey => $analysisValue) {
+         if (is_array($analysisValue) && empty($analysisValue)) { unset($analysis[$analysisKey]); }
+      }
+   }
+
+   if ($state == 'changed' && !isset($analysis['after'])) { unset($analysis); }
+
+   return $analysis;
+}
+
+function displayFormattedData($format, $values) 
+{
+   if (!is_null($values) && is_array($values)) {
+      $replace = array();
+      foreach ($values as $key => $value) { $replace['{{'.$key.'}}'] = ((is_array($value)) ? implode('|',array_filter(array_unique($value))) : ((is_bool($value)) ? json_encode($value) : $value)); }
+
+      $format = str_replace(array_keys($replace),array_values($replace),$format);
+   }
+
+   return $format;
+}
+
+function getTableDataByKey($tableInfo, $rowKey, $tableKey = 'primary', $attrib = null)
+{
+   global $cache;
+
+   $tableName = $tableInfo['name'];
+   $cacheKey  = md5(json_encode([$tableName,$rowKey,$tableKey,$attrib]));
+
+   if ($cache[$cacheKey]) { 
+      //print "CACHE HIT! $tableName/$rowKey/$tableKey/$attrib\n";
+      return $cache[$cacheKey]; 
+   }
+
+   $dataRef    = $tableInfo['refs'][$tableKey][$rowKey];
+   $dataJson   = $tableInfo['data'][$dataRef];
+   $dataValues = json_decode($dataJson,true);
+
+   //print "table:$tableName, rowKey:$rowKey, tableKey:$tableKey, attrib:$attrib, dataRef:$dataRef, dataJson:$dataJson\n";
+
+   if (!$dataValues) { return null; }
+
+   $data   = array_combine($tableInfo['columns'],$dataValues);
+   $return = (is_null($attrib)) ? $data : $data[$attrib];
+
+   $cache[$cacheKey] = $return;
+
+   return $return;
+}
+
+function findTableDataMatchIds($tableInfo, $key, $values, $return = null)
+{
+   global $cache;
+
+   $tableName = $tableInfo['name'];
+   $cacheKey  = md5(json_encode([$tableName,$key,$values,$return]));
+   $tableData = $tableInfo['data'];
+   $results   = [];
+
+   if ($cache[$cacheKey]) { 
+      //print "CACHE HIT! $tableName/$key/$return\n";
+      return $cache[$cacheKey]; 
+   }
+
+   if (!is_array($values)) { $values = [$values]; }
+
+   if (!$values || !in_array($key,$tableInfo['columns'])) { return $results; }
+
+   foreach ($tableData as $id => $dataJson) {
+      $dataValues = json_decode($dataJson,true);
+
+      if (is_null($dataValues)) { continue; }
+
+      $data = array_combine($tableInfo['columns'],$dataValues);
+
+      foreach ($values as $value) {
+         if ($data[$key] == $value) { 
+            $results[$id] = (is_null($return)) ? $id : $data[$return]; 
+         }
+      }
+   }
+
+   $cache[$cacheKey] = $results;
+
+   return $results;
+}
+
+function findTableDataMatch($tableInfo, $kvPairs, $return = null)
+{
+   global $cache;
+
+   $tableName = $tableInfo['name'];
+   $cacheKey  = md5(json_encode([$tableName,$kvPairs,$return]));
+   $tableData = $tableInfo['data'];
+   $results   = [];
+
+   if ($cache[$cacheKey]) { 
+      //print "CACHE HIT! $tableName/$key/$return\n";
+      return $cache[$cacheKey]; 
+   }
+
+   if (!is_array($kvPairs)) { return $results; }
+
+   $kvKeys    = array_keys($kvPairs);
+   $keysValid = (array_intersect($kvKeys,$tableInfo['columns']) == $kvKeys) ? true : false;
+
+   if (!$keysValid) { return $results; }
+
+   $kvList = [];
+   foreach ($kvPairs as $key => $values) { 
+      $kvList[$key] = (is_array($values)) ? $values : array($values);
+      if (empty($kvList[$key])) { return $results; }  // if we don't have values, there's nothing to match
+   }
+
+   foreach ($tableData as $id => $dataJson) {
+      $dataValues = json_decode($dataJson,true);
+
+      if (is_null($dataValues)) { continue; }
+
+      $data = array_combine($tableInfo['columns'],$dataValues);
+
+      $fullMatch = true;
+
+      foreach ($kvList as $key => $values) {
+         $valueMatch = false;
+         foreach ($values as $value) {
+            if ($data[$key] == $value) { $valueMatch = true; break; }  // No need to check all values, if we got a match here
+         }
+         if (!$valueMatch) { $fullMatch = false; break; }  // If the previous value had no matches, we cannot fully match, no need to check anything else
+      }
+
+      if ($fullMatch) { $results[$id] = (is_null($return)) ? $id : $data[$return]; }
+   }
+
+   $cache[$cacheKey] = $results;
+
+   return $results;
+}
+
+function getDatabaseFiles($dbDir)
+{
+   $fileList   = [];
+   $dbDateDirs = glob($dbDir.'/[0-9]*',GLOB_ONLYDIR);
+
+   foreach ($dbDateDirs as $dbDateDir) {
+      $databaseFile = glob($dbDateDir.'/alkabor_*.sql');
+      if ($databaseFile) { 
+         $quarmFile = reset($databaseFile);  // should only be one entry in the array, fetch it
+
+         if (preg_match('/alkabor_(\d+)-(\d+)-(\d+)/',$quarmFile,$match)) {
+            $fileList[sprintf("%04d%02d%02d",$match[1],$match[2],$match[3])] = $quarmFile;
+         }
+      }
+   }
+
+   return $fileList;
+}
+
+?>
