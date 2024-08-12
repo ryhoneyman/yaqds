@@ -1,0 +1,111 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => false,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$main->connectDatabase('db.takpmerge.conf','takpmerge');
+
+$db = $main->db('takpmerge');
+
+$oldFileName = './data/listnpcs.old.txt';
+$newFileName = './data/listnpcs.new.txt';
+$questDir    = '/opt/yaqds/quarm/quests/current';
+$currentEra  = 1;
+
+$oldList = processListNpcsFile($oldFileName);
+$newList = processListNpcsFile($newFileName);
+
+printf("%20s %6s %32s %8s %8s %8s %8s %8s\n","Zone","npcID","npcName","Quests","Merchant","SeExp","S2Exp","Gated");
+
+foreach ($oldList as $zoneName => $zoneNpcList) {
+   foreach ($zoneNpcList as $npcName => $npcData) {
+      //print "Checking $npcName\n";
+      if (!preg_match('/000$/',$npcName)) { continue; }
+      if (preg_match('/^(#)?(?:a|an)_/',$npcName)) { continue; }
+
+      $cleanName = preg_replace('/000$/','',$npcName);
+
+      $hasQuests  = (file_exists(sprintf("%s/%s/%s.lua",$questDir,$zoneName,$cleanName))) ? true : false;
+      $npcDbInfo  = $db->query(sprintf("SELECT id,merchant_id FROM npc_types WHERE name = '%s'",$cleanName),['single' => true]);
+      $isMerchant = ($npcDbInfo['merchant_id']) ? true : false;
+
+      if (!$hasQuests && !$isMerchant) { continue; }
+
+      $npcId = $npcDbInfo['id'];
+
+      $spawnentryInfo = $db->query(sprintf("SELECT spawngroupID,min_expansion,max_expansion FROM spawnentry WHERE npcID = %d",$npcId),['single' => true]);
+
+      if ($spawnentryInfo) {
+         $spawngroupId = $spawnentryInfo['spawngroupID'];
+         $spawn2Info = $db->query(sprintf("SELECT id,zone,min_expansion,max_expansion FROM spawn2 WHERE spawngroupID = %d",$spawngroupId),['single' => true]);
+      }
+
+      if ($spawn2Info['zone'] != $zoneName) {
+         //print "$cleanName zone mismatch!  ".$spawn2Info['zone']." != $zoneName\n";
+         //continue;
+      }
+
+      $spawn2Id = $spawn2Info['id'];
+      $seExp    = sprintf("(%s/%s)",$spawnentryInfo['min_expansion'],$spawnentryInfo['max_expansion']);
+      $s2Exp    = sprintf("(%s/%s)",$spawn2Info['min_expansion'],$spawn2Info['max_expansion']);
+
+      $isGated = ($spawnentryInfo['min_expansion'] > $currentEra || $spawn2Info['min_expansion'] > $currentEra || 
+                  $spawnentryInfo['max_expansion'] < $currentEra || $spawn2Info['max_expansion'] < $currentEra) ? true : false;
+
+      if ($spawnentryInfo['min_expansion'] == -1 && $spawn2Info['min_expansion'] == -1 &&
+          $spawnentryInfo['max_expansion'] == -1 && $spawn2Info['max_expansion'] == -1) { $isGated = false; }
+
+      if (!isset($newList[$zoneName][$npcName])) { 
+         printf("%20s %6d %32s %8s %8s %8s %8s %8s\n",$zoneName,$npcId,$cleanName,json_encode($hasQuests),json_encode($isMerchant),$seExp,$s2Exp,json_encode($isGated)); 
+
+         if ($isMerchant) { 
+            $sqlList[] = sprintf("/* Un-gating %s(%d) in %s */",$cleanName,$npcId,$zoneName);
+            $sqlList[] = sprintf("UPDATE spawn2 SET min_expansion = -1, max_expansion = -1 WHERE id = %d;",$spawn2Id); 
+         }
+      }   
+   }
+}
+
+foreach ($sqlList as $sql) {
+   print "$sql\n";
+}
+
+?>
+<?php
+
+function processListNpcsFile($fileName)
+{
+   // [Fri Aug 02 14:35:07 2024] You say, '#zone nektulos'
+   // [Fri Aug 02 14:35:15 2024]     889: a_spiderling013 (-636, 1121, 19) Spawned: 341921
+   $return   = [];
+   $zoneName = null;
+
+   foreach (explode("\n",file_get_contents($fileName)) as $line) {
+      if (preg_match("/^\[.*?\]\s+You\s+say,\s+'#zone\s+(\S+)\s*'/",$line,$match)) {
+         $zoneName = $match[1];
+      }
+      else if ($zoneName && preg_match("/^\[.*?\]\s+\d+:\s(\S+)\s\(.*?\)\sSpawned:\s(\d+)/",$line,$match)) {
+         $return[$zoneName][$match[1]]['spawned'] = $match[2];
+      }
+   }
+
+   return $return;
+}
+
+?>
