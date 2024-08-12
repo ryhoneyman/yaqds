@@ -35,17 +35,26 @@ $searchTypeList = [
       'label' => 'Item ID',
       'scanOrder' => ['items' => 'id','lootdrop_entries' => 'item_id','loottable_entries' => 'lootdrop_id','npc_types' => 'loottable_id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name'],
    ],
-   /*
    'items.Name' => [
       'label' => 'Item Name',
+      'scanOrder' => ['items' => 'id','lootdrop_entries' => 'item_id','loottable_entries' => 'lootdrop_id','npc_types' => 'loottable_id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name'],
    ],
    'npc_types.id' => [
       'label' => 'NPC ID',
+      'scanOrder' => ['npc_types' => 'id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name','loottable_entries' => 'loottable_id','lootdrop_entries' => 'lootdrop_id','items' => 'id'],
    ],
    'npc_types.name' => [
       'label' => 'NPC Name',
+      'scanOrder' => ['npc_types' => 'name','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name','loottable_entries' => 'loottable_id','lootdrop_entries' => 'lootdrop_id','items' => 'id'],
    ],
-   */
+   'spawngroup.id' => [
+      'label' => 'Spawngroup ID',
+      'scanOrder' => ['spawngroup' => 'id','spawnentry' => 'spawngroupID','npc_types' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name','loottable_entries' => 'loottable_id','lootdrop_entries' => 'lootdrop_id','items' => 'id'],
+   ],
+   'loottable.id' => [
+      'label' => 'Loottable ID',
+      'scanOrder' => ['loottable' => 'id', 'loottable_entries' => 'loottable_id','lootdrop_entries' => 'lootdrop_id','items' => 'id','npc_types' => 'loottable_id','spawnentry' => 'npcID','spawngroup' => 'id','spawn2' => 'spawngroupID','zone' => 'short_name'],
+   ], 
 ];
 
 $searchSelect = array_combine(array_keys($searchTypeList),array_column($searchTypeList,'label'));
@@ -95,13 +104,17 @@ $searchTables = [
             'quote' => false,
          ],
       ],
-      'return' => [
-         'spawn2.spawngroupID' => 'spawngroupID',
+      'link' => [
+         'spawn2.spawngroupID' => 'id',
+         'spawnentry.spawngroupID' => 'id',
       ],
    ],
    'spawnentry' => [
       'select' => '*',
       'search' => [
+         'spawngroupID' => [
+            'quote' => false,
+         ],
          'npcID' => [
             'quote' => false,
          ],
@@ -109,6 +122,7 @@ $searchTables = [
       'link' => [
          'spawngroup.id' => 'spawngroupID',
          'spawn2.spawngroupID' => 'spawngroupID',
+         'npc_types.id' => 'npcID',
       ],
    ],
    'npc_types' => [
@@ -125,7 +139,6 @@ $searchTables = [
          ]
       ],
       'link' => [
-         'npc_types.loottable_id' => 'loottable_id',
          'loottable.id' => 'loottable_id',
          'loottable_entries.loottable_id' => 'loottable_id',
          'spawnentry.npcID' => 'id',
@@ -138,7 +151,10 @@ $searchTables = [
             'quote' => false,
          ],
       ],
-      'link' => [],
+      'link' => [
+         'loottable_entries.loottable_id' => 'id',
+         'lootdrop_entries.lootdrop_id' => 'lootdrop_id',
+      ],
    ],
    'loottable_entries' => [
       'select' => '*',
@@ -149,6 +165,7 @@ $searchTables = [
       ],
       'link' => [
          'lootdrop.id' => 'lootdrop_id',
+         'lootdrop_entries.lootdrop_id' => 'lootdrop_id',
          'npc_types.loottable_id' => 'loottable_id',
       ],
    ],
@@ -164,7 +181,7 @@ $searchTables = [
       ],
       'link' => [
          'lootdrop.id' => 'lootdrop_id',
-         'item.id' => 'item_id',
+         'items.id' => 'item_id',
          'loottable_entries.lootdrop_id' => 'lootdrop_id',
       ],
    ],
@@ -191,12 +208,18 @@ print $alte->displayCard($alte->displayRow(
       ),array('container' => 'col-xl-6 col-12'));
 
 
+$displayResult = [];
+
 if ($search) {
    $searchResults = performSearch($db,$searchTables,$searchTypeList,$searchType,$searchValue,$search);
    
    foreach ($searchResults as $tableName => $tableData) {
-      print $alte->displayCard($html->table($tableData,null,['table.id' => $tableName, 'datatable' => true]),array('title' => $tableName, 'container' => 'col-12'));
+      $displayResult[$tableName] = $alte->displayCard($html->table($tableData,null,['table.id' => $tableName, 'datatable' => true]),array('title' => $tableName, 'container' => 'col-12'));
    }
+
+   ksort($displayResult);
+
+   print implode('',$displayResult);
 }
 
 
@@ -223,7 +246,10 @@ function performSearch($db, $searchTables, $searchTypeList, $searchType, $search
 
       //print "<p>\n"; var_dump($known); print "<br>\n"; print "Trying search $tableName ($tableSearchType)<br>\n";
       
-      if (!$known[$tableSearchType]) { continue; }
+      if (!$known[$tableSearchType]) { 
+         print "No known values to search $tableName<br>\n"; 
+         continue; 
+      }
 
       $quote  = $tableSearchInfo['quote'];
       $select = $tableParams['select'] ?: '*';
@@ -236,16 +262,18 @@ function performSearch($db, $searchTables, $searchTypeList, $searchType, $search
          $return[$tableName] = $results;
 
          //print count($results)." results for $tableName<br>\n";
-
-         $linkValues = [];
+       
          foreach ($searchTables[$tableName]['link'] as $knownId => $returnId) {
-            foreach ($results as $result) {
+            $linkValues = [];
+            foreach ($results as $result) { 
+               //printf("Adding %s (%s) for %s<br>\n",$result[$returnId],$returnId,$knownId);
                $linkValues[] = $result[$returnId];
+      
             }
+            $known[$knownId] = array_filter(array_unique($linkValues));
          }
-
-         $known[$knownId] = array_filter(array_unique($linkValues));
       }
+      else { print "No results for $tableName<br>\n"; }
 
       $exact = true;
    }
@@ -260,14 +288,14 @@ function searchTable($db, $tableName, $quote, $exact, $select, $where, $values)
    $whereClause = [];
    
    foreach ($values as $value) {
-      $whereClause[] = ($quote) ? (($exact) ? sprintf("`%s` = \"%s\"",$where,$value) : sprintf("`%s` LIKE \"%%%s%%\"",$where,$value)) : sprintf("`%s` = %d",$where,$value);
+      $whereClause[] = ($quote) ? (($exact) ? sprintf("`%s` = \"%s\"",$where,$value) : sprintf("`%s` LIKE \"%%%s%%\"",$where,preg_replace('/\s+/','%%',$value))) : sprintf("`%s` = %d",$where,$value);
    }
 
    $query = sprintf("SELECT %s FROM %s WHERE %s",$select,$tableName,implode(' OR ',$whereClause));
 
    //print "$query<br>\n";
 
-   $result = $db->query($query);
+   $result = $db->query($query,['autoindex' => true]);
 
    return $result;
 }
