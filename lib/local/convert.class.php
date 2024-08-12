@@ -242,8 +242,11 @@ class Convert extends LWPLib\Base
       ];
    
       list($major,$minor) = explode('.',$expansionNumber);
+
+      $majorExpansion = (isset($expansionList[$major])) ? $expansionList[$major] : 'Unknown';
+      $minorExpansion = (isset($minorList[$minor])) ? $minorList[$minor] : '';
    
-      return sprintf("%s%s",$expansionList[$major] ?: 'Unknown',$minorList[$minor] ?: '');
+      return sprintf("%s%s",$majorExpansion,$minorExpansion);
    }
    
    public function convertGridType($value, $type)
