@@ -1,20 +1,26 @@
 {
     "labels": {
-        "20231001": "2023-10-01 (Classic 1.0, release I, Launch)",
-        "20231008": "2023-10-08 (Classic 1.0, patch II)",
-        "20231014": "2023-10-14 (Classic 1.0, patch III)",
-        "20231104": "2023-11-04 (Classic 1.0, patch IV)",
-        "20231129": "2023-11-29 (Classic 1.0, patch V)",
-        "20231213": "2023-12-13 (Classic 1.0, patch VI)",
-        "20231226": "2023-12-26 (Classic 1.3, release I, Temple SolRo/Classic Planes)",
-        "20240118": "2024-01-18 (Classic 1.3, patch II)",
-        "20240213": "2024-02-13 (Classic 1.3, patch III)",
-        "20240317": "2024-03-17 (Classic 1.6, release I, The Hole)",
-        "20240415": "2024-04-15 (Classic 1.6, patch II)",
-        "20240529": "2024-05-29 (Classic 1.9, release I, Early Access Kunark)",
-        "20240618": "2024-06-18 (Classic 1.9, patch II, latest)",
-        "20240701": "2024-07-01 (Kunark 2.0, release I)",
-        "20240715": "2024-07-15 (Kunark 2.0, patch II)"
+        "20231001": "2023-10-01 (Classic, release I, Launch)",
+        "20231008": "2023-10-08 (Classic, patch II)",
+        "20231014": "2023-10-14 (Classic, patch III)",
+        "20231104": "2023-11-04 (Classic, patch IV)",
+        "20231129": "2023-11-29 (Classic, patch V)",
+        "20231213": "2023-12-13 (Classic, patch VI)",
+        "20231226": "2023-12-26 (Classic, release I, Temple SolRo/Classic Planes)",
+        "20240118": "2024-01-18 (Classic, patch II)",
+        "20240213": "2024-02-13 (Classic, patch III)",
+        "20240317": "2024-03-17 (Classic, release I, The Hole)",
+        "20240415": "2024-04-15 (Classic, patch II)",
+        "20240529": "2024-05-29 (Classic, release I, Early Access Kunark)",
+        "20240618": "2024-06-18 (Classic, patch II, latest)",
+        "20240701": "2024-07-01 (Kunark, release I)",
+        "20240715": "2024-07-15 (Kunark, patch II)",
+        "20240728": "2024-07-28 (Kunark, patch III)",
+        "20240801": "2024-08-01 (Kunark, patch IV)",
+        "20240802": "2024-08-02 (Kunark, patch V)",
+        "20240804": "2024-08-04 (Kunark, patch VI)",
+        "20240817": "2024-08-17 (Kunark, patch VII)"
+
     },
     "diffs": {
         "releases": [
@@ -31,7 +37,10 @@
             "20240415-20240529",
             "20240529-20240618",
             "20240618-20240701",
-            "20240701-20240715"
+            "20240701-20240715",
+            "20240715-20240728",
+            "20240728-20240801",
+            "20240801-20240817"
         ]
     }
 }
