@@ -118,6 +118,15 @@
         },
         "books": {
             "default": ["STATE","name","txtfile"]
+        },
+        "content_flags": {
+            "default": ["STATE","flag_name","enabled","notes"]
+        },
+        "npc_spells": {
+            "default": ["STATE","id","name","parent_list","parentName"]
+        },
+        "npc_spells_entries": {
+            "default": ["STATE","npcSpellsName","spellName","recast_delay","priority","resist_adjust"]
         }
     }
 }
