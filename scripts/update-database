@@ -19,9 +19,9 @@ if [ ! -f "$JQBIN" ]; then
 fi
 
 ### Database connect string parameters
-DBHOST='localhost'
-DBUSER='yaqds'
-DBNAME='yaqds'
+DBHOST=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.hostname')
+DBUSER=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.username')
+DBNAME=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.database')
 DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.password')
 
 DEPLOYDIR="$BASEDIR/deploy"
