@@ -21,7 +21,7 @@
    <footer class="main-footer">
       <strong>Everquest &copy; Daybreak Games / Project Quarm run by Secrets / Site designed and maintained by Icestorm</strong> 
       <div class="float-right d-none d-sm-inline-block">
-         <?php print "<b class='text-yellow'>Version:</b> ".$main->currentVersion.", <b class='text-primary'>Database:</b> ".$main->quarmDb; ?>
+         <?php print "<b class='text-yellow'>Version:</b> ".$main->yaqdsVersion.", <b class='text-primary'>Database:</b> ".$main->quarmDb; ?>
       </div>
    </footer>
 </div>
