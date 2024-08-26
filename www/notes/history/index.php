@@ -13,6 +13,26 @@ include 'ui/header.php';
 
 $versionList = array(
    array(
+      'version' => '1.5.0',
+      'datetime' => '2024-08-26 13:30 UTC',
+      'changes' => array(
+         'system' => array(
+            'Loaded 20240717 database (TAKP post-merge)',
+            'Loaded 20240728 database (major post-merge fixes)',
+            'Loaded 20240801 database (minor post-merge fixes)',
+            'Loaded 20240817 database (minor post-merge fixes)',
+            'Loaded 20240825 database',
+         ),
+         'frontend' => array(
+            'Added expansion icons'
+         ),
+         'backend'  => array(
+            'Refactored expansion in codebase, post-merge',
+         ),
+         'library'  => array(),
+      ),
+   ),
+   array(
       'version' => '1.4.0',
       'datetime' => '2024-07-01 11:00 UTC',
       'changes' => array(
