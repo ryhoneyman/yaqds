@@ -35,7 +35,7 @@ AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit
 QUARMDBVER=$(echo "$AVAILFILE" | sed -E 's/.*?([[:digit:]]{4})-([[:digit:]]{2})-([[:digit:]]{2})-([[:digit:]]{2})_([[:digit:]]{2}).*/\1\2\3-\4\5/')
 
 ### Local install date
-LATESTINSTALL=$(cat $DBDUMPDIR/latest)
+LATESTINSTALL=$(cat $DBDUMPDIR/latest 2> /dev/null)
 
 ### If we're up to date, there's nothing to do
 if [ "$AVAILDATE" == "$LATESTINSTALL" ] && [ -d "$DBDUMPDIR/$LATESTINSTALL" ]; then
