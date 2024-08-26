@@ -147,7 +147,7 @@ foreach ($diffAvailable as $diffKey) {
    $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
    
    if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && (!$force && !$update))) {
-      if (file_exists($diffFile)) { print "Differential exists, --force or --update not specified, skipping...\n"; }
+      if (file_exists($diffFile)) { print "Differential exists $dbOldDate/$dbNewDate, --force or --update not specified, skipping...\n"; }
       continue; 
    }
 
