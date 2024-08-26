@@ -1,0 +1,52 @@
+.expansion-tag {
+    border: 1px solid gray;
+    border-radius: 5px;
+    display: inline-block;
+    width: 60px;
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #222222;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 12px;
+  }
+
+  .exp--1, .exp-5, .exp-99, .exp-all .exp-any {
+    background: #333333;
+    color: #dddddd;
+  }
+  
+  .exp-0, .exp-classic {
+    background: #666666;
+    color: #dddddd;
+  }
+  
+  .exp-1, .exp-kunark {
+    background: #607643;
+    color: #D3AB5C;
+  }
+  
+  .exp-2, .exp-velious {
+    background: #D0C4BA;
+    color: #5D1715;
+  }
+  
+  .exp-3, .exp-luclin {
+    background: #2E57BF;
+    color: #DDBE47;
+  }
+  
+  .exp-4, .exp-planes {
+    background: #8B3E18;
+    color: #CEB04A;
+  }
+  
+  .script {
+    background: #880000;
+    color: #dddddd;
+  }
+  
+  .spell {
+    background: #20B2AA;
+    color: #F4A460;
+  }
