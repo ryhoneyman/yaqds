@@ -22,7 +22,7 @@ fi
 DBHOST='localhost'
 DBUSER='yaqds'
 DBNAME='yaqds'
-DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | jq -r '.password')
+DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.password')
 
 DEPLOYDIR="$BASEDIR/deploy"
 DBDUMPDIR="$BASEDIR/quarm/db"
@@ -78,6 +78,6 @@ printf "* Storing this version ($AVAILDATE) in $DBDUMPDIR/latest\n"
 echo "$AVAILDATE" > $DBDUMPDIR/latest
 
 printf "* Updating YAQDS version ($QUARMDBVER) in $VERSIONJSON\n"
-echo "$( jq ".quarmDb = \"$QUARMDBVER\"" $VERSIONJSON)" > $VERSIONJSON
+echo "$( $JQBIN ".quarmDb = \"$QUARMDBVER\"" $VERSIONJSON)" > $VERSIONJSON
 
 popd &> /dev/null
