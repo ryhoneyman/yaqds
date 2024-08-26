@@ -1,4 +1,4 @@
-/etc/db.conf
+/etc/db*.conf
 /quarmdb
 /var/cache/**
 !/var/cache/**/
