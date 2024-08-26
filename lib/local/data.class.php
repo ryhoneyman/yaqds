@@ -50,10 +50,10 @@ class Data extends LWPLib\Base
       return $petInfo;
    }
 
-   public function forceExpansion() 
+   public function forceExpansion($expansionName = 'any') 
    { 
       $expansionInfo = $this->fetch('expansionInfo');
-      return $expansionInfo['kunark']['release'];
+      return $expansionInfo[$expansionName]['release'];
    }
 
    public function currentExpansion() { return $this->fetch('currentExpansion'); }
@@ -255,6 +255,8 @@ class Data extends LWPLib\Base
       if (!is_null($zoneCeil) && !preg_match('/^[\d\-]+$/',$zoneCeil)) { $this->error('invalid zoneCeil provided'); return false; }
       if (!is_null($expansion) && !preg_match('/^[\d\.]+$/',$expansion)) { $this->error('invalid expansion provided'); return false; }
 
+      $anyExpansion = $this->forceExpansion('any');
+
       $query = "SELECT concat(se.spawngroupID,'.',se.npcID,'.',s2.x,'.',s2.y) as keyid, z.short_name, z.zoneidnumber as zoneID, nt.name, nt.level, nt.maxlevel, sg.id as sgID, \n".
                "       nt.id as npcID, s2.min_expansion as spawnMinEx, s2.max_expansion as spawnMaxEx, se.min_expansion as entryMinEx, se.max_expansion as entryMaxEx, \n".
                "       se.chance, s2.x, s2.y, s2.z, s2.heading, s2.pathgrid as gridID, sg.name as sgName, sg.min_x as sgMinX, sg.min_y as sgMinY, ". 
@@ -266,8 +268,8 @@ class Data extends LWPLib\Base
                "LEFT JOIN zone z        ON z.short_name = s2.zone \n".
                "WHERE z.short_name = '$zoneName' \n".
                ((is_null($expansion)) ? '' :
-               "AND   (((se.min_expansion <= $expansion or se.min_expansion = 0) and (se.max_expansion >= $expansion or se.max_expansion = 0)) \n".
-               "       AND ((s2.min_expansion <= $expansion or s2.min_expansion = 0) and (s2.max_expansion >= $expansion or s2.max_expansion = 0))) \n".
+               "AND   (((se.min_expansion <= $expansion or se.min_expansion = $anyExpansion) and (se.max_expansion >= $expansion or se.max_expansion = $anyExpansion)) \n".
+               "       AND ((s2.min_expansion <= $expansion or s2.min_expansion = $anyExpansion) and (s2.max_expansion >= $expansion or s2.max_expansion = $anyExpansion))) \n".
                "AND z.expansion <= $expansion \n").
                "AND nt.bodytype < 64 \n".
                ((is_null($zoneFloor)) ? '' : "AND s2.z >= $zoneFloor \n").
@@ -282,11 +284,11 @@ class Data extends LWPLib\Base
       return preg_replace('/_/',' ',preg_replace("/[^a-z0-9\'_]+/i",'',$name));
    }
 
-   public function calculateExpansion($s2Min = 0, $s2Max = 0, $seMin = 0, $seMax = 0)
+   public function calculateExpansion($s2Min = -1, $s2Max = -1, $seMin = -1, $seMax = -1)
    {
       $format = '%1.1f-%1.1f';
 
-      if ($s2Min == 0 && $s2Max == 0) { return sprintf($format,$seMin,$seMax); }
+      if ($s2Min == -1 && $s2Max == -1) { return sprintf($format,$seMin,$seMax); }
 
       return sprintf($format,$s2Min,$s2Max);
    }
