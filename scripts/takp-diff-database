@@ -53,7 +53,7 @@ $main->var('rules',[
 ]);
 
 $dbDir     = APP_BASEDIR.'/takp/db';
-$dbFiles   = getDatabaseFiles($dbDir);
+$dbFiles   = getDatabaseFiles($dbDir,'alkabor');
 $processed = [];
 
 $diffAvailable = [$diff];
@@ -1748,23 +1748,24 @@ function findTableDataMatch($tableInfo, $kvPairs, $return = null)
    return $results;
 }
 
-function getDatabaseFiles($dbDir)
+function getDatabaseFiles($dbDir, $prefix = 'quarm')
 {
    $fileList   = [];
    $dbDateDirs = glob($dbDir.'/[0-9]*',GLOB_ONLYDIR);
 
    foreach ($dbDateDirs as $dbDateDir) {
-      $databaseFile = glob($dbDateDir.'/alkabor_*.sql');
+      $databaseFile = glob($dbDateDir."/{$prefix}_*.sql");
       if ($databaseFile) { 
-         $quarmFile = reset($databaseFile);  // should only be one entry in the array, fetch it
+         $dbFile = reset($databaseFile);  // should only be one entry in the array, fetch it
 
-         if (preg_match('/alkabor_(\d+)-(\d+)-(\d+)/',$quarmFile,$match)) {
-            $fileList[sprintf("%04d%02d%02d",$match[1],$match[2],$match[3])] = $quarmFile;
+         if (preg_match("/{$prefix}_(\d+)-(\d+)-(\d+)/",$dbFile,$match)) {
+            $fileList[sprintf("%04d%02d%02d",$match[1],$match[2],$match[3])] = $dbFile;
          }
       }
    }
 
    return $fileList;
 }
+
 
 ?>
