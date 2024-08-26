@@ -222,15 +222,16 @@ class Convert extends LWPLib\Base
    public function convertExpansionName($expansionNumber)
    {
       $expansionList = [
-         '0' => 'Any',
-         '1' => 'Classic',
-         '2' => 'Kunark',
-         '3' => 'Velious',
-         '4' => 'Luclin',
-         '5' => 'Planes',
-         '6' => 'PostPlanes',
-         '7' => 'Disabled',
-         '8' => 'Disabled',
+         '-1' => 'Any',
+         '0'  => 'Classic',
+         '1'  => 'Kunark',
+         '2'  => 'Velious',
+         '3'  => 'Luclin',
+         '4'  => 'Planes',
+         '5'  => 'PostPlanes',
+         '6'  => 'Disabled',
+         '7'  => 'Disabled',
+         '99' => 'Any',
       ];
    
       $minorList = [
@@ -1210,6 +1211,39 @@ class Convert extends LWPLib\Base
       ];
    
       return $spellTargetTypeList[$spellTargetTypeId] ?: null;
+   }
+
+   public function convertSpellType($spellTypeMask)
+   {
+      $types = [];
+
+      $spellTypeList = [
+         '0'  => 'Nuke',
+         '1'  => 'Heal',
+         '2'  => 'Root',
+         '3'  => 'Buff',
+         '4'  => 'Escape',
+         '5'  => 'Pet',
+         '6'  => 'Lifetap',
+         '7'  => 'Snare',
+         '8'  => 'DOT',
+         '9'  => 'Dispel',
+         '10' => 'InCombatBuff',
+         '11' => 'Mez',
+         '12' => 'Charm',
+         '13' => 'Slow',
+         '14' => 'Debuff',
+         '15' => 'Cure',
+         '16' => 'Resurrect',
+      ];
+
+      $bitArray = array_reverse(str_split(base_convert($spellTypeMask,10,2)));
+
+      foreach ($bitArray as $pos => $value) {
+         if ($value) { $types[] = $spellTypeList[$pos]; }
+      }
+   
+      return (($types) ? implode('/',$types) : 'None');
    }
 
    public function convertBlindnessStackingValue($effectValue)
