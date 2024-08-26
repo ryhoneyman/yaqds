@@ -29,7 +29,7 @@ DBDUMPDIR="$BASEDIR/quarm/db"
 VERSIONJSON="$BASEDIR/etc/version.json"
 
 ### Remote latest available downoad, filename, and date
-LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | jq -r '.[length -1].download_url')
+LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | $JQBIN -r '.[length -1].download_url')
 AVAILFILE=$(basename $LATESTAVAIL)
 AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}' | tr -d '-')
 QUARMDBVER=$(echo "$AVAILFILE" | sed -E 's/.*?([[:digit:]]{4})-([[:digit:]]{2})-([[:digit:]]{2})-([[:digit:]]{2})_([[:digit:]]{2}).*/\1\2\3-\4\5/'
