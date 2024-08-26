@@ -26,12 +26,14 @@ if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php'))
 if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
 if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache'));
+$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache','flags:','update'));
 $diff      = $opts['diff'] ?: null;
 $filter    = strtolower($opts['filter']) ?: null;
 $limit     = $opts['limit'] ?: null;
 $force     = isset($opts['force']) ? true : false;
 $skipCache = isset($opts['skipcache']) ? true : false;
+$update    = isset($opts['update']) ? true : false;
+$flags     = readFlags($opts['flags']);
 
 $main->var('maxServerLevel',65);
 $main->var('tableFilter',$filter);
@@ -40,9 +42,92 @@ $main->var('skipCache',$skipCache);
 
 $main->var('lookup',[
    'items' => [
-      'objectKey' => 'Name',
+      'objectKey' => 'Name',  
+   ],
+   'spawn2' => [
+      'tableRefs' => ['spawnentry','npc_types'],
+   ],
+   'spawngroup' => [
+      'tableRefs' => ['spawn2','spawnentry','npc_types'],
+   ],
+   'spawnentry' => [
+      'tableRefs' => ['spawngroup','npc_types'],
+   ],
+   'grid' => [
+      'tableRefs' => ['zone','spawn2','spawnentry','npc_types'],
+   ],
+   'grid_entries' => [
+      'tableRefs' => ['zone'],  
+   ],
+   'lootdrop' => [
+      'tableRefs' => ['lootdrop_entries','items','loottable_entries','npc_types'],
+   ],
+   'lootdrop_entries' => [
+      'tableRefs' => ['items','loottable_entries','npc_types'],
+   ],
+   'loottable' => [
+      'tableRefs' => ['loottable_entries','items','lootdrop_entries','npc_types'],
+   ],
+   'loottable_entries' => [
+      'tableRefs' => ['items','lootdrop_entries','npc_types'],
+   ],
+   'merchantlist' => [
+      'tableRefs' => ['items','spawnentry','npc_types','spawn2'],
+   ],
+   'npc_types' => [
+      'tableRefs' => ['spawnentry','spawn2'],
+   ],
+   'zone_points' => [
+      'tableRefs' => ['zone'],
+   ],
+   'object' => [
+      'tableRefs' => ['items','zone'],
+   ],
+   'traps' => [
+      'tableRefs' => ['spells_new','npc_types'],
+   ],
+   'fishing' => [
+      'tableRefs' => ['items','zone'],
+   ],
+   'tradeskill_recipe_entries' => [
+      'tableRefs' => ['items','tradeskill_recipe'],
+   ],
+   'ground_spawns' => [
+      'tableRefs' => ['items','zone'],
+   ],
+   'graveyard' => [
+      'tableRefs' => ['zone'],
+   ],
+   'faction_list_mod' => [
+      'tableRefs' => ['faction_list'],
+   ],
+   'npc_faction_entries' => [
+      'tableRefs' => ['npc_faction','zone'],
+   ],
+   'blocked_spells' => [
+      'tableRefs' => ['spells_new','zone'],
+   ],
+   'forage' => [
+      'tableRefs' => ['items','zone'],
+   ],
+   'keyring_data' => [
+      'tableRefs' => ['items','zone'],
+   ],
+   'global_loot' => [
+      'tableRefs' => ['npc_types'],
+   ],
+   'starting_items' => [
+      'tableRefs' => ['items'],
+   ],
+   'npc_spells' => [
+      'tableRefs' => ['npc_spells'],
+   ],
+   'npc_spells_entries' => [
+      'tableRefs' => ['npc_spells','spells_new'],
    ],
 ]);
+
+$main->var('rules',processFlags($flags));
 
 $dbDir     = APP_BASEDIR.'/quarm/db';
 $dbFiles   = getDatabaseFiles($dbDir);
@@ -61,15 +146,18 @@ foreach ($diffAvailable as $diffKey) {
    $diffFile  = APP_CONFIGDIR."/database/changes/diffs/diff.$dbOldDate.$dbNewDate.json";
    $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
    
-   if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && !$force)) { continue; }
+   if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && (!$force && !$update))) {
+      if (file_exists($diffFile)) { print "Differential exists, --force or --update not specified, skipping...\n"; }
+      continue; 
+   }
 
    $main->var('oldFile',$dbFiles[$dbOldDate]);
    $main->var('newFile',$dbFiles[$dbNewDate]);
    $main->var('cacheFileBase',APP_VARDIR.sprintf("/cache/diff-database/%s.%s",$dbOldDate,$dbNewDate));
 
    $main->var('data',[
-      'old' => processDatabaseFile($main->var('oldFile')),
-      'new' => processDatabaseFile($main->var('newFile')),
+      'old' => processDatabaseFile($main,$main->var('oldFile')),
+      'new' => processDatabaseFile($main,$main->var('newFile')),
    ]);
    
    $main->var('results',[
@@ -89,10 +177,27 @@ foreach ($diffAvailable as $diffKey) {
    print "--- Processing adds and changes ($diffKey) [$diffFile]\n";
    processChanges($main);
 
-   if (!$filter) {
-      print "--- Writing JSON file ($diffKey) [$diffFile]\n";
-      file_put_contents("compress.zlib://$diffGz",json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
-      file_put_contents($diffFile,json_encode($main->var('results'),JSON_UNESCAPED_SLASHES));
+   if (!$filter || ($update && $filter)) {
+      print "--- Writing JSON file ($diffKey) [$diffFile] ".(($update) ? ' <updating>' : '')."\n";
+
+      if ($update) { 
+         $results    = (file_exists($diffFile)) ? json_decode(file_get_contents($diffFile),true) : [];
+         $newResults = $main->var('results');
+
+         foreach (['removed','changed','added'] as $analysisType) {
+            if (isset($newResults['analysis'][$analysisType][$filter])) { $results['analysis'][$analysisType][$filter] = $newResults['analysis'][$analysisType][$filter]; }
+         }
+
+         if (isset($newResults['modifiedTables'][$filter]))  { $results['modifiedTables'][$filter] = $newResults['modifiedTables'][$filter]; }
+         if (isset($newResults['processedTables'][$filter])) { $results['processedTables'][$filter] = $newResults['processedTables'][$filter]; }
+      }
+      else { $results = $main->var('results'); }
+
+      file_put_contents("compress.zlib://$diffGz",json_encode($results,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+      file_put_contents($diffFile,json_encode($results,JSON_UNESCAPED_SLASHES));
+
+      $fileStats = stat($diffFile);
+      print "--- JSON file size (".sprintf("%1.1fK",$fileStats['size']/1000).")\n";
    }
    else {
       print json_encode($main->var('results'),JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
@@ -117,10 +222,12 @@ foreach ($diffAvailable as $diffKey) {
 
 function processChanges($main)
 {
-   $data      = $main->var('data');
-   $filter    = $main->var('tableFilter');
-   $skipCache = $main->var('skipCache');
-   $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'changes');
+   $data       = $main->var('data');
+   $filter     = $main->var('tableFilter');
+   $skipCache  = $main->var('skipCache');
+   $rules      = $main->var('rules');
+   $lookup     = $main->var('lookup');
+   $cacheFile  = sprintf("%s.%s",$main->var('cacheFileBase'),'changes');
 
    $changes = (!$skipCache && file_exists($cacheFile)) ? json_decode(file_get_contents($cacheFile),true) ?: [] : [];
 
@@ -141,6 +248,11 @@ function processChanges($main)
       $total       = count($newTableInfo['refs']['primary'] ?: []);
       $addsLeft    = $main->var('tableLimit') ?: null;
       $changesLeft = $main->var('tableLimit') ?: null;
+
+      $sourceData = [
+         'added'   => expandTables($main,'new',$lookup[$tableName]['tableRefs'] ?: null),
+         'changed' => expandTables($main,'old',$lookup[$tableName]['tableRefs'] ?: null)
+      ];
 
       printf("  %s%s: %6d ",$tableName,str_repeat('.',$maxLength-strlen($tableName)),$total);
       $oldTableInfo = $data['old'][$tableName];
@@ -164,12 +276,15 @@ function processChanges($main)
    
             if ($newDataJson && $oldDataJson && (is_null($changesLeft) || $changesLeft > 0)) {
                $state = 'changed';
-               $changesLeft--;
+               $changesLeft--;            
 
-               $oldData = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));
-               
-               $changes['analysis'][$state][$tableName][$newRowKey] = provideAnalysis($main,$tableName,$state,$newData,$oldData);
-               $changes['modifiedTables'][$tableName][$state]++;
+               $oldData  = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));             
+               $analysis = provideAnalysis($main,$tableName,$sourceData[$state],$state,$newData,$oldData);
+
+               if ($analysis) {
+                  $changes['analysis'][$state][$tableName][$newRowKey] = $analysis;
+                  $changes['modifiedTables'][$tableName][$state]++;
+               }
             }
             else if (is_null($changesLeft) || $addsLeft > 0) {
                $main->debug->trace(9,"ADDED: $newDataJson");
@@ -177,8 +292,12 @@ function processChanges($main)
                $state = 'added';
                $addsLeft--;
 
-               $changes['analysis'][$state][$tableName][$newRowKey] = provideAnalysis($main,$tableName,$state,$newData);
-               $changes['modifiedTables'][$tableName][$state]++;
+               $analysis = provideAnalysis($main,$tableName,$sourceData[$state],$state,$newData,$oldData);
+
+               if ($analysis) {
+                  $changes['analysis'][$state][$tableName][$newRowKey] = $analysis;
+                  $changes['modifiedTables'][$tableName][$state]++;
+               }
             }
          }
       }
@@ -197,6 +316,7 @@ function processDeletes($main)
    $data      = $main->var('data');
    $filter    = $main->var('tableFilter');
    $skipCache = $main->var('skipCache');
+   $lookup    = $main->var('lookup');
    $cacheFile = sprintf("%s.%s",$main->var('cacheFileBase'),'deletes');
    $state     = 'removed';
 
@@ -218,6 +338,10 @@ function processDeletes($main)
       $count       = 0;
       $total       = count($oldTableInfo['refs']['primary'] ?: []);
       $deletesLeft = $main->var('tableLimit');
+
+      $sourceData = [
+         'removed' => expandTables($main,'old',$lookup[$tableName]['tableRefs'] ?: null),
+      ];
 
       printf("  %s%s: %6d ",$tableName,str_repeat('.',$maxLength-strlen($tableName)),$total);
     
@@ -244,8 +368,12 @@ function processDeletes($main)
 
             $oldData = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));
 
-            $changes['analysis'][$state][$tableName][$oldRowKey] = provideAnalysis($main,$tableName,$state,$oldData);
-            $changes['modifiedTables'][$tableName][$state]++;
+            $analysis = provideAnalysis($main,$tableName,$sourceData['removed'],$state,$oldData,[]);
+
+            if ($analysis) {
+               $changes['analysis'][$state][$tableName][$oldRowKey] = $analysis;
+               $changes['modifiedTables'][$tableName][$state]++;
+            }
          }
       }
       printf(" [%d removed]\n",count($changes['analysis']['removed'][$tableName] ?: []));
@@ -258,108 +386,14 @@ function processDeletes($main)
    if ($changes) { $main->var('results',array_merge_recursive($main->var('results'),$changes)); }
 }
 
-function processDatabaseFile($fileName)
-{
-   $tableOpts = [
-      'eqtime' => [
-         'skip' => true,
-      ],
-      'keyring_data' => [
-         'keys' => ['key_item'],
-      ],
-      'skill_difficulty' => [
-         'keys' => ['skillid'],
-      ],
-   ];
-   
-   $tableName   = null;
-   $tableCreate = false;
-   $tableInfo   = [];
-
-   $data = file_get_contents($fileName);
-
-   print "@@@ Processing $fileName\n";
-
-   foreach (explode("\n",$data) as $line) {
-      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
-         $tableFound = $match[1];
-         
-         if (isset($tableOpts[$tableFound]['skip'])) { continue; }
-         if (isset($tableOpts[$tableFound]['keys'])) { $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; }
-
-         $tableName   = $tableFound;
-         $tableCreate = true;
-         $tableInfo[$tableName]['name']     = $tableName;
-         $tableInfo[$tableName]['exists']   = true;
-         $tableInfo[$tableName]['rowCount'] = 0;
-
-      }
-      else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+/',$line,$match)) {
-         $tableInfo[$tableName]['columns'][] = $match[1];
-      }
-      else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
-         $tableKeys = explode(',',str_replace('`','',$match[1]));
-         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
-         $tableCreate = false;
-      }
-      else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
-         $keyName   = strtolower($match[1]);
-         $tableKeys = explode(',',str_replace('`','',$match[2]));
-         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
-         $tableCreate = false;
-      }
-      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
-         $tableInsert = $match[1];
-         $tableCreate = false;
-
-         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
-
-         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
-         $tableKeys   = $tableInfo[$tableInsert]['keys'];
-
-         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
-
-         $rowList = preg_split('/\)\,\(/',$match[2]);
-
-         foreach ($rowList as $row) {
-            $rowCount   = $tableInfo[$tableName]['rowCount']++;
-            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
-            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
-            //print "PROCESSES: ".json_encode($rowColumns)."\n";
-
-            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
-
-            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
-
-            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
-               $rowKeyList = [];
-
-               foreach ($tableKeyColumns as $tableKeyColumn) {
-                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
-               }
-
-               $rowKey = implode('^',$rowKeyList);
-
-               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
-            }
-         }
-      }
-   }
-
-   return $tableInfo;
-}
-
-function provideAnalysis($main, $tableName, $state, $objectData, $previousData = null)
+function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $previousData = null)
 {
    $conv     = $main->obj('conv');
    $spell    = $main->obj('spell');
-   $data     = $main->var('data');
    $lookup   = $main->var('lookup');
-   $analysis = null;
+   $rules    = $main->var('rules');
 
-   //$state = 'added';
-
-   $sourceData = ($state == 'added') ? $data['new'] : $data['old'];
+   $skipLookup = $rules['skip-lookup-mapping'] ? true : false;
 
    if ($state == 'changed') {
       $diff        = array_diff_assoc($objectData,$previousData);
@@ -367,6 +401,45 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $after       = array_diff_assoc($objectData,$previousData);
       $objectKey   = $lookup[$tableName]['objectKey'] ?: key($objectData);
       $objectValue = $objectData[$objectKey];
+
+      if ($tableName == 'doors') {
+         if (!isset($before['instance_only']) && isset($after['instance_only'])) {
+            unset($after['instance_only']);
+         }
+   
+         if (!isset($after) || empty($after)) { return null; }
+      }
+
+      // PEQ expansion fixes.  All min/max expansion values were changed and this causes every object using them to be changed.
+      if ($rules['ignore-peq-expansion']) {
+         foreach ($after as $afterKey => $afterValue) {
+            if ($before[$afterKey] == $afterValue) { 
+               unset($before[$afterKey]); 
+               unset($after[$afterKey]); 
+            }
+            else {
+               if ($before['min_expansion'] == 0 && $before['max_expansion'] == 0 && $after['min_expansion'] == -1 && $after['max_expansion'] == -1) {
+                  foreach (['min_expansion','max_expansion','content_flags','content_flags_disabled'] as $flag) {
+                     unset($before[$flag]);
+                     unset($after[$flag]);
+                  }
+               }
+               else if ($after['min_expansion'] == -1 && $after['max_expansion'] == -1 && $after['content_flags'] == null && $after['content_flags_disabled'] == null) {
+                  foreach (['min_expansion','max_expansion','content_flags','content_flags_disabled'] as $flag) {
+                     unset($before[$flag]);
+                     unset($after[$flag]);
+                  }
+               }
+               else if (!isset($before['min_expansion']) && !isset($before['max_expansion']) && $after['min_expansion'] == -1 && $after['max_expansion'] == -1) {
+                  foreach (['min_expansion','max_expansion'] as $flag) {
+                     unset($after[$flag]);
+                  }
+               }
+            }
+         }
+      
+         if (!isset($after) || empty($after)) { return null; }
+      }
 
       $analysis = [
          'objectKey'   => $objectKey,
@@ -378,7 +451,6 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
 
       // We will prefix any translations of a key with an underscore in order to retain the original values.
       // It will be up to display engines to pick one or the other (or both) to show.
-
       foreach (['max','min'] as $qualifier) {
          if (isset($after[$qualifier.'_expansion'])) {
             $analysis['before']['_'.$qualifier.'_expansion'] = $conv->convertExpansionName($analysis['before'][$qualifier.'_expansion']);
@@ -420,8 +492,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $enabled         = $objectData['enabled'];
       $minExpansion    = $objectData['min_expansion'];
       $maxExpansion    = $objectData['max_expansion'];
-      $npcIdList       = findTableDataMatchIds($sourceData['spawnentry'],'spawngroupID',$spawnGroupId,'npcID');
-      $npcNameList     = findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
+      $npcIdList       = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['spawngroupID' => $spawnGroupId],'npcID');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
          
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
@@ -455,8 +527,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $npcName = $objectData['name'];
         
       if ($state == 'added' || $state == 'removed') {
-         $spawnGroupIdList = findTableDataMatchIds($sourceData['spawnentry'],'npcID',$npcId,'spawngroupID');
-         $zoneNameList     = findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupIdList,'zone');
+         $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['npcID' => $npcId],'spawngroupID');
+         $zoneNameList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawn2'],['spawngroupID' => $spawnGroupIdList],'zone');
        
          $analysis = [
             'id'               => $npcId,
@@ -560,10 +632,10 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $merchantId       = $objectData['merchantid'];
       $itemId           = $objectData['item'];
       $itemName         = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
-      $npcIdList        = findTableDataMatchIds($sourceData['npc_types'],'merchant_id',$merchantId,'id');
-      $npcNameList      = findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
-      $spawnGroupIdList = findTableDataMatchIds($sourceData['spawnentry'],'npcID',$npcIdList,'spawngroupID');
-      $zoneNameList     = findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupIdList,'zone');
+      $npcIdList        = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['merchant_id' => $merchantId],'id');
+      $npcNameList      = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
+      $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['npcID' => $npcIdList],'spawngroupID');
+      $zoneNameList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawn2'],['spawngroupID' => $spawnGroupIdList],'zone');
          
       if ($state == 'added' || $state == 'removed') {    
          $analysis = [
@@ -606,9 +678,9 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $spawnGroupName = $objectData['name'];
       
       if ($state == 'added' || $state == 'removed') {
-         $npcIdList    = findTableDataMatchIds($sourceData['spawnentry'],'spawngroupID',$spawnGroupId,'npcID');
-         $zoneNameList = findTableDataMatchIds($sourceData['spawn2'],'spawngroupID',$spawnGroupId,'zone');
-         $npcNameList  = findTableDataMatchIds($sourceData['npc_types'],'id',$npcIdList,'name');
+         $npcIdList    = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['spawngroupID' => $spawnGroupId],'npcID');
+         $zoneNameList = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawn2'],['spawngroupID' => $spawnGroupId],'zone');
+         $npcNameList  = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
       
          $analysis = [
             'id'           => $spawnGroupId,
@@ -670,10 +742,10 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
    else if ($tableName == 'lootdrop') {
       $lootdropId      = $objectData['id'];
       $lootdropName    = $objectData['name'];
-      $itemIdList      = findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropId,'item_id');
-      $itemNameList    = findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
-      $loottableIdList = findTableDataMatchIds($sourceData['loottable_entries'],'lootdrop_id',$lootdropId,'loottable_id');
-      $npcNameList     = findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableIdList,'name');
+      $itemIdList      = ($skipLookup) ? [] : findTableDataMatch($sourceData['lootdrop_entries'],['lootdrop_id' => $lootdropId],'item_id');
+      $itemNameList    = ($skipLookup) ? [] : findTableDataMatch($sourceData['items'],['id' => $itemIdList],'Name');
+      $loottableIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['loottable_entries'],['lootdrop_id' => $lootdropId],'loottable_id');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['loottable_id' => $loottableIdList],'name');
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
@@ -691,8 +763,8 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $itemId          = $objectData['item_id'];
       $dropChance      = $objectData['chance'];
       $itemName        = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
-      $loottableIdList = findTableDataMatchIds($sourceData['loottable_entries'],'lootdrop_id',$lootdropId,'loottable_id');
-      $npcNameList     = findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableIdList,'name');
+      $loottableIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['loottable_entries'],['lootdrop_id' => $lootdropId],'loottable_id');
+      $npcNameList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['loottable_id' => $loottableIdList],'name');
 
       if ($state == 'added' || $state == 'removed') { 
          $analysis = [
@@ -713,10 +785,10 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $loottableName  = $objectData['name'];
       $minCash        = $objectData['mincash'];
       $maxCash        = $objectData['maxcash'];
-      $lootdropIdList = findTableDataMatchIds($sourceData['loottable_entries'],'loottable_id',$loottableId,'lootdrop_id');
-      $itemIdList     = findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropIdList,'item_id');
-      $itemNameList   = findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
-      $npcNameList    = findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableId,'name');
+      $lootdropIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['loottable_entries'],['loottable_id' => $loottableId],'lootdrop_id');
+      $itemIdList     = ($skipLookup) ? [] : findTableDataMatch($sourceData['lootdrop_entries'],['lootdrop_id' => $lootdropIdList],'item_id');
+      $itemNameList   = ($skipLookup) ? [] : findTableDataMatch($sourceData['items'],['id' => $itemIdList],'Name');
+      $npcNameList    = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['loottable_id' => $loottableId],'name');
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
@@ -734,11 +806,11 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
    else if ($tableName == 'loottable_entries') {
       $loottableId = $objectData['loottable_id'];
       $lootdropId  = $objectData['lootdrop_id'];
-      $npcNameList = findTableDataMatchIds($sourceData['npc_types'],'loottable_id',$loottableId,'name');
+      $npcNameList = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['loottable_id' => $loottableId],'name');
 
       if ($state == 'added' || $state == 'removed') {
-         $itemIdList   = findTableDataMatchIds($sourceData['lootdrop_entries'],'lootdrop_id',$lootdropId,'item_id');
-         $itemNameList = findTableDataMatchIds($sourceData['items'],'id',$itemIdList,'Name');
+         $itemIdList   = ($skipLookup) ? [] : findTableDataMatch($sourceData['lootdrop_entries'],['lootdrop_id' => $lootdropId],'item_id');
+         $itemNameList = ($skipLookup) ? [] : findTableDataMatch($sourceData['items'],['id' => $itemIdList],'Name');
 
          $analysis = [
             'loottable_id'  => $loottableId,
@@ -1030,9 +1102,9 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       $wanderType       = $objectData['type'];
       $pauseType        = $objectData['type2'];
       $zoneName         = getTableDataByKey($sourceData['zone'],$zoneId,'zoneidnumber','short_name');
-      $spawnGroupIdList = findTableDataMatch($sourceData['spawn2'],['pathgrid' => $gridId, 'zone' => $zoneName],'spawngroupID');
-      $npcIdList        = findTableDataMatch($sourceData['spawnentry'],['spawngroupID' => $spawnGroupIdList],'npcID');
-      $npcNameList      = findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
+      $spawnGroupIdList = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawn2'],['pathgrid' => $gridId, 'zone' => $zoneName],'spawngroupID');
+      $npcIdList        = ($skipLookup) ? [] : findTableDataMatch($sourceData['spawnentry'],['spawngroupID' => $spawnGroupIdList],'npcID');
+      $npcNameList      = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['id' => $npcIdList],'name');
 
       if ($state == 'added' || $state == 'removed') {  
          $analysis = [
@@ -1190,10 +1262,16 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
    }
    else if ($tableName == 'npc_spells') {
       if ($state == 'added' || $state == 'removed') {
-         $id   = $objectData['id'];
-         
+         $npcSpellsId   = $objectData['id'];
+         $npcSpellsName = $objectData['name'];
+         $parentId      = $objectData['parent_list'];
+         $parentName    = getTableDataByKey($sourceData['npc_spells'],$parentId,'primary','name');
+
          $analysis = [
-            'id'    => $id,
+            'id'          => $npcSpellsId,
+            'name'        => $npcSpellsName,
+            'parent_list' => $parentId,
+            'parentName'  => $parentName,
          ];
       }
       else if ($state == 'changed') {
@@ -1201,15 +1279,33 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
       }
    }
    else if ($tableName == 'npc_spells_entries') {
-      $id   = $objectData['id'];
+      $npcSpellsEntryId = $objectData['id'];
+      $npcSpellsId      = $objectData['npc_spells_id'];
+      $spellId          = $objectData['spellid'];
+      $spellType        = $objectData['type'];
+      $recastDelay      = $objectData['recast_delay'];
+      $priority         = $objectData['priority'];
+      $resistAdjust     = $objectData['resist_adjust'];
+      $spellName        = getTableDataByKey($sourceData['spells_new'],$spellId,'primary','name');
+      $npcSpellsName    = getTableDataByKey($sourceData['npc_spells'],$npcSpellsId,'primary','name');
 
       if ($state == 'added' || $state == 'removed') {
          $analysis = [
-            'id'    => $id,
+            'id'            => $npcSpellsEntryId,
+            'npc_spells_id' => $npcSpellsId,
+            'spellid'       => $spellId,
+            'type'          => $spellType,
+            '_type'         => $conv->convertSpellType($spellType),
+            'recast_delay'  => $recastDelay,
+            'priority'      => $priority,
+            'resist_adjust' => $resistAdjust,
+            'spellName'     => $spellName,
+            'npcSpellsName' => $npcSpellsName,
+
          ];
       }
       else if ($state == 'changed') {
-         $analysis['objectInfo'] = $objectData['id'];
+         $analysis['objectInfo'] = sprintf("%s/%s",$npcSpellsName,$spellName);
       }
    }
    else if ($tableName == 'blocked_spells') {
@@ -1405,10 +1501,240 @@ function provideAnalysis($main, $tableName, $state, $objectData, $previousData =
          $analysis['objectInfo'] = $bookName;
       }
    }
+   else if ($tableName == 'content_flags') {
+      $flagId      = $objectData['id'];
+      $flagName    = $objectData['flag_name'];
+      $flagEnabled = $objectData['enabled'];
+      $flagNotes   = $objectData['notes'];
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'        => $flagId,
+            'flag_name' => $flagName,
+            'enabled'   => $flagEnabled,
+            'notes'     => $flagNotes,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $flagsName;
+      }
+   }
+   else if ($tableName == 'global_loot') {
+      $lootId                   = $objectData['id'];
+      $lootTableId              = $objectData['loottable_id'];
+      $manaCost                 = $objectData['enabled'];
+      $lootDescription          = $objectData['description'];
+      $lootContentFlags         = $objectData['content_flags'];
+      $lootContentFlagsDisabled = $objectData['content_flags_disabled'];
+      $npcNameList              = ($skipLookup) ? [] : findTableDataMatch($sourceData['npc_types'],['loottable_id' => $lootTableId],'name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'                     => $lootId,
+            'loottable_id'           => $lootTableId,
+            'description'            => $lootDescription,
+            'enabled'                => $lootEnabled,
+            'content_flags'          => $lootContentFlags,
+            'content_flags_disabled' => $lootContentFlagsDisabled,
+            'npcNameList'            => $npcNameList,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $lootDescription;
+      }
+   }
+   else if ($tableName == 'starting_items') {
+      $startingItemId = $objectData['id'];
+      $raceId         = $objectData['race'];
+      $classId        = $objectData['class'];
+      $deityId        = $objectData['deityid'];
+      $zoneId         = $objectData['zoneid'];
+      $itemId         = $objectData['itemid'];
+      $itemCharges    = $objectData['item_charges'];
+      $slotId         = $objectData['slot'];
+      $itemName       = getTableDataByKey($sourceData['items'],$itemId,'primary','Name');
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'id'           => $startingItemId,
+            'race'         => $raceId,
+            'class'        => $classId,
+            'deityid'      => $deityId,
+            'zoneid'       => $zoneId,
+            'itemid'       => $itemId,
+            'item_charges' => $itemCharges,
+            'slot'         => $slotId,
+            'itemName'     => $itemName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $itemName;
+      }
+   }
 
    if (!$analysis) { print "!!! UNKNOWN DECODE: $tableName/$state, ".(substr(json_encode($objectData),0,1024))."\n"; }
 
+   if ($state == 'added') {
+      $analysis['objectData'] = $objectData;
+   }
+
+   if ($rules['strip-custom-keys']) {
+      if ($state == 'changed') {
+         $before = $analysis['before'] ?: [];
+         $after  = $analysis['after'] ?: [];
+
+         foreach ($before as $beforeKey => $beforeValue) { 
+            if (preg_match('/^_/',$beforeKey)) { unset($analysis['before'][$beforeKey]); }
+         }
+         foreach ($after as $afterKey => $afterValue) { 
+            if (preg_match('/^_/',$afterKey)) { unset($analysis['after'][$afterKey]); }
+         }
+      }
+      else if ($state == 'added' || $state == 'removed') {
+         foreach ($analysis as $analysisKey => $analysisValue) {
+            if (preg_match('/^_/',$analysisKey)) { unset($analysis[$analysisKey]); }
+         }
+      }
+   }
+
+   if ($rules['ignore-updated-field']) {
+      if ($state == 'changed') {
+         $before = $analysis['before'] ?: [];
+         $after  = $analysis['after'] ?: [];
+
+         foreach ($before as $beforeKey => $beforeValue) { 
+            if ($beforeKey == 'updated') { unset($analysis['before'][$beforeKey]); }
+         }
+         foreach ($after as $afterKey => $afterValue) { 
+            if ($afterKey == 'updated') { unset($analysis['after'][$afterKey]); }
+         }
+      }
+   }
+
+   if ($rules['remove-blank-keys']) {
+      foreach ($analysis as $analysisKey => $analysisValue) {
+         if (is_array($analysisValue) && empty($analysisValue)) { unset($analysis[$analysisKey]); }
+      }
+   }
+
+   if ($state == 'changed' && !isset($analysis['after'])) { unset($analysis); }
+
    return $analysis;
+}
+
+function processDatabaseFile($main, $fileName)
+{
+   $tableOpts = [
+      'eqtime' => [
+         'skip' => true,
+      ],
+      'spawn_condition_values' => [
+         'skip' => true,
+      ],
+      'spawn_events' => [
+         'skip' => true,
+      ],
+      'object' => [
+         'skip' => true,
+      ],
+      'keyring_data' => [
+         'keys' => ['key_item'],
+      ],
+      'skill_difficulty' => [
+         'keys' => ['skillid'],
+      ],
+      'saylink' => [
+         'keys' => ['id'],
+      ],
+   ];
+   
+   $tableName   = null;
+   $tableCreate = false;
+   $tableInfo   = [];
+   $export      = $main->var('tableInfo') ?: ['keys' => [], 'columns' => [], 'refs' => []];
+
+   $data = file_get_contents($fileName);
+
+   print "@@@ Processing $fileName\n";
+
+   foreach (explode("\n",$data) as $line) {
+      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
+         $tableFound = $match[1];
+         
+         if (isset($tableOpts[$tableFound]['skip'])) { continue; }
+         if (isset($tableOpts[$tableFound]['keys'])) { 
+            //print "+++ Using static keys for $tableFound (".json_encode($tableOpts[$tableFound]['keys']).")\n";
+            $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; 
+         }
+
+         $tableName   = $tableFound;
+         $tableCreate = true;
+         $tableInfo[$tableName]['name']     = $tableName;
+         $tableInfo[$tableName]['exists']   = true;
+         $tableInfo[$tableName]['rowCount'] = 0;
+
+      }
+      else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+(\w+)/',$line,$match)) {
+         $tableInfo[$tableName]['columns'][] = $match[1];
+         $export['columns'][$tableName][$match[1]] = $match[2];
+      }
+      else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
+         $tableKeys = explode(',',str_replace('`','',$match[1]));
+         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
+         $keyName   = strtolower($match[1]);
+         $tableKeys = explode(',',str_replace('`','',$match[2]));
+         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
+         $tableInsert = $match[1];
+         $tableCreate = false;
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
+         $tableKeys   = $tableInfo[$tableInsert]['keys'];
+
+         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
+
+         if (!isset($export['keys'][$tableInsert])) { 
+            //print "=== Exporting keys for $tableInsert (".json_encode($tableKeys['primary']).")\n";
+            $export['keys'][$tableInsert] = $tableKeys['primary']; 
+         }
+
+         $rowList = preg_split('/\)\,\(/',$match[2]);
+
+         foreach ($rowList as $row) {
+            $rowCount   = $tableInfo[$tableName]['rowCount']++;
+            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
+            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
+            //print "PROCESSES: ".json_encode($rowColumns)."\n";
+
+            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
+
+            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
+
+            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
+               $rowKeyList = [];
+
+               foreach ($tableKeyColumns as $tableKeyColumn) {
+                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
+               }
+
+               $rowKey = implode('^',$rowKeyList);
+
+               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+            }
+         }
+      }
+   }
+
+   $main->var('tableInfo',$export);
+
+   return $tableInfo;
 }
 
 function displayFormattedData($format, $values) 
@@ -1427,6 +1753,11 @@ function getTableDataByKey($tableInfo, $rowKey, $tableKey = 'primary', $attrib =
 {
    global $cache;
 
+   if (!$tableInfo['refs']) { 
+      print "Non-existent reference requested, this is fatal.  Add tableRefs for this table.\n";
+      exit; 
+   }
+
    $tableName = $tableInfo['name'];
    $cacheKey  = md5(json_encode([$tableName,$rowKey,$tableKey,$attrib]));
 
@@ -1435,57 +1766,18 @@ function getTableDataByKey($tableInfo, $rowKey, $tableKey = 'primary', $attrib =
       return $cache[$cacheKey]; 
    }
 
-   $dataRef    = $tableInfo['refs'][$tableKey][$rowKey];
-   $dataJson   = $tableInfo['data'][$dataRef];
-   $dataValues = json_decode($dataJson,true);
-
+   $dataRef = $tableInfo['refs'][$tableKey][$rowKey];
+   $data    = $tableInfo['data'][$dataRef];
+   
    //print "table:$tableName, rowKey:$rowKey, tableKey:$tableKey, attrib:$attrib, dataRef:$dataRef, dataJson:$dataJson\n";
 
-   if (!$dataValues) { return null; }
+   if (!$data) { return null; }
 
-   $data   = array_combine($tableInfo['columns'],$dataValues);
    $return = (is_null($attrib)) ? $data : $data[$attrib];
 
    $cache[$cacheKey] = $return;
 
    return $return;
-}
-
-function findTableDataMatchIds($tableInfo, $key, $values, $return = null)
-{
-   global $cache;
-
-   $tableName = $tableInfo['name'];
-   $cacheKey  = md5(json_encode([$tableName,$key,$values,$return]));
-   $tableData = $tableInfo['data'];
-   $results   = [];
-
-   if ($cache[$cacheKey]) { 
-      //print "CACHE HIT! $tableName/$key/$return\n";
-      return $cache[$cacheKey]; 
-   }
-
-   if (!is_array($values)) { $values = [$values]; }
-
-   if (!$values || !in_array($key,$tableInfo['columns'])) { return $results; }
-
-   foreach ($tableData as $id => $dataJson) {
-      $dataValues = json_decode($dataJson,true);
-
-      if (is_null($dataValues)) { continue; }
-
-      $data = array_combine($tableInfo['columns'],$dataValues);
-
-      foreach ($values as $value) {
-         if ($data[$key] == $value) { 
-            $results[$id] = (is_null($return)) ? $id : $data[$return]; 
-         }
-      }
-   }
-
-   $cache[$cacheKey] = $results;
-
-   return $results;
 }
 
 function findTableDataMatch($tableInfo, $kvPairs, $return = null)
@@ -1504,6 +1796,8 @@ function findTableDataMatch($tableInfo, $kvPairs, $return = null)
 
    if (!is_array($kvPairs)) { return $results; }
 
+   if (!$tableInfo['columns']) { print "$tableName/noColumns\n"; exit; }
+
    $kvKeys    = array_keys($kvPairs);
    $keysValid = (array_intersect($kvKeys,$tableInfo['columns']) == $kvKeys) ? true : false;
 
@@ -1515,13 +1809,7 @@ function findTableDataMatch($tableInfo, $kvPairs, $return = null)
       if (empty($kvList[$key])) { return $results; }  // if we don't have values, there's nothing to match
    }
 
-   foreach ($tableData as $id => $dataJson) {
-      $dataValues = json_decode($dataJson,true);
-
-      if (is_null($dataValues)) { continue; }
-
-      $data = array_combine($tableInfo['columns'],$dataValues);
-
+   foreach ($tableData as $id => $data) {
       $fullMatch = true;
 
       foreach ($kvList as $key => $values) {
@@ -1540,23 +1828,202 @@ function findTableDataMatch($tableInfo, $kvPairs, $return = null)
    return $results;
 }
 
-function getDatabaseFiles($dbDir)
+function expandTables($main, $dataType, $tableRefs)
+{
+   $return = [];
+
+   if (!$tableRefs) { return $return; }
+
+   $data      = $main->var('data');
+   $tableList = $data[$dataType];
+
+   foreach ($tableRefs as $tableName) {
+      if (!isset($tableList[$tableName])) { continue; }
+
+      $tableInfo = $tableList[$tableName];
+
+      $return[$tableName] = [
+         'name'    => $tableInfo['name'],
+         'refs'    => $tableInfo['refs'],
+         'columns' => $tableInfo['columns'],
+      ];
+
+      foreach ($tableInfo['data'] as $id => $dataJson) {
+         $dataValues = json_decode($dataJson,true);
+
+         if (is_null($dataValues)) { continue; }
+
+         $data = array_combine($tableInfo['columns'],$dataValues);
+
+         $return[$tableName]['data'][$id] = $data;
+      }
+   }
+
+   return $return;
+}
+
+function getDatabaseFiles($dbDir, $prefix = 'quarm')
 {
    $fileList   = [];
    $dbDateDirs = glob($dbDir.'/[0-9]*',GLOB_ONLYDIR);
 
    foreach ($dbDateDirs as $dbDateDir) {
-      $databaseFile = glob($dbDateDir.'/quarm_*.sql');
+      $databaseFile = glob($dbDateDir."/{$prefix}_*.sql");
       if ($databaseFile) { 
-         $quarmFile = reset($databaseFile);  // should only be one entry in the array, fetch it
+         $dbFile = reset($databaseFile);  // should only be one entry in the array, fetch it
 
-         if (preg_match('/quarm_(\d+)-(\d+)-(\d+)/',$quarmFile,$match)) {
-            $fileList[sprintf("%04d%02d%02d",$match[1],$match[2],$match[3])] = $quarmFile;
+         if (preg_match("/{$prefix}_(\d+)-(\d+)-(\d+)/",$dbFile,$match)) {
+            $fileList[sprintf("%04d%02d%02d",$match[1],$match[2],$match[3])] = $dbFile;
          }
       }
    }
 
    return $fileList;
 }
+
+function processFlags($flags)
+{
+   $return = [];
+
+   $flagList = [
+      'ignore-peq-expansion' => false,
+      'strip-custom-keys' => false,
+      'skip-lookup-mapping' => false,
+      'remove-blank-keys' => true,
+      'ignore-updated-field' => true,
+   ];
+
+   foreach ($flagList as $flagName => $flagDefault) {
+      $flagValue = (isset($flags[$flagName])) ? ((preg_match('/^(1|true|yes)$/i',$flags[$flagName])) ? true : false) : $flagDefault;
+
+      $return[$flagName] = $flagValue;
+   }
+
+   return $return;
+}
+
+function readFlags($flags)
+{
+   $return = [];
+
+   if (!$flags) { return $return; }
+
+   foreach (explode(',',$flags) as $flagKv) {
+      list($key,$value) = explode('=',$flagKv);
+
+      if (!$key || !$value) { continue; }
+
+      $return[$key] = $value;
+   }
+
+   return $return;
+}
+
+/*
+function processDatabaseDB($main, $dbName)
+{
+   $tableOpts = [
+      'eqtime' => [
+         'skip' => true,
+      ],
+      'keyring_data' => [
+         'keys' => ['key_item'],
+      ],
+      'skill_difficulty' => [
+         'keys' => ['skillid'],
+      ],
+      'saylink' => [
+         'keys' => ['id'],
+      ],
+   ];
+   
+   $tableName   = null;
+   $tableCreate = false;
+   $tableInfo   = [];
+
+   $dbConfigFile = ($main->dbConfigDir ?: __DIR__).'/db.conf'; 
+   $dbConnect    = json_decode(base64_decode(file_get_contents($dbConfigFile)),true);
+
+   if (!$dbConnect) { $main->debug(0,"Couldn't get database configuration for $dbName"); exit; }
+
+   $buildResult = $main->buildClass("db.$dbName",'LWPLib\MySQL',null,'mysql.class.php');
+     
+   if (!$buildResult) { $main->debug(0,"Couldn't load database class for $dbName"); exit; }
+
+   $main->db($dbName)->prepare($dbConnect['hostname'],$dbConnect['username'],$dbConnect['password'],$dbName);
+
+   print "@@@ Processing $dbName\n";
+
+   $data = null;
+
+   foreach (explode("\n",$data) as $line) {
+      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
+         $tableFound = $match[1];
+         
+         if (isset($tableOpts[$tableFound]['skip'])) { continue; }
+         if (isset($tableOpts[$tableFound]['keys'])) { $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; }
+
+         $tableName   = $tableFound;
+         $tableCreate = true;
+         $tableInfo[$tableName]['name']     = $tableName;
+         $tableInfo[$tableName]['exists']   = true;
+         $tableInfo[$tableName]['rowCount'] = 0;
+
+      }
+      else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+/',$line,$match)) {
+         $tableInfo[$tableName]['columns'][] = $match[1];
+      }
+      else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
+         $tableKeys = explode(',',str_replace('`','',$match[1]));
+         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
+         $keyName   = strtolower($match[1]);
+         $tableKeys = explode(',',str_replace('`','',$match[2]));
+         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
+         $tableCreate = false;
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
+         $tableInsert = $match[1];
+         $tableCreate = false;
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
+         $tableKeys   = $tableInfo[$tableInsert]['keys'];
+
+         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
+
+         $rowList = preg_split('/\)\,\(/',$match[2]);
+
+         foreach ($rowList as $row) {
+            $rowCount   = $tableInfo[$tableName]['rowCount']++;
+            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
+            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
+            //print "PROCESSES: ".json_encode($rowColumns)."\n";
+
+            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
+
+            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
+
+            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
+               $rowKeyList = [];
+
+               foreach ($tableKeyColumns as $tableKeyColumn) {
+                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
+               }
+
+               $rowKey = implode('^',$rowKeyList);
+
+               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+            }
+         }
+      }
+   }
+
+   return $tableInfo;
+}
+*/
 
 ?>
