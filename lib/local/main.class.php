@@ -6,16 +6,24 @@ include_once 'common/mainbase.class.php';
 
 class Main extends LWPLib\MainBase
 {
-   public $userId         = null;
-   public $hashTypes      = null;
-   public $currentVersion = '1.4.0';
-   public $quarmDb        = '20240715-0605';
-   public $data           = null;
-   public $map            = null;
+   public $userId       = null;
+   public $hashTypes    = null;
+   public $yaqdsVersion = null;
+   public $quarmDb      = null;
+   public $data         = null;
+   public $map          = null;
 
    public function __construct($options = null)
    {
       parent::__construct($options);
+
+      $versionFile = sprintf("%s/version.json",APP_CONFIGDIR);
+      $versionInfo = [];
+
+      if (file_exists($versionFile)) { $versionInfo = json_decode(file_get_contents($versionFile),true); }
+
+      $this->yaqdsVersion = $versionInfo['yaqds'] ?: 'Unknown';
+      $this->quarmDb      = $versionInfo['quarmDb'] ?: 'Unknown';
    }
 
    public function title($name = null)

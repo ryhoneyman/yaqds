@@ -7,6 +7,16 @@ pushd . &> /dev/null
 
 SCRIPTDIR=${BASH_SOURCE%/*}
 BASEDIR=$(dirname -- $(realpath $SCRIPTDIR))
+JQBIN=$(which jq 2> /dev/null)
+
+if [ -z "$JQBIN" ]; then
+    JQBIN="${HOME}/jq"
+fi
+
+if [ ! -f "$JQBIN" ]; then
+    print "Cannot find jq binary, halting...\n"
+    exit;
+fi
 
 ### Database connect string parameters
 DBHOST='localhost'
@@ -16,11 +26,13 @@ DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | jq -r '.password')
 
 DEPLOYDIR="$BASEDIR/deploy"
 DBDUMPDIR="$BASEDIR/quarm/db"
+VERSIONJSON="$BASEDIR/etc/version.json"
 
 ### Remote latest available downoad, filename, and date
 LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | jq -r '.[length -1].download_url')
 AVAILFILE=$(basename $LATESTAVAIL)
 AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}' | tr -d '-')
+QUARMDBVER=$(echo "$AVAILFILE" | sed -E 's/.*?([[:digit:]]{4})-([[:digit:]]{2})-([[:digit:]]{2})-([[:digit:]]{2})_([[:digit:]]{2}).*/\1\2\3-\4\5/'
 
 ### Local install date
 LATESTINSTALL=$(cat $DBDUMPDIR/latest)
@@ -64,5 +76,8 @@ rm quarm-import.sql
 
 printf "* Storing this version ($AVAILDATE) in $DBDUMPDIR/latest\n"
 echo "$AVAILDATE" > $DBDUMPDIR/latest
+
+printf "* Updating YAQDS version ($QUARMDBVER) in $VERSIONJSON\n"
+echo "$( jq ".quarmDb = \"$QUARMDBVER\"" $VERSIONJSON)" > $VERSIONJSON
 
 popd &> /dev/null
