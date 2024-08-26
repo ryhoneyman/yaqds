@@ -53,7 +53,7 @@ foreach ($npcLootTableList['data'] as $index => $data) {
    ksort($data['zone']);
 
    $zoneList = implode('/',array_keys($data['zone']));
-   $lootExp  = ($data['min_expansion'] != 0 || $data['max_expansion'] != 0) ? sprintf("%1.1f-%1.1f; ",$data['min_expansion'],$data['max_expansion']) : '';
+   $lootExp  = ($data['min_expansion'] != -1 || $data['max_expansion'] != -1) ? sprintf("%1.1f-%1.1f; ",$data['min_expansion'],$data['max_expansion']) : '';
    $npcList[$data['hash']] = sprintf("%s (%s%s)",$data['name'],$lootExp,$zoneList); 
 }
 
@@ -84,6 +84,7 @@ if ($npcHash && $npcLootTableList['lookup'][$npcHash]) {
 
    foreach ($lootTableEntries as $tableId => $entryData) {
       $dropEntries = $main->data->getLootDropEntriesById($entryData['lootdrop_id']);
+
       $lootTables['tableEntries'][$tableId]['dropEntries'] = $dropEntries;
 
       foreach ($dropEntries as $id => $lootEntry) {
@@ -98,8 +99,8 @@ if ($npcHash && $npcLootTableList['lookup'][$npcHash]) {
          //printf("%s drops(%s-%s) allowed(%s-%s) using(%s-%s)\n",
          //       $itemName,$dropMinExpansion,$dropMaxExpansion,$itemMinExpansion,$itemMaxExpansion,$minExpansion,$maxExpansion);
 
-         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['min_expansion'] = $minExpansion;
-         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['max_expansion'] = $maxExpansion;
+         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['min_expansion'] = expansionIcon($main,$minExpansion);
+         $lootTables['tableEntries'][$tableId]['dropEntries'][$id]['max_expansion'] = expansionIcon($main,$maxExpansion);
 
          $itemLookup[$tableId][$itemName] = [
             'min_expansion' => $minExpansion,
@@ -170,8 +171,8 @@ if ($sample) {
          $itemInfo       = $itemLookup[$tableId][$itemName] ?: array();
          $minExpansion   = $itemInfo['min_expansion'];
          $maxExpansion   = $itemInfo['max_expansion'];
-         $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("<b class='text-primary'>expansion(%s-%s)</b>",$minExpansion,$maxExpansion);
-
+         $itemExpansion  = ($minExpansion == -1 && $maxExpansion == -1) ? '' : expansionIcon($main,$minExpansion,$maxExpansion);
+                           
          $lootDisplay .= sprintf("%dx %s %s\n",$itemCount,$itemName,$itemExpansion);
 
          $dropCount++;
@@ -654,19 +655,42 @@ function addLootDrop($main, $counter, $itemName, &$return)
     $return['item'][$itemName]++;
 }
 
+function expansionIcon($main, $minExpansion, $maxExpansion = null)
+{
+   $expansionList  = $main->data->fetch('expansions');
+   $minMajorExp    = floor($minExpansion);
+   $maxMajorExp    = floor($maxExpansion);
+   $return         = '';
+
+   $iconFormat = "<span class='expansion-tag exp-%d'>%s</span> <b class='text-primary'>(%s)</b>";
+
+   if ($minExpansion == $maxExpansion || is_null($maxExpansion)) {
+      $return = sprintf($iconFormat,$minExpansion,ucfirst($expansionList[$minExpansion]['id']),$minExpansion);
+   }
+   else if ($minMajorExp == $maxMajorExp) {
+      $return = sprintf($iconFormat,$minExpansion,ucfirst($expansionList[$minExpansion]['id']),"$minExpansion - $maxExpansion");
+   }
+   else {
+      $return = sprintf("%s - %s",sprintf($iconFormat,$minExpansion,$expansionList[$minExpansion],$minExpansion),
+                               sprintf($iconFormat,$maxExpansion,$expansionList[$maxExpansion],$maxExpansion));
+   }
+
+   return $return;
+}
+
 function validExpansion($currentExpansion, $minExpansion, $maxExpansion)
 {
-   if ($currentExpansion == 0) { return true; }
+   if ($currentExpansion == -1) { return true; }
 
-   return (($minExpansion == 0 || ($currentExpansion >= $minExpansion && $currentExpansion < $maxExpansion)) ? true : false);
+   return (($minExpansion == -1 || ($currentExpansion >= $minExpansion && $currentExpansion < $maxExpansion)) ? true : false);
 }
 
 function calculateExpansion($type, $dropExpansion, $itemExpansion)
 {
-   if ($dropExpansion == 0 && $itemExpansion == 0) { return 0; }
+   if ($dropExpansion == -1 && $itemExpansion == -1) { return -1; }
 
-   if ($dropExpansion == 0) { return $itemExpansion; }
-   if ($itemExpansion == 0) { return $dropExpansion; }
+   if ($dropExpansion == -1) { return $itemExpansion; }
+   if ($itemExpansion == -1) { return $dropExpansion; }
 
    if (preg_match('/^min$/i',$type))      { return max($dropExpansion,$itemExpansion); }
    else if (preg_match('/^max$/i',$type)) { return min($dropExpansion,$itemExpansion); }

@@ -165,6 +165,8 @@ function displayFormattedData($format, $values)
         foreach ($values as $key => $value) { 
             if (isset($values['_'.$key])) { continue; }
 
+            if (is_null($value)) { $value = 'NONE'; }
+
             $replace['{{'.ltrim($key,'_').'}}'] = ((is_array($value)) ? implode('; ',array_filter(array_unique($value))) : ((is_bool($value)) ? json_encode($value) : $value)); 
         }
 

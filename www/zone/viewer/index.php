@@ -26,7 +26,7 @@ print "<style>.vcolumns { column-gap:20px; column-count:5; }</style>\n";
 
 $alte = $main->obj('adminlte');
 
-$currentExpansion = $main->data->forceExpansion() ?: $main->data->currentExpansion();
+$currentExpansion = $main->data->forceExpansion('kunark') ?: $main->data->currentExpansion();
 $expansionList    = $main->data->expansionList();
 
 $zoneData = $main->data->getZones('short_name',array('short_name','long_name','canbind','cancombat','canlevitate','castoutdoor','expansion'));
@@ -35,7 +35,7 @@ $zoneList = array();
 
 foreach ($zoneData as $keyId => $zoneInfo) {
    // Skip all instances and tryout versions, because they are the same zone
-   if (preg_match('/(_tryout|_instanced)$/i',$zoneInfo['short_name'])) { continue; }
+   if (preg_match('/(_tryout|_instanced|_alt)$/i',$zoneInfo['short_name']) || $zoneInfo['expansion'] == -1) { continue; }
 
    $zoneList[sprintf("%02d",$zoneInfo['expansion'])][$zoneInfo['long_name']] = $zoneInfo; 
 }
