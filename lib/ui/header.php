@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="/assets/fa/css/all.min.css">
 <!-- local css -->
 <link rel="stylesheet" href="/assets/css/yaqds.css?t=<?php print $main->now; ?>">
+<link rel="stylesheet" href="/assets/css/expansion.css?t=<?php print $main->now; ?>">
 <!-- overlayScrollbars -->
 <link rel="stylesheet" href="/assets/alte/current/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
 <!-- Toastr -->
