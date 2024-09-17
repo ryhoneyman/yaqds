@@ -29,9 +29,10 @@ $diffValue = $input->get('diff','numeric,dash') ?: null;
 $download  = $input->get('download','alphanumeric') ?: null;
 
 $formats          = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/display.format.json'),true);
-$dbDiffDir        = sprintf("%s/takp/diffs.old",APP_BASEDIR);
-$dbDiffFileFormat = "final.diff.%s.%s.json";
+$dbDiffDir        = sprintf("%s/database/changes/diffs",APP_CONFIGDIR);
+$dbDiffFileFormat = "takp.diff.%s.%s.json";
 $diffValue        = '20240203-20240421';
+$diffValue        = '20240717-20240828';
 
 list($diffOldDate,$diffNewDate) = explode('-',$diffValue);
 
