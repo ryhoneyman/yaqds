@@ -26,14 +26,28 @@ if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php'))
 if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
 if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache','flags:','update'));
-$diff      = $opts['diff'] ?: null;
-$filter    = strtolower($opts['filter']) ?: null;
-$limit     = $opts['limit'] ?: null;
-$force     = isset($opts['force']) ? true : false;
-$skipCache = isset($opts['skipcache']) ? true : false;
-$update    = isset($opts['update']) ? true : false;
-$flags     = readFlags($opts['flags']);
+$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache','flags:','update','type:'));
+$diff      = $opts['diff'] ?: null;                       // Force diff between OLD-NEW
+$filter    = strtolower($opts['filter']) ?: null;         // Filter to specific table only
+$limit     = $opts['limit'] ?: null;                      // Limit processing counts
+$force     = isset($opts['force']) ? true : false;        // Overwrite any existing differentials
+$skipCache = isset($opts['skipcache']) ? true : false;    // Do not use cache
+$update    = isset($opts['update']) ? true : false;       // Update existing differential file
+$flags     = readFlags($opts['flags']);                   // Processing directive flags
+$type      = $opts['type'] ?: 'quarm';                    // Type of database [quarm,takp]
+
+$typeList = [
+   'quarm' => [
+      'prepend' => '',
+      'dbDir' => '/quarm/db',
+      'prefix' => 'quarm',
+   ],
+   'takp' => [
+      'prepend' => 'takp.',
+      'dbDir' => '/takp/db',
+      'prefix' => 'alkabor',
+   ]
+];
 
 $main->var('maxServerLevel',65);
 $main->var('tableFilter',$filter);
@@ -101,8 +115,11 @@ $main->var('lookup',[
    'faction_list_mod' => [
       'tableRefs' => ['faction_list'],
    ],
+   'npc_faction' => [
+      'tableRefs' => ['faction_list'],
+   ],
    'npc_faction_entries' => [
-      'tableRefs' => ['npc_faction','zone'],
+      'tableRefs' => ['npc_faction','faction_list','zone'],
    ],
    'blocked_spells' => [
       'tableRefs' => ['spells_new','zone'],
@@ -129,13 +146,13 @@ $main->var('lookup',[
 
 $main->var('rules',processFlags($flags));
 
-$dbDir     = APP_BASEDIR.'/quarm/db';
-$dbFiles   = getDatabaseFiles($dbDir);
+$prepend   = $typeList[$type]['prepend'];
+$dbFiles   = getDatabaseFiles(APP_BASEDIR.$typeList[$type]['dbDir'],$typeList[$type]['prefix']);
 $processed = [];
 
-$databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
+$databaseInfo  = json_decode(file_get_contents(APP_CONFIGDIR."/database/changes/{$prepend}database.info.json"),true);
 $diffsList     = $databaseInfo['diffs'];
-$diffAvailable = array_merge($diffsList['sequential'],$diffsList['releases']);
+$diffAvailable = array_merge($diffsList['sequential'] ?: [],$diffsList['releases'] ?: []);
 
 // focus run to one diff 
 if ($diff && in_array($diff,$diffAvailable)) { $diffAvailable = [$diff]; }
@@ -143,8 +160,8 @@ if ($diff && in_array($diff,$diffAvailable)) { $diffAvailable = [$diff]; }
 foreach ($diffAvailable as $diffKey) {
    list($dbOldDate,$dbNewDate) = explode('-',$diffKey);
 
-   $diffFile  = APP_CONFIGDIR."/database/changes/diffs/diff.$dbOldDate.$dbNewDate.json";
-   $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/diff.$dbOldDate.$dbNewDate.json.gz";
+   $diffFile  = APP_CONFIGDIR."/database/changes/diffs/{$prepend}diff.$dbOldDate.$dbNewDate.json";
+   $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/{$prepend}diff.$dbOldDate.$dbNewDate.json.gz";
    
    if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && (!$force && !$update))) {
       if (file_exists($diffFile)) { print "Differential exists $dbOldDate/$dbNewDate, --force or --update not specified, skipping...\n"; }
@@ -153,7 +170,7 @@ foreach ($diffAvailable as $diffKey) {
 
    $main->var('oldFile',$dbFiles[$dbOldDate]);
    $main->var('newFile',$dbFiles[$dbNewDate]);
-   $main->var('cacheFileBase',APP_VARDIR.sprintf("/cache/diff-database/%s.%s",$dbOldDate,$dbNewDate));
+   $main->var('cacheFileBase',APP_VARDIR.sprintf("/cache/diff-database/{$prepend}%s.%s",$dbOldDate,$dbNewDate));
 
    $main->var('data',[
       'old' => processDatabaseFile($main,$main->var('oldFile')),
@@ -700,7 +717,7 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
       $npcName      = getTableDataByKey($sourceData['npc_types'],$npcId,'primary','name');
       
       if ($state == 'added' || $state == 'removed') {
-         $spawnGroupName = getTableDataByKey($sourceData['spawnGroup'],$spawnGroupId,'primary','name');
+         $spawnGroupName = getTableDataByKey($sourceData['spawngroup'],$spawnGroupId,'primary','name');
 
          $analysis = [
             'spawngroupID'   => $spawnGroupId,
@@ -1753,13 +1770,14 @@ function getTableDataByKey($tableInfo, $rowKey, $tableKey = 'primary', $attrib =
 {
    global $cache;
 
+   $tableName = $tableInfo['name'];
+
    if (!$tableInfo['refs']) { 
-      print "Non-existent reference requested, this is fatal.  Add tableRefs for this table.\n";
+      print "Non-existent reference requested, this is fatal.  Add tableRefs for this table: $tableName\n";
       exit; 
    }
 
-   $tableName = $tableInfo['name'];
-   $cacheKey  = md5(json_encode([$tableName,$rowKey,$tableKey,$attrib]));
+   $cacheKey = md5(json_encode([$tableName,$rowKey,$tableKey,$attrib]));
 
    if ($cache[$cacheKey]) { 
       //print "CACHE HIT! $tableName/$rowKey/$tableKey/$attrib\n";
