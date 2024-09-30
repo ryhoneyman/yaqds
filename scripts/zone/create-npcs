@@ -1,0 +1,495 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main([
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+]);
+
+if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
+if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
+
+$conv   = $main->obj('conv');
+$spell  = $main->obj('spell');
+$format = $main->obj('format');
+
+$main->var('zoneId',6100);
+$main->var('zoneName','injustice');
+
+$main->var('npcSpawnList',json_decode(file_get_contents('./conf/create-npcs.spawns.json'),true));
+$main->var('zoneList',json_decode(file_get_contents('./conf/create-npcs.zone.json'),true));
+$main->var('baseConfig',json_decode(file_get_contents('./conf/create-npcs.config.json'),true));
+
+main($main);
+
+?>
+<?php
+
+function main($main) 
+{
+   $zoneId       = $main->var('zoneId');
+   $zoneName     = $main->var('zoneName');
+   $mainId       = $zoneId * 1000;
+   $mainMaxId    = $mainId + 1000;
+   $npcSpawnList = ($main->var('npcSpawnList'))['spawns'];
+   $lootList     = ($main->var('npcSpawnList'))['loot'];
+   $areaList     = ($main->var('zoneList'))['areas'];
+   $gridList     = ($main->var('zoneList'))['grids'];
+   $lookup       = [];
+
+   if ($mainId < 6100000) { exit; }
+
+   print "DELETE FROM npc_types WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM spawngroup WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM spawnentry WHERE spawngroupID > $mainId and spawngroupID < $mainMaxId;\n".
+         "DELETE FROM spawn2 WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM grid_entries WHERE gridid > $mainId and gridid < $mainMaxId;\n".
+         "DELETE FROM grid WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM lootdrop WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM loottable WHERE id > $mainId and id < $mainMaxId;\n".
+         "DELETE FROM lootdrop_entries WHERE lootdrop_id > $mainId and lootdrop_id < $mainMaxId;\n".
+         "DELETE FROM loottable_entries WHERE loottable_id > $mainId and loottable_id < $mainMaxId;\n".
+         "\n\n";
+
+
+   // GRIDS
+   $gridCount = 1;
+   foreach ($gridList as $gridName => $gridInfo) {
+      $gridId = $mainId + $gridCount;
+
+      $gridList[$gridName]['id'] = $gridId;
+
+      $mainGrid = array_merge($gridInfo['entry'] ?: [],['id' => $gridId, 'zoneid' => $zoneId]);
+
+      $sql = createGrid($main,$mainGrid);
+
+      if ($sql === false) { $main->debug->trace(9,"Problem creating grid $gridName"); break; }
+
+      print "$sql;\n";
+
+      $gridNumber = 1;
+      foreach ($gridInfo['entries'] as $gridEntryData) {
+         $gridEntry = [
+            'gridid' => $gridId,
+            'zoneid' => $zoneId,
+            'number' => $gridNumber,
+            'x' => $gridEntryData[0],
+            'y' => $gridEntryData[1],
+            'z' => $gridEntryData[2],
+            'heading' => $gridEntryData[3],
+            'pause' => $gridEntryData[4],
+            'centerpoint' => $gridEntryData[5],
+         ];
+
+         $lookup['grid']['by-name'][$gridName]['entries'][] = $gridEntry;
+
+         $sql = createGridEntry($main,$gridEntry);
+
+         if ($sql === false) { $main->debug->trace(9,"Problem creating grid entry $gridName/$gridNumber"); break; }
+
+         print "$sql;\n";
+
+         $gridNumber++;
+      }
+
+      $gridCount++;
+   }
+
+   // LOOT
+   foreach ($lootList['lootdrop'] as $id => $lootdropInfo) {
+      list($lootdropName) = $lootdropInfo['data'];
+      $lootdropEntries    = $lootdropInfo['entries'];
+
+      $lootdropId = $mainId + $id;
+
+      $lootdropData = [
+         'id' => $lootdropId,
+         'name' => $lootdropName,
+      ];
+
+      $sql = createLootdrop($main,$lootdropData);
+
+      if ($sql === false) { $main->debug->trace(9,"Problem creating lootdrop $lootdropId ($lootdropName)"); break; }
+
+      print "$sql;\n";
+
+      foreach ($lootdropEntries as $lootdropEntry) {
+         list($itemId,$itemCharges,$equipItem,$chance,$minLevel,$maxLevel,$multiplier,$disabledChance,$minLooterLevel,$itemLootLockoutTimer) = $lootdropEntry;
+         
+         $lootdropEntryData = [
+            'lootdrop_id' => $lootdropId,
+            'item_id' => $itemId,
+            'item_charges' => $itemCharges,
+            'equip_item' => $equipItem,
+            'chance' => $chance,
+            'minlevel' => $minLevel,
+            'maxlevel' => $maxLevel,
+            'multiplier' => $multiplier,
+            'disabled_chance' => $disabledChance,
+            'min_looter_level' => $minLooterLevel,
+            'item_loot_lockout_timer' => $itemLootLockoutTimer,
+         ];
+
+         $sql = createLootdropEntries($main,$lootdropEntryData);
+
+         if ($sql === false) { $main->debug->trace(9,"Problem creating lootdrop_entries $lootdropId ($itemId)"); break; }
+
+         print "$sql;\n";
+      }
+   }
+
+   foreach ($lootList['loottable'] as $ltId => $loottableInfo) {
+      list($loottableName,$minCash,$maxCash,$avgCoin) = $loottableInfo['data'];
+      $loottableEntries    = $loottableInfo['entries'];
+
+      $loottableId = $mainId + $ltId;
+
+      $loottableData = [
+         'id' => $loottableId,
+         'name' => $loottableName,
+         'mincash' => $minCash,
+         'maxcash' => $maxCash,
+         'avgcoin' => $avgCoin,
+      ];
+
+      $sql = createLoottable($main,$loottableData);
+
+      if ($sql === false) { $main->debug->trace(9,"Problem creating loottable $loottableId ($loottableName)"); break; }
+
+      print "$sql;\n";
+
+      foreach ($loottableEntries as $ldId => $loottableEntry) {
+         list($multiplier,$probability,$dropLimit,$minDrop,$multiplierMin) = $loottableEntry;
+
+         $lootdropId = $mainId + $ldId;
+         
+         $loottableEntryData = [
+            'loottable_id' => $loottableId,
+            'lootdrop_id' => $lootdropId,
+            'multiplier' => $multiplier,
+            'probability' => $probability,
+            'droplimit' => $dropLimit,
+            'mindrop' => $minDrop,
+            'multiplier_min' => $multiplierMin,
+         ];
+
+         $sql = createLoottableEntries($main,$loottableEntryData);
+
+         if ($sql === false) { $main->debug->trace(9,"Problem creating loottable_entries $loottableId ($lootdropId)"); break; }
+
+         print "$sql;\n";
+      }
+   }
+
+   // NPCS
+   foreach ($npcSpawnList as $groupId => $groupInfo) {
+      $label       = $groupInfo['section-label'];
+      $baseAttribs = $groupInfo['base-attribs'];
+      $idOffset    = $groupInfo['id-offset'];
+      $forceId     = $groupInfo['force-id'];
+      $npcInfo     = $groupInfo['npc'];
+      $baseId      = $mainId + $idOffset;
+      $sgList      = [];
+
+      $s2Count  = 1;
+      $sgCount  = 1;
+      $npcCount = 1;
+
+      foreach (['static','roamer'] as $mobType) {
+         if ($npcInfo[$mobType]) {
+            $sgList[$mobType] = [
+               'name' => $npcInfo[$mobType]['spawngroup-name'],
+               'delay' => 0,
+               'mindelay' => 15000,
+               'despawn_timer' => 0,
+               'wp_spawns' => ($mobType == 'static' || !$npcInfo[$mobType]['wp-spawn']) ? 0 : 1,
+            ];
+         }
+      }
+
+      foreach ($sgList as $sgType => $sgEntry) {
+         $seList = [];
+         $sgId   = $baseId + ($forceId ?: $sgCount);
+         $sgName = $sgEntry['name'];
+
+         $sgEntry['id'] = $sgId;
+
+         $sql = createSpawnGroup($main,$sgEntry);
+
+         if ($sql === false) { $main->debug->trace(9,"Problem creating spawngroup $sgId ($sgName)"); break; }
+
+         print "$sql;\n";
+
+         $sgCount++;
+
+         $npcTypeInfo = $npcInfo[$sgType];
+
+         foreach ($npcTypeInfo['list'] as $npcEntry) {
+            $npcBaseEntry = $baseAttribs;
+            $npcId        = $baseId + ($forceId ?: $npcCount);
+            $npcName      = ($npcEntry['name-label']) ? sprintf("%s_%s_%s",'a',$label,$npcEntry['name-label']) : null;
+
+            $npcBaseEntry['id']   = $npcId;
+            $npcBaseEntry['name'] = $npcName;
+            
+            $npcAttribs = array_merge($npcBaseEntry,$npcEntry['attribs']);
+
+            if ($npcAttribs['loottable_id']) { $npcAttribs['loottable_id'] += $baseId; }
+
+            $sql = createNpc($main,$npcAttribs);
+
+            if ($sql === false) { $main->debug->trace(9,"Problem creating npc_types $npcId ($npcName)"); break 2; }
+
+            print "$sql;\n";
+
+            $seList[] = ['spawngroupID' => $sgId, 'npcID' => $npcId, 'chance' => $npcEntry['spawn-chance']];
+
+            $npcCount++;
+         }
+
+         foreach ($seList as $seEntry) {
+            $sql = createSpawnEntry($main,$seEntry);
+
+            if ($sql === false) { $main->debug->trace(9,"Problem creating spawnentry ".$seEntry['spawngroupID']." ".$seEntry['npcID']); break 2; }
+
+            print "$sql;\n";
+         }
+
+         foreach ($areaList as $areaName => $areaInfo) {
+            if (preg_match('/^#/',$areaName)) { continue; }
+
+            $areaSpawnGroup  = $areaInfo['spawngroup'];
+            $areaGrid        = $areaInfo['grid'];
+            $startGridNumber = $areaInfo['start-gridnumber'];
+
+            if ($sgName != $areaSpawnGroup) { continue; }
+
+            print "-- Creating area $areaName spawns spawngroup($areaSpawnGroup) grid($areaGrid)\n";
+
+            $startGridEntry = ($startGridNumber > 0) ? $startGridNumber : 1;
+            $firstGridEntry = ($areaGrid) ? ($lookup['grid']['by-name'][$areaGrid]['entries'][$startGridEntry] ?: []) : [];
+
+            $baseEntry = [
+               'spawngroupID' => $sgId,
+               'zone'         => $zoneName,
+               'pathgrid'     => ($areaGrid) ? ($gridList[$areaGrid]['id'] ?: 0) : 0,
+               'x'            => (isset($firstGridEntry['x'])) ? $firstGridEntry['x'] : 0,
+               'y'            => (isset($firstGridEntry['y'])) ? $firstGridEntry['y'] : 0,
+               'z'            => (isset($firstGridEntry['z'])) ? $firstGridEntry['z'] : 0,
+               'heading'      => (isset($firstGridEntry['heading'])) ? $firstGridEntry['heading'] : 0,
+            ];
+
+            $spawnList = [];
+
+            if ($areaInfo['layout'] == 'single') {
+               $spawnList[] = calculateSingleSpawn($main,$areaInfo['entry'],$baseEntry);
+               //var_dump($spawnList);
+               //if ($areaName == "L50_Entrance_Back_Static_East") { var_dump($spawnList); exit; }
+            } 
+            else if ($areaInfo['layout'] == 'group') {
+               $groupMembers = $areaInfo['group'] ?: [];
+               foreach ($groupMembers as $member) {
+                  $spawnList[] = calculateSingleSpawn($main,array_merge($member,$areaInfo['entry']),$baseEntry);
+               }
+            }
+            else if ($areaInfo['layout'] == 'rect') {
+               $spawnList = calculateRectRoomSpawns($main,$areaInfo,$baseEntry);
+            }
+
+            foreach ($spawnList as $spawnKey => $spawnEntry) {
+               $spawnEntry['id'] = $baseId + ($forceId ?: $s2Count);
+
+               //var_dump($spawnEntry);
+
+               $sql = createSpawn($main,$spawnEntry);
+
+               if ($sql === false) { $main->debug->trace(9,"Problem creating spawn2 ".$spawnEntry['spawngroupID']); break 2; }
+
+               print "$sql;\n";
+
+               $s2Count++;
+            }
+         }
+               
+         print "\n\n";
+      }   
+   }
+}
+
+function calculateSingleSpawn($main, $areaEntry, $baseEntry = null)
+{
+   $entry = array_merge($baseEntry ?: [],$areaEntry ?: []);
+
+   return $entry;
+}
+
+function calculateRectRoomSpawns($main, $areaInfo, $baseEntry = null)
+{
+   $entry       = array_merge($baseEntry ?: [],$areaInfo['entry'] ?: []);
+   $headingList = ($main->var('baseConfig'))['heading'];
+   $offset      = $areaInfo['offset'] ?: 0;
+
+   $corners = [
+      'NW' => array_merge($entry,['x' => $areaInfo['x1'] - $offset, 'y' => $areaInfo['y1'] - $offset, 'z' => $areaInfo['z'], 'heading' => $headingList['SE']]),
+      'NE' => array_merge($entry,['x' => $areaInfo['x2'] + $offset, 'y' => $areaInfo['y1'] - $offset, 'z' => $areaInfo['z'], 'heading' => $headingList['SW']]),
+      'SE' => array_merge($entry,['x' => $areaInfo['x2'] + $offset, 'y' => $areaInfo['y2'] + $offset, 'z' => $areaInfo['z'], 'heading' => $headingList['NW']]),
+      'SW' => array_merge($entry,['x' => $areaInfo['x1'] - $offset, 'y' => $areaInfo['y2'] + $offset, 'z' => $areaInfo['z'], 'heading' => $headingList['NE']]),
+   ];
+
+   return array_intersect_key($corners,array_flip($areaInfo['rect-spawn-points']));
+}
+
+function createGrid($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING grid id(%d)",$attribs['id']));
+
+   return createObject($main,$attribs,'insert.grid');
+}
+
+function createGridEntry($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING grid entry id(%d) number(%d)",$attribs['gridid'],$attribs['number']));
+
+   return createObject($main,$attribs,'insert.grid_entries');
+}
+
+function createSpawn($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING spawn2 id(%d) spawngroupID(%s)",$attribs['id'],$attribs['spawngroupID']));
+
+   return createObject($main,$attribs,'insert.spawn2');
+}
+
+function createSpawnEntry($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING spawnentry spawngroupID(%d) npcID(%s)",$attribs['spawngroupID'],$attribs['npcID']));
+
+   return createObject($main,$attribs,'insert.spawnentry');
+}
+
+function createSpawnGroup($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING spawngroup id(%d) name(%s)",$attribs['id'],$attribs['name']));
+
+   return createObject($main,$attribs,'insert.spawngroup');
+}
+
+function createNpc($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING npc_types id(%d) name(%s)",$attribs['id'],$attribs['name']));
+
+   return createObject($main,$attribs,'insert.npc_types');
+}
+
+function createLootdrop($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING lootdrop id(%d) name(%s)",$attribs['id'],$attribs['name']));
+
+   return createObject($main,$attribs,'insert.lootdrop');
+}
+
+function createLoottable($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING loottable id(%d) name(%s)",$attribs['id'],$attribs['name']));
+
+   return createObject($main,$attribs,'insert.loottable');
+}
+
+function createLootdropEntries($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING lootdrop_entries lootdrop(%d) item(%s)",$attribs['lootdrop_id'],$attribs['item_id']));
+
+   return createObject($main,$attribs,'insert.lootdrop_entries');
+}
+
+function createLoottableEntries($main, $attribs)
+{
+   $main->debug->trace(9,sprintf("CREATING loottable_entries loottable(%d) lootdrop(%s)",$attribs['loottable_id'],$attribs['lootdrop_id']));
+
+   return createObject($main,$attribs,'insert.loottable_entries');
+}
+
+function createObject($main, $attribs, $sqlType)
+{
+   $sqlList       = ($main->var('baseConfig'))['sql'];
+   $sqlInfo       = $sqlList[$sqlType];
+   $type          = $sqlInfo['type'];
+   $tableName     = $sqlInfo['table'];
+   $statement     = $sqlInfo['statement'];
+   $columns       = array_keys($sqlInfo['columns']);
+   $typeList      = array_column($sqlInfo['columns'],'type');
+   $defaultList   = array_column($sqlInfo['columns'],'default');
+   $defaults      = array_combine($columns,$defaultList);
+   $columnCount   = count($columns);
+   $typesString   = implode(',',$typeList);
+   $paramString   = implode(',',str_split(str_repeat('?',$columnCount)));
+   $columnString  = implode(',',array_map(function($value) { return sprintf('`%s`',$value); }, $columns));
+
+   if (!$statement) {
+      switch ($type) {
+         case 'insert': $statement = "INSERT INTO [[table]] ([[columns]]) VALUES ([[params]])"; break;
+         default;
+      };
+   }
+
+   $replaceValues = [
+      '[[table]]'   => $tableName,
+      '[[columns]]' => $columnString,
+      '[[params]]'  => $paramString,
+   ];
+
+   $statement = str_replace(array_keys($replaceValues),array_values($replaceValues),$statement);
+   $columnMap = array_flip($columns);
+   $data      = array_intersect_key(array_merge($defaults,$attribs),$columnMap);
+
+   // Sort the data in the column order
+   uksort($data, function($key1,$key2) use ($columnMap) {
+      return $columnMap[$key1] <=> $columnMap[$key2];
+   });
+   
+   return createQuery($main,$statement,$typesString,$data);  
+}
+
+function createQuery($main, $statement, $types, $dataList)
+{
+   $typeList      = explode(',',$types);
+   $questionCount = substr_count($statement,'?');
+   $typeCount     = count($typeList);
+   $dataCount     = count($dataList);
+
+   if ($questionCount != $typeCount || $questionCount != $dataCount) { 
+      $main->debug->trace(0,"Statement($questionCount)/types($typeCount)/data($dataCount) counts don't match for $statement, $types, ".json_encode($dataList)); 
+      return false; 
+   }
+
+   $result = preg_replace_callback('/\?/',function() use (&$typeList, &$dataList, $main) {
+      $thisType  = array_shift($typeList);
+      $thisValue = array_shift($dataList);
+
+      switch ($thisType) {
+         case 'i': $thisType = 'd'; break;
+         case 'd': $thisType = '0.2f'; break;
+         default;
+      };
+
+      return (preg_match('/^(?:[\d\.]+)?(?:d|f)$/i',$thisType)) ? sprintf("%{$thisType}",$thisValue) : sprintf("'%s'",$main->db()->escapeString($thisValue));
+   }, $statement);
+
+   return $result;
+}
+
+?>

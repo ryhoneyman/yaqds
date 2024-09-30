@@ -1,0 +1,124 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main([
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+]);
+
+if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
+if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
+
+$conv   = $main->obj('conv');
+$spell  = $main->obj('spell');
+$format = $main->obj('format');
+
+$main->var('zoneId',6100);
+$main->var('zoneName','injustice');
+
+$main->var('npcList',explode("\n",file_get_contents('./conf/npc.list')));
+$main->var('spawnList',explode("\n",file_get_contents('./conf/spawn2.list')));
+
+$npcList   = $main->var('npcList');
+$spawnList = $main->var('spawnList');
+
+
+createSpawn2($spawnList);
+//createNpcs($npcList);
+
+
+
+
+
+function createSpawn2($spawnList)
+{
+    $headers = explode(";",array_shift($spawnList));
+
+    $required = ["x","y","z","heading","respawntime","animation"];
+
+    $spawnCount = 1;
+
+    foreach ($spawnList as $spawnEntry) {
+        if (!$spawnEntry) { continue; }
+        $values = explode(";",$spawnEntry);
+        $npcMap = array_combine($headers,$values);
+        $slimMap = array_intersect_key($npcMap,array_flip($required));
+
+        $npcName = $npcMap['name'];
+
+        $slimMap['x'] = sprintf("%0.2f",$slimMap['x']);
+        $slimMap['y'] = sprintf("%0.2f",$slimMap['y']);
+        $slimMap['z'] = sprintf("%0.2f",$slimMap['z']);
+        $slimMap['heading'] = sprintf("%d",$slimMap['heading']);
+
+        $fullList["Entrance_$npcName"] = [
+            "layout" => "single",
+            "spawngroup" => "Entrance_$npcName",
+            "grid" => null,
+            "entry" => $slimMap,
+        ];
+
+        $spawnCount++;
+    }
+
+    print json_encode($fullList,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+}
+
+function createNpcs($npcList)
+{
+    $headers = explode(";",array_shift($npcList));
+
+    $required = ["name","level","race","class","bodytype","hp","gender","texture","helmtexture","size","face","armortint_id","armortint_red","armortint_green","armortint_blue",
+                "d_melee_texture1","d_melee_texture2","chesttexture","armtexture","bracertexture","handtexture","legtexture","feettexture","light"];
+
+    $npcCount = 1;
+
+    foreach ($npcList as $npcEntry) {
+        if (!$npcEntry) { continue; }
+        $values = explode(";",$npcEntry);
+        $npcMap = array_combine($headers,$values);
+        $slimMap = array_intersect_key($npcMap,array_flip($required));
+
+        $slimMap['hp'] = 32000;
+        $slimMap['special_abilities'] = "19,1^20,1^24,1^35,1";
+
+        $npcName = $slimMap['name'];
+
+        $fullList["Entrance_$npcName"] = [
+            "id-offset" => 800,
+            "force-id" => $npcCount,
+            "npc" => [
+                "static" => [
+                    "spawngroup-name" => $npcName,
+                    "list" => [
+                        [
+                            "spawn-chance" => 100,
+                            "attribs" => $slimMap, 
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $npcCount++;
+    }
+
+    print json_encode($fullList,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+}
+
+
+?>
