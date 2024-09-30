@@ -1,0 +1,89 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main([
+   'debugLevel'     => 8,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+]);
+
+if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
+if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
+if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
+
+$conv   = $main->obj('conv');
+$spell  = $main->obj('spell');
+$format = $main->obj('format');
+
+$zoneName = 'injustice';
+$roomData = [];
+$roomRaw  = file_get_contents('./conf/room.data.txt');
+
+$roomAreas = [
+   "L20_static_$zoneName" => array_merge(range(1,16)),
+   "L30_static_$zoneName" => array_merge(range(17,22),range(39,44)),
+   "L40_static_$zoneName" => array_merge(range(23,38)),
+   "L50_static_$zoneName" => array_merge(range(45,69)),
+];
+
+$zCoords = [
+   '-5'  => array_merge(range(1,16),range(17,22),range(39,44)),
+   '-30' => array_merge(range(23,29),range(34,38),range(45,49),range(54,69)),
+   '-55' => array_merge(range(30,33),range(50,53)),
+];
+
+$headings = [
+   'NW',
+   'NE',
+   'SE',
+   'SW',
+];
+
+foreach (explode("\n",$roomRaw) as $line) {
+   list($roomNum,$doorDir,$hingeDir,$x1,$y1,$x2,$y2) = explode("\t",$line);
+
+   array_walk($roomAreas, function ($values, $key) use ($roomNum, &$spawngroup) {
+      if (in_array($roomNum,$values)) { 
+          $spawngroup = $key; 
+          return; 
+      }
+   });
+
+   array_walk($zCoords, function ($values, $key) use ($roomNum, &$z) {
+      if (in_array($roomNum,$values)) { 
+          $z = $key; 
+          return; 
+      }
+   });
+
+   $doorHeading = (preg_match('/^[ns]$/i',$doorDir)) ? $doorDir.$hingeDir : $hingeDir.$doorDir;
+   $spawnPoints = array_diff($headings,[$doorHeading]);
+
+   $roomData['areas'][sprintf("Cell_%02d",$roomNum)] = [
+      'layout' => 'rect',
+      'spawngroup' => $spawngroup,
+      'x1' => (int)$x1,
+      'y1' => (int)$y1,
+      'x2' => (int)$x2,
+      'y2' => (int)$y2,
+      'z' => (int)$z,
+      'rect-spawn-points' => array_values($spawnPoints),
+      'offset' => 5,
+   ];
+}
+
+print json_encode($roomData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+
+?>

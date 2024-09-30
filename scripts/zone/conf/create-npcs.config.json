@@ -1,0 +1,184 @@
+{
+    "heading": {
+        "NE": 224,
+        "SE": 160,
+        "NW": 32,
+        "SW": 96,
+        "S": 128,
+        "N": 0,
+        "W": 64,
+        "E": 192
+    },
+    "sql": {
+        "insert.npc_types": {
+            "type": "insert",
+            "table": "npc_types",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "name": {"type": "s", "default": ""},
+                "level": {"type": "i", "default": 0},
+                "race": {"type": "i", "default": 0},
+                "class": {"type": "i", "default": 0},
+                "bodytype": {"type": "i", "default": 1},
+                "hp": {"type": "i", "default": 0},
+                "mana": {"type": "i", "default": 0},
+                "gender": {"type": "i", "default": 0},
+                "texture": {"type": "i", "default": 0},
+                "size": {"type": "i", "default": 0},
+                "hp_regen_rate": {"type": "i", "default": 0},
+                "mana_regen_rate": {"type": "i", "default": 0},
+                "loottable_id": {"type": "i", "default": 0},
+                "npc_spells_id": {"type": "i", "default": 0},
+                "npc_faction_id": {"type": "i", "default": 0},
+                "mindmg": {"type": "i", "default": 0},
+                "maxdmg": {"type": "i", "default": 0},
+                "special_abilities": {"type": "s", "default": ""},
+                "aggroradius": {"type": "i", "default": 0},
+                "assistradius": {"type": "i", "default": 0},
+                "maxlevel": {"type": "i", "default": 0},
+                "runspeed": {"type": "d", "default": 0.00},
+                "walkspeed": {"type": "d", "default": 0.00},
+                "npc_aggro": {"type": "i", "default": 0},
+                "MR": {"type": "i", "default": 0},
+                "CR": {"type": "i", "default": 0},
+                "DR": {"type": "i", "default": 0},
+                "FR": {"type": "i", "default": 0},
+                "PR": {"type": "i", "default": 0},
+                "STR": {"type": "i", "default": 0},
+                "STA": {"type": "i", "default": 0},
+                "DEX": {"type": "i", "default": 0},
+                "AGI": {"type": "i", "default": 0},
+                "WIS": {"type": "i", "default": 0},
+                "_INT": {"type": "i", "default": 0},
+                "CHA": {"type": "i", "default": 0},
+                "armortint_id": {"type": "i", "default": 0},
+                "armortint_red": {"type": "i", "default": 0},
+                "armortint_green": {"type": "i", "default": 0},
+                "armortint_blue": {"type": "i", "default": 0},
+                "helmtexture": {"type": "i", "default": 0},
+                "chesttexture": {"type": "i", "default": 0},
+                "armtexture": {"type": "i", "default": 0},
+                "bracertexture": {"type": "i", "default": 0},
+                "handtexture": {"type": "i", "default": 0},
+                "legtexture": {"type": "i", "default": 0},
+                "feettexture": {"type": "i", "default": 0},
+                "light": {"type": "i", "default": 0},
+                "d_melee_texture1": {"type": "i", "default": 0},
+                "d_melee_texture2": {"type": "i", "default": 0},
+                "unique_spawn_by_name": {"type": "i", "default": 0}
+            }
+        },
+        "insert.spawnentry": {
+            "type": "insert",
+            "table": "spawnentry",
+            "columns": {
+                "spawngroupID": {"type": "i", "default": null},
+                "npcID": {"type": "i", "default": null},
+                "chance": {"type": "i", "default": 100}
+            }
+        },
+        "insert.spawngroup": {
+            "type": "insert",
+            "table": "spawngroup",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "name": {"type": "s", "default": ""},
+                "delay": {"type": "i", "default": 0},
+                "mindelay": {"type": "i", "default": 0},
+                "despawn_timer": {"type": "i", "default": 0},
+                "wp_spawns": {"type": "i", "default": 0}
+            }
+        },
+        "insert.spawn2": {
+            "type": "insert",
+            "table": "spawn2",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "spawngroupID": {"type": "i", "default": null},
+                "zone": {"type": "s", "default": ""},
+                "x": {"type": "i", "default": 0},
+                "y": {"type": "i", "default": 0},
+                "z": {"type": "i", "default": 0},
+                "heading": {"type": "i", "default": 0},
+                "animation": {"type": "i", "default": 0},
+                "respawntime": {"type": "i", "default": 0},
+                "pathgrid": {"type": "i", "default": 0}
+            }
+        },
+        "insert.grid": {
+            "type": "insert",
+            "table": "grid",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "zoneid": {"type": "i", "default": null},
+                "type": {"type": "i", "default": 0},
+                "type2": {"type": "i", "default": 0}
+            }
+        },
+        "insert.grid_entries": {
+            "type": "insert",
+            "table": "grid_entries",
+            "columns": {
+                "gridid": {"type": "i", "default": null},
+                "zoneid": {"type": "i", "default": null},
+                "number": {"type": "i", "default": 0},
+                "x": {"type": "d", "default": 0.00},
+                "y": {"type": "d", "default": 0.00},
+                "z": {"type": "d", "default": 0.00},
+                "heading": {"type": "i", "default": 0},
+                "pause": {"type": "i", "default": 0},
+                "centerpoint": {"type": "i", "default": 0}
+            }
+        },
+        "insert.lootdrop": {
+            "type": "insert",
+            "table": "lootdrop",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "name": {"type": "s", "default": ""}    
+            }
+        },
+        "insert.loottable": {
+            "type": "insert",
+            "table": "loottable",
+            "columns": {
+                "id": {"type": "i", "default": null},
+                "name": {"type": "s", "default": ""} ,
+                "mincash": {"type": "i", "default": 0},
+                "maxcash": {"type": "i", "default": 0}, 
+                "avgcoin": {"type": "i", "default": 0}
+            }
+        },
+        "insert.lootdrop_entries": {
+            "type": "insert",
+            "table": "lootdrop_entries",
+            "columns": {
+                "lootdrop_id": {"type": "i", "default": null},
+                "item_id": {"type": "i", "default": null},
+                "item_charges": {"type": "i", "default": 1},
+                "equip_item": {"type": "i", "default": 0},
+                "chance": {"type": "d", "default": 1},
+                "minlevel": {"type": "i", "default": 0},
+                "maxlevel": {"type": "i", "default": 255},
+                "multiplier": {"type": "i", "default": 1},
+                "disabled_chance": {"type": "i", "default": 0},
+                "min_looter_level": {"type": "i", "default": 0},
+                "item_loot_lockout_timer": {"type": "i", "default": 0}
+
+            }
+        },
+        "insert.loottable_entries": {
+            "type": "insert",
+            "table": "loottable_entries",
+            "columns": {
+                "loottable_id": {"type": "i", "default": null},
+                "lootdrop_id": {"type": "i", "default": null},
+                "multiplier": {"type": "i", "default": 1},
+                "probability": {"type": "i", "default": 100}, 
+                "droplimit": {"type": "i", "default": 0},
+                "mindrop": {"type": "i", "default": 0},
+                "multiplier_min": {"type": "i", "default": 0}
+            }
+        }
+    }
+}

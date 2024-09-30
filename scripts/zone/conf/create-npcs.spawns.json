@@ -1,0 +1,2012 @@
+{
+    "loot": {
+        "loottable": {
+            "101": {
+                "data": ["injustice_L20_pool",1000,3000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0]
+                }
+            },
+            "109": {
+                "data": ["injustice_L20_named",1000,3000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0],
+                    "29": [1,100,1,1,0]
+                }
+            },
+            "201": {
+                "data": ["injustice_L30_pool",2000,5000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0]
+                }
+            },
+            "209": {
+                "data": ["injustice_L30_named",2000,5000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0],
+                    "39": [1,100,1,1,0]
+                }
+            },
+            "301": {
+                "data": ["injustice_L40_pool",3000,7000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0]
+                }
+            },
+            "309": {
+                "data": ["injustice_L40_named",3000,7000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0],
+                    "49": [1,100,1,1,0]
+                }
+            },
+            "401": {
+                "data": ["injustice_L50_pool",4000,9000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0]
+                }
+            },
+            "409": {
+                "data": ["injustice_L50_named",4000,9000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0],
+                    "59": [1,100,1,1,0]
+                }
+            },
+            "501": {
+                "data": ["injustice_L55_pool",5000,11000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0]
+                }
+            },
+            "509": {
+                "data": ["injustice_L55_named",5000,11000,0],
+                "entries": {
+                    "1": [1,100,1,0,0],
+                    "2": [1,100,1,0,0],
+                    "69": [1,100,1,1,0]
+                }
+            }    
+        },
+        "lootdrop": {
+            "1": {
+                "data": ["injustice_token_of_liberation"],
+                "entries": [
+                    [32616,1,0,0.05,0,255,1,0,15,0]
+                ]
+            },
+            "2": {
+                "data": ["injustice_box_of_abukar"],
+                "entries": [
+                    [11703,1,0,1,0,255,1,0,15,2629800]
+                ]
+            },
+            "29": {
+                "data": ["injustice_L20_loot"],
+                "entries": [
+                    [11511,1,0,11,0,255,1,0,20,2629800],
+                    [11508,1,0,11,0,255,1,0,20,0],
+                    [11509,1,0,11,0,255,1,0,20,2629800],
+                    [11510,1,0,11,0,255,1,0,20,2629800],
+                    [11500,1,0,11,0,255,1,0,20,2629800],
+                    [11507,1,0,11,0,255,1,0,20,2629800],
+                    [2300,1,0,11,0,255,1,0,20,2629800],
+                    [10404,1,0,12,0,255,1,0,15,2629800],
+                    [10313,1,0,11,0,255,1,0,15,2629800]
+                ]
+            },
+            "39": {
+                "data": ["injustice_L30_loot"],
+                "entries": [
+                    [11503,1,0,20,0,255,1,0,30,2629800],
+                    [2469,1,0,20,0,255,1,0,30,2629800],
+                    [14730,1,0,20,0,255,1,0,27,2629800],
+                    [2970,1,0,20,0,255,1,0,30,2629800],
+                    [17354,1,0,20,0,255,1,0,30,2629800]
+                ]
+            },
+            "49": {
+                "data": ["injustice_L40_loot"],
+                "entries": [
+                    [2285,1,0,34,0,255,1,0,40,2629800],
+                    [9428,1,0,33,0,255,1,0,40,2629800],
+                    [14759,1,0,33,0,255,1,0,40,2629800]
+                ]
+            },
+            "59": {
+                "data": ["injustice_L50_loot"],
+                "entries": [
+                    [14723,1,0,15,0,255,1,0,46,2629800],
+                    [14724,1,0,14,0,255,1,0,46,2629800],
+                    [14725,1,0,14,0,255,1,0,46,2629800],
+                    [14728,1,0,14,0,255,1,0,46,2629800],
+                    [14729,1,0,14,0,255,1,0,46,2629800],
+                    [14731,1,0,15,0,255,1,0,46,2629800],
+                    [11512,1,0,14,0,255,1,0,46,2629800]
+                ]
+            },
+            "69": {
+                "data": ["injustice_L55_loot"],
+                "entries": [
+                    [10895,1,0,50,0,255,1,0,50,2629800],
+                    [2735,1,0,50,0,255,1,0,50,2629800]
+                ]
+            }
+        }
+    },
+    "spawns": {
+        "Entrance_Master_of_Liberation": {
+            "id-offset": 800,
+            "force-id": 1,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Master_of_Liberation",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Master_of_Liberation",
+                                "level": "1",
+                                "race": "1",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "15",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "10506",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_group_ranger": {
+            "id-offset": 800,
+            "force-id": 2,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "group_ranger",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_group_ranger",
+                                "level": "1",
+                                "race": "4",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "255",
+                                "helmtexture": "0",
+                                "size": "5",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "100",
+                                "armortint_green": "175",
+                                "armortint_blue": "100",
+                                "d_melee_texture1": "87",
+                                "d_melee_texture2": "87",
+                                "chesttexture": "2",
+                                "armtexture": "2",
+                                "bracertexture": "2",
+                                "handtexture": "2",
+                                "legtexture": "2",
+                                "feettexture": "2",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_afk_druid": {
+            "id-offset": 800,
+            "force-id": 3,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "afk_druid",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "an_afk_druid",
+                                "level": "1",
+                                "race": "4",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "1",
+                                "helmtexture": "0",
+                                "size": "5",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "67",
+                                "d_melee_texture2": "27",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_port_beggar": {
+            "id-offset": 800,
+            "force-id": 4,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "port_beggar",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_port_beggar",
+                                "level": "1",
+                                "race": "5",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "16",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "40",
+                                "armortint_green": "100",
+                                "armortint_blue": "40",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_sow_beggar": {
+            "id-offset": 800,
+            "force-id": 5,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "sow_beggar",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_sow_beggar",
+                                "level": "1",
+                                "race": "12",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "0",
+                                "helmtexture": "0",
+                                "size": "3",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_lfg_paladin": {
+            "id-offset": 800,
+            "force-id": 6,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "lfg_paladin",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_lfg_paladin",
+                                "level": "1",
+                                "race": "1",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "115",
+                                "armortint_green": "135",
+                                "armortint_blue": "250",
+                                "d_melee_texture1": "62",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_capitalistic_cleric": {
+            "id-offset": 800,
+            "force-id": 7,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "capitalistic_cleric",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_capitalistic_cleric",
+                                "level": "1",
+                                "race": "11",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "3",
+                                "size": "3",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "115",
+                                "armortint_green": "50",
+                                "armortint_blue": "115",
+                                "d_melee_texture1": "156",
+                                "d_melee_texture2": "221",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_lazy_monk": {
+            "id-offset": 800,
+            "force-id": 8,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "lazy_monk",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_lazy_monk",
+                                "level": "1",
+                                "race": "1",
+                                "class": "7",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "12",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "159",
+                                "d_melee_texture2": "159",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_group_necro": {
+            "id-offset": 800,
+            "force-id": 9,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "group_necro",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_group_necro",
+                                "level": "1",
+                                "race": "128",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "14",
+                                "helmtexture": "1",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "25",
+                                "armortint_green": "50",
+                                "armortint_blue": "25",
+                                "d_melee_texture1": "29",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_group_rogue": {
+            "id-offset": 800,
+            "force-id": 10,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "group_rogue",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_group_rogue",
+                                "level": "1",
+                                "race": "2",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "1",
+                                "texture": "2",
+                                "helmtexture": "0",
+                                "size": "7",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "30",
+                                "armortint_green": "30",
+                                "armortint_blue": "30",
+                                "d_melee_texture1": "79",
+                                "d_melee_texture2": "89",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_group_enchanter": {
+            "id-offset": 800,
+            "force-id": 11,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "group_enchanter",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_group_enchanter",
+                                "level": "1",
+                                "race": "3",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "12",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "30",
+                                "armortint_green": "50",
+                                "armortint_blue": "250",
+                                "d_melee_texture1": "68",
+                                "d_melee_texture2": "56",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_group_warrior": {
+            "id-offset": 800,
+            "force-id": 12,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "group_warrior",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_group_warrior",
+                                "level": "1",
+                                "race": "10",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "0",
+                                "size": "9",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "255",
+                                "armortint_green": "0",
+                                "armortint_blue": "255",
+                                "d_melee_texture1": "81",
+                                "d_melee_texture2": "81",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_practicing_bard": {
+            "id-offset": 800,
+            "force-id": 13,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "practicing_bard",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_practicing_bard",
+                                "level": "1",
+                                "race": "7",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "3",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "1",
+                                "armortint_green": "1",
+                                "armortint_blue": "200",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "11502",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_medding_wizard": {
+            "id-offset": 800,
+            "force-id": 14,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "medding_wizard",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "a_medding_wizard",
+                                "level": "1",
+                                "race": "6",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "10",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "100",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "45",
+                                "d_melee_texture2": "68",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Penny": {
+            "id-offset": 800,
+            "force-id": 15,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Penny",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Penny",
+                                "level": "10",
+                                "race": "9",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "0",
+                                "size": "8",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Khris": {
+            "id-offset": 800,
+            "force-id": 16,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Khris",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Khris",
+                                "level": "8",
+                                "race": "130",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "1",
+                                "texture": "3",
+                                "helmtexture": "0",
+                                "size": "7",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Anna": {
+            "id-offset": 800,
+            "force-id": 17,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Anna",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Anna",
+                                "level": "6",
+                                "race": "4",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "1",
+                                "texture": "1",
+                                "helmtexture": "0",
+                                "size": "5",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Smoke": {
+            "id-offset": 800,
+            "force-id": 18,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Smoke",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Smoke",
+                                "level": "7",
+                                "race": "1",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "1",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Straha": {
+            "id-offset": 800,
+            "force-id": 19,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Straha",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Straha",
+                                "level": "1",
+                                "race": "128",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "3",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Maguna": {
+            "id-offset": 800,
+            "force-id": 20,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Maguna",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Maguna",
+                                "level": "1",
+                                "race": "5",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "1",
+                                "texture": "16",
+                                "helmtexture": "0",
+                                "size": "6",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "250",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Mook_Two": {
+            "id-offset": 800,
+            "force-id": 21,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Mook_Two",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Mook_Two",
+                                "level": "7",
+                                "race": "12",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "16",
+                                "helmtexture": "0",
+                                "size": "3",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "50",
+                                "armortint_green": "10",
+                                "armortint_blue": "10",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Mook_One": {
+            "id-offset": 800,
+            "force-id": 22,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Mook_One",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Mook_One",
+                                "level": "7",
+                                "race": "12",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "0",
+                                "texture": "12",
+                                "helmtexture": "0",
+                                "size": "3",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "0",
+                                "armortint_green": "0",
+                                "armortint_blue": "0",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Entrance_Mook_Three": {
+            "id-offset": 800,
+            "force-id": 23,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Mook_Three",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Mook_Three",
+                                "level": "7",
+                                "race": "12",
+                                "class": "1",
+                                "bodytype": "1",
+                                "hp": 32000,
+                                "gender": "1",
+                                "texture": "14",
+                                "helmtexture": "0",
+                                "size": "3",
+                                "face": "0",
+                                "armortint_id": "0",
+                                "armortint_red": "75",
+                                "armortint_green": "101",
+                                "armortint_blue": "19",
+                                "d_melee_texture1": "0",
+                                "d_melee_texture2": "0",
+                                "chesttexture": "0",
+                                "armtexture": "0",
+                                "bracertexture": "0",
+                                "handtexture": "0",
+                                "legtexture": "0",
+                                "feettexture": "0",
+                                "light": "0",
+                                "special_abilities": "19,1^20,1^24,1^35,1"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Boss_Lord-of-Injustice": { 
+            "id-offset": 900,   
+            "force-id": 1,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Lord_of_Injustice",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "The_Lord_of_Injustice",
+                                "class": 1,
+                                "hp": 750000,
+                                "mana": 0,
+                                "hp_regen_rate": 800,
+                                "mana_regen_rate": 0,
+                                "mindmg": 50,
+                                "maxdmg": 150,
+                                "level": 63,
+                                "maxlevel": 63,
+                                "race": 256,
+                                "size": 25,
+                                "MR": 35,
+                                "CR": 35,
+                                "DR": 35,
+                                "FR": 35,
+                                "PR": 35,
+                                "STR": 345,
+                                "STA": 345,
+                                "DEX": 345,
+                                "AGI": 345,
+                                "WIS": 345,
+                                "_INT": 345,
+                                "CHA": 345,
+                                "d_melee_texture1": 0,
+                                "d_melee_texture2": 0,
+                                "gender": 2,
+                                "texture": 0,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "runspeed": 1.35,
+                                "walkspeed": 0.6,
+                                "npc_aggro": 1,
+                                "npc_spells_id": 0,
+                                "npc_faction_id": 79,
+                                "special_abilities": "1,1^7,1^10,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^23,1^31,1^43,1",
+                                "loottable_id": 1
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Boss_Harbinger_of_Tyranny": { 
+            "id-offset": 900,   
+            "force-id": 2,
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Harbinger_of_Tyranny",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Harbinger_of_Tyranny",
+                                "class": 1,
+                                "hp": 32000,
+                                "mana": 0,
+                                "hp_regen_rate": 500,
+                                "mana_regen_rate": 0,
+                                "mindmg": 40,
+                                "maxdmg": 125,
+                                "level": 60,
+                                "maxlevel": 60,
+                                "race": 251,
+                                "size": 15,
+                                "MR": 35,
+                                "CR": 35,
+                                "DR": 35,
+                                "FR": 35,
+                                "PR": 35,
+                                "STR": 345,
+                                "STA": 345,
+                                "DEX": 345,
+                                "AGI": 345,
+                                "WIS": 345,
+                                "_INT": 345,
+                                "CHA": 345,
+                                "d_melee_texture1": 0,
+                                "d_melee_texture2": 0,
+                                "gender": 2,
+                                "texture": 0,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "runspeed": 1.35,
+                                "walkspeed": 0.6,
+                                "npc_aggro": 1,
+                                "npc_spells_id": 0,
+                                "npc_faction_id": 79,
+                                "special_abilities": "1,1^3,1,10^7,1^10,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^23,1^31,1^43,1",
+                                "loottable_id": 0
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Boss_Spectre_of_Retribution": {  
+            "id-offset": 900,   
+            "force-id": 3,     
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Spectre_of_Retribution",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Spectre_of_Retribution",
+                                "class": 1,
+                                "hp": 32000,
+                                "mana": 0,
+                                "hp_regen_rate": 500,
+                                "mana_regen_rate": 0,
+                                "mindmg": 40,
+                                "maxdmg": 125,
+                                "level": 60,
+                                "maxlevel": 60,
+                                "race": 251,
+                                "size": 15,
+                                "MR": 35,
+                                "CR": 35,
+                                "DR": 35,
+                                "FR": 35,
+                                "PR": 35,
+                                "STR": 345,
+                                "STA": 345,
+                                "DEX": 345,
+                                "AGI": 345,
+                                "WIS": 345,
+                                "_INT": 345,
+                                "CHA": 345,
+                                "d_melee_texture1": 0,
+                                "d_melee_texture2": 0,
+                                "gender": 2,
+                                "texture": 0,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "runspeed": 1.35,
+                                "walkspeed": 0.6,
+                                "npc_aggro": 1,
+                                "npc_spells_id": 0,
+                                "npc_faction_id": 79,
+                                "special_abilities": "1,1^5,1^7,1^10,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^23,1^31,1^43,1",
+                                "loottable_id": 0
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Boss_Sentinel_of_Iniquity": {  
+            "id-offset": 900,   
+            "force-id": 4,    
+            "npc": {
+                "static": {
+                    "spawngroup-name": "Sentinel_of_Iniquity",
+                    "list": [
+                        {
+                            "spawn-chance": 100,
+                            "attribs": {
+                                "name": "Sentinel_of_Iniquity",
+                                "class": 1,
+                                "hp": 32000,
+                                "mana": 0,
+                                "hp_regen_rate": 500,
+                                "mana_regen_rate": 0,
+                                "mindmg": 40,
+                                "maxdmg": 125,
+                                "level": 60,
+                                "maxlevel": 60,
+                                "race": 251,
+                                "size": 15,
+                                "MR": 35,
+                                "CR": 35,
+                                "DR": 35,
+                                "FR": 35,
+                                "PR": 35,
+                                "STR": 345,
+                                "STA": 345,
+                                "DEX": 345,
+                                "AGI": 345,
+                                "WIS": 345,
+                                "_INT": 345,
+                                "CHA": 345,
+                                "d_melee_texture1": 0,
+                                "d_melee_texture2": 0,
+                                "gender": 2,
+                                "texture": 0,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "runspeed": 1.35,
+                                "walkspeed": 0.6,
+                                "npc_aggro": 1,
+                                "npc_spells_id": 0,
+                                "npc_faction_id": 79,
+                                "special_abilities": "1,1^11,1^7,1^10,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^23,1^31,1^43,1",
+                                "loottable_id": 0
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "L20": {
+            "id-offset": 100,
+            "section-label": "shackled",
+            "base-attribs": {
+                "class": 1,
+                "hp": 594,
+                "mana": 0,
+                "hp_regen_rate": 17,
+                "mana_regen_rate": 0,
+                "mindmg": 2,
+                "maxdmg": 42,
+                "level": 20,
+                "maxlevel": 23,
+                "race": 220,
+                "size": 7,
+                "MR": 25,
+                "CR": 25,
+                "DR": 25,
+                "FR": 25,
+                "PR": 25,
+                "STR": 95,
+                "STA": 95,
+                "DEX": 95,
+                "AGI": 95,
+                "WIS": 95,
+                "_INT": 95,
+                "CHA": 95,
+                "d_melee_texture1": 0,
+                "d_melee_texture2": 0,
+                "see_invis": 0,
+                "see_invis_undead": 0,
+                "gender": 2,
+                "texture": 0,
+                "aggroradius": 35,
+                "assistradius": 35,
+                "runspeed": 1.25,
+                "walkspeed": 0.5,
+                "npc_aggro": 1,
+                "npc_spells_id": 0,
+                "npc_faction_id": 79,
+                "special_abilities": "32,1,100",
+                "unique_spawn_by_name": 0,
+                "loottable_id": 1
+            },
+            "npc": {
+                "roamer": {
+                    "spawngroup-name": "L20_patrol_injustice",
+                    "wp-spawn": true,
+                    "list": [
+                        {
+                            "spawn-chance": 99,
+                            "attribs": {
+                                "name": "a_devoted_patroller",
+                                "class": 1,
+                                "race": 156,
+                                "size": 7,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "d_melee_texture1": 61,
+                                "d_melee_texture2": 0,
+                                "special_abilities": ""
+                            }
+                        },
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Skritch_Fangtail",
+                                "class": 6,
+                                "hp": 694,
+                                "maxdmg": 52,
+                                "race": 156,
+                                "size": 9,
+                                "mana": 660,
+                                "mana_regen_rate": 23,
+                                "npc_spells_id": 7,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "d_melee_texture1": 150,
+                                "d_melee_texture2": 221,
+                                "special_abilities": "",
+                                "unique_spawn_by_name": 1,
+                                "loottable_id": 9
+                            }
+                        }
+                    ]
+                },
+                "static": {
+                    "spawngroup-name": "L20_static_injustice",
+                    "list": [
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Shackled_Monstrosity",
+                                "class": 1,
+                                "hp": 891,
+                                "hp_regen_rate": 25,
+                                "mindmg": 3,
+                                "maxdmg": 63,
+                                "level": 25,
+                                "size": 8,
+                                "loottable_id": 9
+                            }
+                        },
+                        {
+                            "name-label": "champion",
+                            "spawn-chance": 40,
+                            "attribs": {
+                                "class": 1
+                            }
+                        },
+                        {
+                            "name-label": "illusionist",
+                            "spawn-chance": 9,
+                            "attribs": {
+                                "class": 14,
+                                "mana": 660,
+                                "mana_regen_rate": 23,
+                                "npc_spells_id": 5
+                            }
+                        },
+                        {
+                            "name-label": "seer",
+                            "spawn-chance": 20,
+                            "attribs": {
+                                "class": 12,
+                                "mana": 660,
+                                "mana_regen_rate": 23,
+                                "npc_spells_id": 2
+                            }
+                        },
+                        {
+                            "name-label": "knave",
+                            "spawn-chance": 30,
+                            "attribs": {
+                                "class": 9
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "L30": {
+            "id-offset": 200,
+            "section-label": "wretched",
+            "base-attribs": {
+                "hp": 1100,
+                "mana": 0,
+                "hp_regen_rate": 35,
+                "mana_regen_rate": 0,
+                "mindmg": 10,
+                "maxdmg": 58,
+                "level": 30,
+                "maxlevel": 33,
+                "race": 218,
+                "size": 8,
+                "MR": 35,
+                "CR": 35,
+                "DR": 35,
+                "FR": 35,
+                "PR": 35,
+                "STR": 105,
+                "STA": 105,
+                "DEX": 105,
+                "AGI": 105,
+                "WIS": 105,
+                "_INT": 105,
+                "CHA": 105,
+                "d_melee_texture1": 0,
+                "d_melee_texture2": 0,
+                "see_invis": 0,
+                "see_invis_undead": 0,
+                "gender": 2,
+                "texture": 0,
+                "aggroradius": 50,
+                "assistradius": 50,
+                "runspeed": 1.25,
+                "walkspeed": 0.5,
+                "npc_aggro": 1,
+                "npc_spells_id": 0,
+                "npc_faction_id": 79,
+                "special_abilities": "10,1^32,1,100",
+                "unique_spawn_by_name": 0,
+                "loottable_id": 1
+            },
+            "npc": {
+                "roamer": {
+                    "spawngroup-name": "L30_patrol_injustice",
+                    "wp-spawn": true,
+                    "list": [
+                        { 
+                            "spawn-chance": 99,
+                            "attribs": {
+                                "name": "a_steadfast_lookout",
+                                "class": 1,
+                                "race": 13,
+                                "size": 7,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "aggroradius": 35,
+                                "assistradius": 35,
+                                "d_melee_texture1": 172,
+                                "d_melee_texture2": 0,
+                                "special_abilities": "10,1"
+                            }
+                        },
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Warden_of_Lost_Shakers",
+                                "class": 8,
+                                "race": 13,
+                                "texture": 2,
+                                "size": 8,
+                                "mana": 990,
+                                "mana_regen_rate": 35,
+                                "npc_spells_id": 11,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "d_melee_texture1": 148,
+                                "d_melee_texture2": 11502,
+                                "special_abilities": "10,1",
+                                "unique_spawn_by_name": 1,
+                                "loottable_id": 9
+                            }
+                        }
+                    ]
+                },
+                "static": {
+                    "spawngroup-name": "L30_static_injustice",
+                    "list": [
+                        {
+                            
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Wretched_Fiend",
+                                "class": 1,
+                                "hp": 1650,
+                                "hp_regen_rate": 25,
+                                "mindmg": 15,
+                                "maxdmg": 87,
+                                "level": 35,
+                                "size": 9,
+                                "loottable_id": 9
+                            }
+                        },
+                        {
+                            "name-label": "vanguard",
+                            "spawn-chance": 40,
+                            "attribs": {
+                                "class": 1
+                            }
+                        },
+                        {
+                            "name-label": "beguiler",
+                            "spawn-chance": 9,
+                            "attribs": {
+                                "class": 14,
+                                "mana": 990,
+                                "mana_regen_rate": 35,
+                                "npc_spells_id": 5
+                            }
+                        },
+                        {
+                            "name-label": "invoker",
+                            "spawn-chance": 20,
+                            "attribs": {
+                                "class": 12,
+                                "mana": 990,
+                                "mana_regen_rate": 35,
+                                "npc_spells_id": 2
+                            }
+                        },
+                        {
+                            "name-label": "blackguard",
+                            "spawn-chance": 30,
+                            "attribs": {
+                                "class": 9
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "L40": {
+            "id-offset": 300,
+            "section-label": "forsaken",
+            "base-attribs": {
+                "hp": 1824,
+                "mana": 0,
+                "hp_regen_rate": 96,
+                "mana_regen_rate": 0,
+                "mindmg": 17,
+                "maxdmg": 91,
+                "level": 40,
+                "maxlevel": 43,
+                "race": 178,
+                "size": 9,
+                "MR": 35,
+                "CR": 35,
+                "DR": 35,
+                "FR": 35,
+                "PR": 35,
+                "STR": 125,
+                "STA": 125,
+                "DEX": 125,
+                "AGI": 125,
+                "WIS": 125,
+                "_INT": 125,
+                "CHA": 125,
+                "d_melee_texture1": 0,
+                "d_melee_texture2": 0,
+                "see_invis": 0,
+                "see_invis_undead": 0,
+                "gender": 2,
+                "texture": 0,
+                "aggroradius": 50,
+                "assistradius": 50,
+                "runspeed": 1.25,
+                "walkspeed": 0.5,
+                "npc_aggro": 1,
+                "npc_spells_id": 0,
+                "npc_faction_id": 79,
+                "special_abilities": "10,1^32,1,100",
+                "unique_spawn_by_name": 0,
+                "loottable_id": 1
+            },
+            "npc": {
+                "roamer": {
+                    "spawngroup-name": "L40_patrol_injustice",
+                    "wp-spawn": true,
+                    "list": [
+                        {
+                            
+                            "spawn-chance": 50,
+                            "attribs": {
+                                "name": "a_fierce_lookout",
+                                "class": 1,
+                                "race": 53,
+                                "size": 9,
+                                "see_invis": 1,
+                                "aggroradius": 35,
+                                "assistradius": 35,
+                                "see_invis_undead": 10005,
+                                "d_melee_texture1": 10005,
+                                "special_abilities": "10,1"
+                            }
+                        },
+                        {
+                            
+                            "spawn-chance": 50,
+                            "attribs": {
+                                "name": "Thraxxus_the_Chained",
+                                "class": 4,
+                                "race": 53,
+                                "size": 9,
+                                "mana": 2184,
+                                "mana_regen_rate": 48,
+                                "npc_spells_id": 10,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "d_melee_texture1": 149,
+                                "d_melee_texture2": 149,
+                                "special_abilities": "10,1",
+                                "unique_spawn_by_name": 1,
+                                "loottable_id": 2
+                            }
+                        }
+                    ]
+                },
+                "static": {
+                    "spawngroup-name": "L40_static_injustice",
+                    "list": [
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Forsaken_Golem",
+                                "class": 1,
+                                "hp": 2736,
+                                "hp_regen_rate": 144,
+                                "mindmg": 25,
+                                "maxdmg": 136,
+                                "level": 45,
+                                "size": 10,
+                                "loottable_id": 9
+                            }
+                        },
+                        {
+                            "name-label": "blademaster",
+                            "spawn-chance": 40,
+                            "attribs": {
+                                "class": 1
+                            }
+                        },
+                        {
+                            "name-label": "veilbinder",
+                            "spawn-chance": 9,
+                            "attribs": {
+                                "class": 14,
+                                "mana": 2184,
+                                "mana_regen_rate": 48,
+                                "npc_spells_id": 5
+                            }
+                        },
+                        {
+                            "name-label": "weaver",
+                            "spawn-chance": 20,
+                            "attribs": {
+                                "class": 12,
+                                "mana": 2184,
+                                "mana_regen_rate": 48,
+                                "npc_spells_id": 2
+                            }
+                        },
+                        {
+                            "name-label": "vagabound",
+                            "spawn-chance": 30,
+                            "attribs": {
+                                "class": 9
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "L50": {
+            "id-offset": 400,
+            "section-label": "doomed",
+            "base-attribs": {
+                "hp": 7700,
+                "mana": 0,
+                "hp_regen_rate": 179,
+                "mana_regen_rate": 0,
+                "mindmg": 33,
+                "maxdmg": 126,
+                "level": 50,
+                "maxlevel": 53,
+                "race": 224,
+                "size": 10,
+                "MR": 45,
+                "CR": 45,
+                "DR": 45,
+                "FR": 45,
+                "PR": 45,
+                "STR": 175,
+                "STA": 175,
+                "DEX": 175,
+                "AGI": 175,
+                "WIS": 175,
+                "_INT": 175,
+                "CHA": 175,
+                "d_melee_texture1": 0,
+                "d_melee_texture2": 0,
+                "see_invis": 0,
+                "see_invis_undead": 0,
+                "gender": 1,
+                "texture": 0,
+                "aggroradius": 50,
+                "assistradius": 50,
+                "runspeed": 1.25,
+                "walkspeed": 0.5,
+                "npc_aggro": 1,
+                "npc_spells_id": 0,
+                "npc_faction_id": 79,
+                "special_abilities": "10,1^32,1,100",
+                "unique_spawn_by_name": 0,
+                "loottable_id": 1
+            },
+            "npc": {
+                "roamer": {
+                    "spawngroup-name": "L50_patrol_injustice",
+                    "wp-spawn": true,
+                    "list": [
+                        {  
+                            "spawn-chance": 99,
+                            "attribs": {
+                                "name": "a_watchful_protector",
+                                "class": 1,
+                                "race": 101,
+                                "gender": 2,
+                                "texture": 1,
+                                "size": 8,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "d_melee_texture1": 192,
+                                "d_melee_texture2": 192,
+                                "special_abilities": "10,1"
+                            }
+                        },
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Ashkarn_the_Unbound",
+                                "class": 1,
+                                "race": 101,
+                                "gender": 2,
+                                "texture": 0,
+                                "size": 8,
+                                "mindmg": 49,
+                                "maxdmg": 189,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "aggroradius": 55,
+                                "assistradius": 55,
+                                "d_melee_texture1": 141,
+                                "d_melee_texture2": 142,
+                                "special_abilities": "10,1",
+                                "unique_spawn_by_name": 1,
+                                "loottable_id": 9
+                            }
+                        }
+                    ]
+                },
+                "static": {
+                    "spawngroup-name": "L50_static_injustice",
+                    "list": [
+                        {                            
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Doomed_Wraith",
+                                "class": 1,
+                                "hp": 11550,
+                                "hp_regen_rate": 268,
+                                "mindmg": 49,
+                                "maxdmg": 189,
+                                "level": 55,
+                                "size": 11,
+                                "loottable_id": 9
+                            }
+                        },
+                        {
+                            "name-label": "shieldbearer",
+                            "spawn-chance": 40,
+                            "attribs": {
+                                "class": 1
+                            }
+                        },
+                        {
+                            "name-label": "charmwright",
+                            "spawn-chance": 9,
+                            "attribs": {
+                                "class": 14,
+                                "mana": 2016,
+                                "mana_regen_rate": 60,
+                                "npc_spells_id": 5
+                            }
+                        },
+                        {
+                            "name-label": "arcanist",
+                            "spawn-chance": 20,
+                            "attribs": {
+                                "class": 12,
+                                "mana": 2016,
+                                "mana_regen_rate": 60,
+                                "npc_spells_id": 2
+                            }
+                        },
+                        {
+                            "name-label": "nightblade",
+                            "spawn-chance": 30,
+                            "attribs": {
+                                "class": 9
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "L55": {
+            "id-offset": 500,
+            "section-label": "shadowbound",
+            "base-attribs": {
+                "hp": 11440,
+                "mana": 0,
+                "hp_regen_rate": 345,
+                "mana_regen_rate": 0,
+                "mindmg": 48,
+                "maxdmg": 155,
+                "level": 55,
+                "maxlevel": 58,
+                "race": 214,
+                "size": 14,
+                "MR": 50,
+                "CR": 50,
+                "DR": 50,
+                "FR": 50,
+                "PR": 50,
+                "STR": 210,
+                "STA": 210,
+                "DEX": 210,
+                "AGI": 210,
+                "WIS": 210,
+                "_INT": 210,
+                "CHA": 210,
+                "d_melee_texture1": 0,
+                "d_melee_texture2": 0,
+                "see_invis": 0,
+                "see_invis_undead": 0,
+                "gender": 2,
+                "texture": 0,
+                "aggroradius": 50,
+                "assistradius": 50,
+                "runspeed": 1.25,
+                "walkspeed": 0.5,
+                "npc_aggro": 1,
+                "npc_spells_id": 0,
+                "npc_faction_id": 79,
+                "special_abilities": "1,1^10,1^32,1,100",
+                "unique_spawn_by_name": 0,
+                "loottable_id": 1
+            },
+            "npc": {
+                "roamer": {
+                    "spawngroup-name": "L55_patrol_injustice",
+                    "wp-spawn": false,
+                    "list": [
+                        {
+                            "spawn-chance": 99,
+                            "attribs": {
+                                "name": "a_vigilant_guardian",
+                                "class": 1,
+                                "race": 217,
+                                "size": 9,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "d_melee_texture1": 10519,
+                                "d_melee_texture2": 10519,
+                                "special_abilities": "1,1^10,1"
+                            }
+                        },
+                        {                           
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Ssythar_the_Dreadcoil",
+                                "class": 5,
+                                "race": 217,
+                                "size": 9,
+                                "mindmg": 72,
+                                "maxdmg": 232,
+                                "see_invis": 1,
+                                "see_invis_undead": 1,
+                                "texture": 1,
+                                "mana": 2184,
+                                "mana_regen_rate": 66,
+                                "npc_spells_id": 9,
+                                "d_melee_texture1": 145,
+                                "d_melee_texture2": 0,
+                                "special_abilities": "1,1^10,1",
+                                "unique_spawn_by_name": 1,
+                                "loottable_id": 9
+                            }
+                        }
+                    ]
+                },
+                "static": {
+                    "spawngroup-name": "L55_static_injustice",
+                    "list": [
+                        {
+                            "spawn-chance": 1,
+                            "attribs": {
+                                "name": "Shadowbound_Horror",
+                                "class": 1,
+                                "hp": 17160,
+                                "hp_regen_rate": 517,
+                                "mindmg": 72,
+                                "maxdmg": 232,
+                                "level": 60,
+                                "size": 11,
+                                "loottable_id": 9
+                            }
+                        },
+                        {
+                            "name-label": "warlord",
+                            "spawn-chance": 40,
+                            "attribs": {
+                                "class": 1
+                            }
+                        },
+                        {
+                            "name-label": "mindshaper",
+                            "spawn-chance": 9,
+                            "attribs": {
+                                "class": 14,
+                                "mana": 2184,
+                                "mana_regen_rate": 66,
+                                "npc_spells_id": 5
+                            }
+                        },
+                        {
+                            "name-label": "spellbinder",
+                            "spawn-chance": 20,
+                            "attribs": {
+                                "class": 12,
+                                "mana": 2184,
+                                "mana_regen_rate": 66,
+                                "npc_spells_id": 2
+                            }
+                        },
+                        {
+                            "name-label": "skulker",
+                            "spawn-chance": 30,
+                            "attribs": {
+                                "class": 9
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
