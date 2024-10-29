@@ -23,16 +23,16 @@ $main->connectDatabase('db.takpmerge.conf','takpmerge');
 
 $db = $main->db('takpmerge');
 
-$fileName = '/opt/yaqds/takp/diffs/pretty.diff.20240421.20240717.json';
+$fileName = APP_CONFIGDIR.'/database/changes/diffs/takp.diff.20240717.20240828.json';
 //$fileName = '/opt/yaqds/takp/diffs/pretty.diff.20240203.20240421.json';
 
 $data     = json_decode(file_get_contents($fileName),true);
 $keys     = $data['tableInfo']['keys'];
 $columns  = $data['tableInfo']['columns'];
 $stats    = [];
-$sqlFile  = 'apply.sql';
+$sqlFile  = APP_BASEDIR.'/scripts/data/apply.sql';
 $sqlData  = [];
-$execSql  = true;
+$execSql  = false;
 $doRemove = true;
 $doAdd    = true;
 $doChange = true;
@@ -47,8 +47,8 @@ $skipRows = [
       //"108440^5664",          // Jade Reaver
    ],
    "npc_faction_entries" => [
-      "456^307",
-      "493^307",
+      //"456^307",
+      //"493^307",
    ],
 ];
 

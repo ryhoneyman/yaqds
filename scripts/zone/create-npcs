@@ -27,14 +27,22 @@ $conv   = $main->obj('conv');
 $spell  = $main->obj('spell');
 $format = $main->obj('format');
 
-$main->var('zoneId',6100);
-$main->var('zoneName','injustice');
+$opts     = getopt(null,['zone:']);
+$zoneList = isset($opts['zone']) ? [$opts['zone']] : ['','30','40','50'];
 
-$main->var('npcSpawnList',json_decode(file_get_contents('./conf/create-npcs.spawns.json'),true));
-$main->var('zoneList',json_decode(file_get_contents('./conf/create-npcs.zone.json'),true));
-$main->var('baseConfig',json_decode(file_get_contents('./conf/create-npcs.config.json'),true));
+foreach ($zoneList as $zone) {
+   $main->var('zoneId',6100 + sprintf("%d",$zone));
+   $main->var('zoneName','injustice'.$zone);
+   $main->var('append',(($zone) ? "-L$zone" : ''));
 
-main($main);
+   $append = $main->var('append');
+
+   $main->var('npcSpawnList',json_decode(file_get_contents("./conf/create-npcs.spawns{$append}.json"),true));
+   $main->var('zoneList',json_decode(file_get_contents("./conf/create-npcs.zone{$append}.json"),true));
+   $main->var('baseConfig',json_decode(file_get_contents('./conf/create-npcs.config.json'),true));
+
+   main($main);
+}
 
 ?>
 <?php
@@ -212,7 +220,7 @@ function main($main)
       foreach (['static','roamer'] as $mobType) {
          if ($npcInfo[$mobType]) {
             $sgList[$mobType] = [
-               'name' => $npcInfo[$mobType]['spawngroup-name'],
+               'name' => $npcInfo[$mobType]['spawngroup-name'].$main->var('append'),
                'delay' => 0,
                'mindelay' => 15000,
                'despawn_timer' => 0,
@@ -272,7 +280,7 @@ function main($main)
          foreach ($areaList as $areaName => $areaInfo) {
             if (preg_match('/^#/',$areaName)) { continue; }
 
-            $areaSpawnGroup  = $areaInfo['spawngroup'];
+            $areaSpawnGroup  = $areaInfo['spawngroup'].$main->var('append');
             $areaGrid        = $areaInfo['grid'];
             $startGridNumber = $areaInfo['start-gridnumber'];
 
