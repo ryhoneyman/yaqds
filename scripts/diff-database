@@ -36,6 +36,14 @@ $update    = isset($opts['update']) ? true : false;       // Update existing dif
 $flags     = readFlags($opts['flags']);                   // Processing directive flags
 $type      = $opts['type'] ?: 'quarm';                    // Type of database [quarm,takp]
 
+/* ==== FLAGS (and their default setting)
+'ignore-peq-expansion' => false,
+'strip-custom-keys'    => false,
+'skip-lookup-mapping'  => false,
+'remove-blank-keys'    => true,
+'ignore-updated-field' => true,
+*/
+
 $typeList = [
    'quarm' => [
       'prepend' => '',
@@ -53,6 +61,7 @@ $main->var('maxServerLevel',65);
 $main->var('tableFilter',$filter);
 $main->var('tableLimit',$limit);
 $main->var('skipCache',$skipCache);
+$main->var('customPrefix','__');
 
 $main->var('lookup',[
    'items' => [
@@ -406,10 +415,11 @@ function processDeletes($main)
 
 function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $previousData = null)
 {
-   $conv     = $main->obj('conv');
-   $spell    = $main->obj('spell');
-   $lookup   = $main->var('lookup');
-   $rules    = $main->var('rules');
+   $conv         = $main->obj('conv');
+   $spell        = $main->obj('spell');
+   $lookup       = $main->var('lookup');
+   $rules        = $main->var('rules');
+   $customPrefix = $main->var('customPrefix');
 
    $skipLookup = $rules['skip-lookup-mapping'] ? true : false;
 
@@ -471,8 +481,8 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
       // It will be up to display engines to pick one or the other (or both) to show.
       foreach (['max','min'] as $qualifier) {
          if (isset($after[$qualifier.'_expansion'])) {
-            $analysis['before']['_'.$qualifier.'_expansion'] = $conv->convertExpansionName($analysis['before'][$qualifier.'_expansion']);
-            $analysis['after']['_'.$qualifier.'_expansion']  = $conv->convertExpansionName($analysis['after'][$qualifier.'_expansion']);
+            $analysis['before'][$customPrefix.$qualifier.'_expansion'] = $conv->convertExpansionName($analysis['before'][$qualifier.'_expansion']);
+            $analysis['after'][$customPrefix.$qualifier.'_expansion']  = $conv->convertExpansionName($analysis['after'][$qualifier.'_expansion']);
          }
       }
 
@@ -480,18 +490,18 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
 
       if ($tableName == 'npc_types') {
          if (isset($after['special_abilities'])) {
-            $analysis['before']['_special_abilities'] = $conv->convertNpcSpecialAbilities($analysis['before']['special_abilities']);
-            $analysis['after']['_special_abilities']  = $conv->convertNpcSpecialAbilities($analysis['after']['special_abilities']);
+            $analysis['before'][$customPrefix.'special_abilities'] = $conv->convertNpcSpecialAbilities($analysis['before']['special_abilities']);
+            $analysis['after'][$customPrefix.'special_abilities']  = $conv->convertNpcSpecialAbilities($analysis['after']['special_abilities']);
          }
       }
       else if ($tableName == 'grid') {
          if (isset($after['type'])) {
-            $analysis['before']['_type'] = $conv->convertGridType($analysis['before']['type'],'wander');
-            $analysis['after']['_type']  = $conv->convertGridType($analysis['after']['type'],'wander');
+            $analysis['before'][$customPrefix.'type'] = $conv->convertGridType($analysis['before']['type'],'wander');
+            $analysis['after'][$customPrefix.'type']  = $conv->convertGridType($analysis['after']['type'],'wander');
          }
          if (isset($after['type2'])) {
-            $analysis['before']['_type2'] = $conv->convertGridType($analysis['before']['type2'],'pause');
-            $analysis['after']['_type2']  = $conv->convertGridType($analysis['after']['type2'],'pause');
+            $analysis['before'][$customPrefix.'type2'] = $conv->convertGridType($analysis['before']['type2'],'pause');
+            $analysis['after'][$customPrefix.'type2']  = $conv->convertGridType($analysis['after']['type2'],'pause');
          }
       }
    }
@@ -530,8 +540,8 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'pathgrid'        => $pathGrid,
             'min_expansion'   => $minExpansion,
             'max_expansion'   => $maxExpansion,
-            '_min_expansion'  => $conv->convertExpansionName($minExpansion),
-            '_max_expansion'  => $conv->convertExpansionName($maxExpansion),
+            $customPrefix.'min_expansion'  => $conv->convertExpansionName($minExpansion),
+            $customPrefix.'max_expansion'  => $conv->convertExpansionName($maxExpansion),
             'enabled'         => $enabled,
          ];
       }
@@ -571,8 +581,8 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'Name'           => $itemName,
             'min_expansion'  => $minExpansion,
             'max_expansion'  => $maxExpansion,
-            '_min_expansion' => $conv->convertExpansionName($minExpansion),
-            '_max_expansion' => $conv->convertExpansionName($maxExpansion),
+            $customPrefix.'min_expansion' => $conv->convertExpansionName($minExpansion),
+            $customPrefix.'max_expansion' => $conv->convertExpansionName($maxExpansion),
          ];
       }
       else if ($state == 'changed') {
@@ -603,11 +613,11 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'canbind'             => $canBind,
             'outdoor'             => $outdoor,
             'dungeon'             => $dungeon,
-            '_canbind'            => ($canBind == 2) ? 'everyone' : (($canBind == 1) ? 'casters' : 'nobody'),
-            '_outdoor'            => ($outdoor) ? true : false,
-            '_dungeon'            => ($dungeon) ? true : false,
-            '_reducedspawntimers' => ($reducedSpawnTimers) ? true : false,
-            '_expansion'          => $conv->convertExpansionName($expansion),
+            $customPrefix.'canbind'            => ($canBind == 2) ? 'everyone' : (($canBind == 1) ? 'casters' : 'nobody'),
+            $customPrefix.'outdoor'            => ($outdoor) ? true : false,
+            $customPrefix.'dungeon'            => ($dungeon) ? true : false,
+            $customPrefix.'reducedspawntimers' => ($reducedSpawnTimers) ? true : false,
+            $customPrefix.'expansion'          => $conv->convertExpansionName($expansion),
          ];
       }
       else if ($state == 'changed') {
@@ -1031,7 +1041,7 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'item'           => $itemId,
             'itemName'       => $itemName,
             'respawn_timer'  => $respawnMs,
-            '_respawn_timer' => $respawnTime,
+            $customPrefix.'respawn_timer' => $respawnTime,
             'min_x'          => $posX1,
             'min_y'          => $posY1,
             'min_z'          => $posZ1,
@@ -1131,8 +1141,8 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'zoneName'         => $zoneName,
             'type'             => $wanderType,
             'type2'            => $pauseType,
-            '_type'            => $conv->convertGridType($wanderType,'wander'),
-            '_type2'           => $conv->convertGridType($pauseType,'pause'),
+            $customPrefix.'type'            => $conv->convertGridType($wanderType,'wander'),
+            $customPrefix.'type2'           => $conv->convertGridType($pauseType,'pause'),
             'spawnGroupIdList' => $spawnGroupIdList,
             'npcIdList'        => $npcIdList,
             'npcNameList'      => $npcNameList,
@@ -1313,7 +1323,7 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'npc_spells_id' => $npcSpellsId,
             'spellid'       => $spellId,
             'type'          => $spellType,
-            '_type'         => $conv->convertSpellType($spellType),
+            $customPrefix.'type'         => $conv->convertSpellType($spellType),
             'recast_delay'  => $recastDelay,
             'priority'      => $priority,
             'resist_adjust' => $resistAdjust,
@@ -1366,7 +1376,7 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'message'     => $message,
             'description' => $description,
             'location'    => $location,
-            '_type'       => ($areaType == 1) ? 'Anywhere' : 'Boundary',
+            $customPrefix.'type'       => ($areaType == 1) ? 'Anywhere' : 'Boundary',
          ];
       }
       else if ($state == 'changed') {
@@ -1602,15 +1612,15 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
          $after  = $analysis['after'] ?: [];
 
          foreach ($before as $beforeKey => $beforeValue) { 
-            if (preg_match('/^_/',$beforeKey)) { unset($analysis['before'][$beforeKey]); }
+            if (preg_match("/^$customPrefix/",$beforeKey)) { unset($analysis['before'][$beforeKey]); }
          }
          foreach ($after as $afterKey => $afterValue) { 
-            if (preg_match('/^_/',$afterKey)) { unset($analysis['after'][$afterKey]); }
+            if (preg_match("/^$customPrefix/",$afterKey)) { unset($analysis['after'][$afterKey]); }
          }
       }
       else if ($state == 'added' || $state == 'removed') {
          foreach ($analysis as $analysisKey => $analysisValue) {
-            if (preg_match('/^_/',$analysisKey)) { unset($analysis[$analysisKey]); }
+            if (preg_match("/^$customPrefix/",$analysisKey)) { unset($analysis[$analysisKey]); }
          }
       }
    }

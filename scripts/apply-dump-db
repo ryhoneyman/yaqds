@@ -23,19 +23,33 @@ $main->connectDatabase('db.takpmerge.conf','takpmerge');
 
 $db = $main->db('takpmerge');
 
-$fileName = APP_CONFIGDIR.'/database/changes/diffs/takp.diff.20240717.20240828.json';
-//$fileName = '/opt/yaqds/takp/diffs/pretty.diff.20240203.20240421.json';
+$opts = getopt(null,array('diff:','exec','remove','add','change','all','debug'));
 
+$diff      = $opts['diff'] ?: '20240717-20240828';
+$diffDates = preg_replace('/\-/','.',$diff);
+
+$fileName = APP_CONFIGDIR."/database/changes/diffs/takp.diff.$diffDates.json";
 $data     = json_decode(file_get_contents($fileName),true);
+
+if (!$data) {
+   print "\nNo data for ($diff) $fileName\n";
+   exit;
+}
+
 $keys     = $data['tableInfo']['keys'];
 $columns  = $data['tableInfo']['columns'];
-$stats    = [];
 $sqlFile  = APP_BASEDIR.'/scripts/data/apply.sql';
-$sqlData  = [];
-$execSql  = false;
-$doRemove = true;
-$doAdd    = true;
-$doChange = true;
+$execSql  = (isset($opts['exec'])) ? true : false;
+$doRemove = (isset($opts['remove'])) ? true : false;
+$doAdd    = (isset($opts['add'])) ? true : false;
+$doChange = (isset($opts['change'])) ? true : false;
+$debugOn  = (isset($opts['debug'])) ? true : false;
+
+if (isset($opts['all'])) {
+   $doRemove = true;
+   $doAdd    = true;
+   $doChange = true;
+}
 
 $skipTables = [
    "spawn_events",
@@ -53,6 +67,9 @@ $skipRows = [
 ];
 
 $changeLimit = 0;
+$stats       = [];
+$sqlData     = [];
+$output      = [];
 
 if ($doRemove) {
    foreach ($data['analysis']['removed'] as $tableName => $tableChanges) {
@@ -61,7 +78,7 @@ if ($doRemove) {
       $indexKeys = $keys[$tableName];
 
       if (!$indexKeys) {
-         print "[NO INDEX KEYS] $tableName\n";
+         $output[] = "[NO INDEX KEYS] $tableName";
          exit;
       }
 
@@ -74,7 +91,7 @@ if ($doRemove) {
          }
 
          if (empty($whereCond)) { 
-            print "[NO WHERE CONDITION] (removed) $tableName / $tableKey / ".json_encode($indexKeys)."\n";
+            $output[] = "[NO WHERE CONDITION] (removed) $tableName / $tableKey / ".json_encode($indexKeys);
             continue; 
          }
 
@@ -84,22 +101,23 @@ if ($doRemove) {
          //$comment = sprintf("/* %s(%s) = %s */",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
          $delete  = sprintf("DELETE FROM $tableName WHERE %s",implode(' AND ', $whereCond));
 
-         print "[DEBUG] (removed) $delete\n";
+         if ($debugOn) { $output[] = "[DEBUG] (removed) $delete"; }
 
          //$sqlData[] = $comment;
          $sqlData[] = $delete.';';
 
          if ($execSql) {
             $result = $db->execute($delete);
+            list($dbErrno,$dbError) = $db->lastError();
 
-            print "[UPDATE] (removed) ($result) $delete\n";
+            $output[] = "[UPDATE] (removed) (".(($result) ? "true" : "false").") $delete";
 
             if ($result === false) {
-               print "[SQL UPDATE ERROR] (removed) $tableName / $tableKey / $delete / (".$db->lastError.")\n";
+               $output[] = "[SQL UPDATE ERROR] (removed) $tableName / $tableKey / $delete / ($dbError)";
                continue;
             }
 
-            print "[SUCCESS] (removed) $tableName / $tableKey\n";
+            $output[] = "[SUCCESS] (removed) $tableName / $tableKey";
 
             $stats['success']++;
 
@@ -127,7 +145,8 @@ if ($doAdd) {
          }
 
          if (empty($valuesFields)) { 
-            print "[NO VALUE FIELDS] (added) $tableName / $tableKey / ".json_encode($tableItemData)."\n";
+            $output[] = "[NO VALUE FIELDS] (added) $tableName / $tableKey / ".json_encode($tableItemData);
+            $stats['malformed'][$tableName]++;
             continue; 
          }
 
@@ -137,22 +156,24 @@ if ($doAdd) {
          //$comment = sprintf("/* %s(%s) = %s */",$tableItems['objectKey'],$tableItems['objectValue'],$tableItems['objectInfo']);
          $insert  = sprintf("INSERT INTO $tableName (%s) VALUES (%s)",implode(', ',$valuesInsert),implode(', ',$valuesFields));
 
-         print "[DEBUG] (added) $insert\n";
+         if ($debugOn) { $output[] = "[DEBUG] (added) $insert"; }
 
          //$sqlData[] = $comment;
          $sqlData[] = $insert.';';
 
          if ($execSql) {
             $result = $db->execute($insert);
+            list($dbErrno,$dbError) = $db->lastError();
 
-            print "[INSERT] (added) ($result) $insert\n";
+            $output[] = "[INSERT] (added) (".(($result) ? "true" : "false").") $insert";
 
             if ($result === false) {
-               print "[SQL UPDATE ERROR] (added) $tableName / $tableKey / $insert / (".$db->lastError.")\n";
+               $output[] = "[SQL UPDATE ERROR] (added) $tableName / $tableKey / $insert / ($dbError)";
+               $stats['error'][$tableName]++;
                continue;
             }
 
-            print "[SUCCESS] (added) $tableName / $tableKey\n";
+            $output[] = "[SUCCESS] (added) $tableName / $tableKey";
 
             $stats['success']++;
 
@@ -165,7 +186,7 @@ if ($doAdd) {
 if ($doChange) {
    foreach ($data['analysis']['changed'] as $tableName => $tableChanges) {
       if (in_array($tableName,$skipTables)) { 
-         print "[SKIPPED TABLE] (changed) $tableName\n";
+         $output[] = "[SKIPPED TABLE] (changed) $tableName";
          continue; 
       }
       
@@ -175,7 +196,7 @@ if ($doChange) {
 
       foreach ($tableChanges as $tableKey => $tableChangeItems) {
          if (in_array($tableKey,$skipRows[$tableName] ?: [])) { 
-            print "[SKIPPED ROW] (changed) $tableName / $tableKey\n";
+            $output[] = "[SKIPPED ROW] (changed) $tableName / $tableKey";
             continue; 
          }
          // Construct the values to set from the after object
@@ -187,7 +208,8 @@ if ($doChange) {
          }
 
          if (empty($setFields)) { 
-            print "[NO SET FIELDS] (changed) $tableName / $tableKey / ".json_encode($tableChangeItems)."\n";
+            $output[] = "[NO SET FIELDS] (changed) $tableName / $tableKey / ".json_encode($tableChangeItems);
+            $stats['malformed'][$tableName]++;
             continue; 
          }
 
@@ -199,7 +221,8 @@ if ($doChange) {
          }
 
          if (empty($whereCond)) { 
-            print "[NO WHERE CONDITION] (changed) $tableName / $tableKey / ".json_encode($indexKeys)."\n";
+            $output[] = "[NO WHERE CONDITION] (changed) $tableName / $tableKey / ".json_encode($indexKeys);
+            $stats['malformed'][$tableName]++;
             continue; 
          }
 
@@ -216,7 +239,7 @@ if ($doChange) {
          $current = $db->query($query,['single' => true]);
 
          if ($current === false) {
-            print "[SQL SELECT ERROR] (changed) $tableName / $tableKey / $query / (".$db->lastError.")\n";
+            $output[] = "[SQL SELECT ERROR] (changed) $tableName / $tableKey / $query / (".$db->lastError.")";
             $stats['error'][$tableName]++;
             continue;
          }
@@ -229,8 +252,8 @@ if ($doChange) {
          $match    = array_diff($desired,$current);
 
          if (empty($match)) { 
-            print "[ALREADY MATCHES] (changed) $tableName / $tableKey / ".json_encode($desired)."\n";
-            $stats['match'][$tableName]++;
+            $output[] = "[ALREADY MATCHES] (changed) $tableName / $tableKey / ".json_encode($desired);
+            $stats['already-matches'][$tableName]++;
             continue; 
          }
 
@@ -248,20 +271,22 @@ if ($doChange) {
 
          $stats['diff'][$tableName]++;
 
-         print "[DEBUG] (changed) ".json_encode(['tableName' => $tableName, 'tableKey' => $tableKey, 'objectKey' => $tableChangeItems['objectKey'], 'objectValue' => $tableChangeItems['objectValue'], 'objectInfo' => $tableChangeItems['objectInfo'], 'current' => $current, 'previous' => $previous, 'desired' => $desired, 'diff' => $diff, 'changes' => $match],JSON_PRETTY_PRINT)."\n";
+         if ($debugOn) { $output[] = "[DEBUG] (changed) ".json_encode(['tableName' => $tableName, 'tableKey' => $tableKey, 'objectKey' => $tableChangeItems['objectKey'], 'objectValue' => $tableChangeItems['objectValue'], 'objectInfo' => $tableChangeItems['objectInfo'], 'current' => $current, 'previous' => $previous, 'desired' => $desired, 'diff' => $diff, 'changes' => $match],JSON_PRETTY_PRINT); }
 
          if ($execSql) {
             $update = sprintf("UPDATE $tableName SET %s WHERE %s",implode(', ',$setFields),implode(' AND ', $whereCond));
             $result = $db->execute($update);
+            list($dbErrno,$dbError) = $db->lastError();
 
-            print "[UPDATE] (changed) ($result) $update\n";
+            $output[] = "[UPDATE] (changed) (".(($result) ? "true" : "false").") $update";
 
             if ($result === false) {
-               print "[SQL UPDATE ERROR] (changed) $tableName / $tableKey / $update / (".$db->lastError.")\n";
+               $output[] = "[SQL UPDATE ERROR] (changed) $tableName / $tableKey / $update / ($dbError)";
+               $stats['error'][$tableName]++;
                continue;
             }
 
-            print "[SUCCESS] (changed) $tableName / $tableKey\n";
+            $output[] = "[SUCCESS] (changed) $tableName / $tableKey";
 
             $stats['success']++;
 
@@ -271,9 +296,10 @@ if ($doChange) {
    }
 }
 
-print "\n".json_encode(['diff' => $stats['diff'], 'error' => $stats['error']],JSON_PRETTY_PRINT)."\n";
-
+print "\n".implode("\n",$output)."\n";
 file_put_contents($sqlFile,implode("\n",$sqlData));
+
+fwrite(STDERR,"\n".json_encode(array_intersect_key($stats,array_flip(['diff','already-matches','error'])),JSON_PRETTY_PRINT)."\n");
 
 ksort($stats['table']);
 
