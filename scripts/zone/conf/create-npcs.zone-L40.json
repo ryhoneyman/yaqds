@@ -973,7 +973,7 @@
         }
     },
     "areas": {
-        "Dungeon_defeated_raiders_corpse": {
+        "#Dungeon_defeated_raiders_corpse": {
             "layout": "single",
             "spawngroup": "defeated_raiders_corpse",
             "grid": null,
@@ -986,7 +986,7 @@
                 "animation": 3
             }
         },
-        "Dungeon_defeated_raider": {
+        "#Dungeon_defeated_raider": {
             "layout": "single",
             "spawngroup": "defeated_raider",
             "grid": null,
@@ -999,7 +999,7 @@
                 "animation": 4
             }
         },
-        "Dungeon_raid_cleric": {
+        "#Dungeon_raid_cleric": {
             "layout": "single",
             "spawngroup": "raid_cleric",
             "grid": null,
@@ -1012,7 +1012,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_raid_bard": {
+        "#Dungeon_raid_bard": {
             "layout": "single",
             "spawngroup": "raid_bard",
             "grid": null,
@@ -1025,7 +1025,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_scornful_enchanter": {
+        "#Dungeon_scornful_enchanter": {
             "layout": "single",
             "spawngroup": "scornful_enchanter",
             "grid": null,
@@ -1038,7 +1038,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_raid_leader": {
+        "#Dungeon_raid_leader": {
             "layout": "single",
             "spawngroup": "raid_leader",
             "grid": null,
@@ -1051,7 +1051,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_punctual_raider": {
+        "#Dungeon_punctual_raider": {
             "layout": "single",
             "spawngroup": "punctual_raider",
             "grid": null,
@@ -1064,7 +1064,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_excited_raider": {
+        "#Dungeon_excited_raider": {
             "layout": "single",
             "spawngroup": "excited_raider",
             "grid": null,
@@ -1077,7 +1077,7 @@
                 "animation": 2
             }
         },
-        "Dungeon_impatient_raider": {
+        "#Dungeon_impatient_raider": {
             "layout": "single",
             "spawngroup": "impatient_raider",
             "grid": null,
@@ -1090,7 +1090,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_impatient_raiders_pet": {
+        "#Dungeon_impatient_raiders_pet": {
             "layout": "single",
             "spawngroup": "impatient_raiders_pet",
             "grid": null,
@@ -1103,7 +1103,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_druid_raider": {
+        "#Dungeon_druid_raider": {
             "layout": "single",
             "spawngroup": "druid_raider",
             "grid": null,
@@ -1116,7 +1116,7 @@
                 "animation": 1
             }
         },
-        "Dungeon_nosey_novice": {
+        "#Dungeon_nosey_novice": {
             "layout": "single",
             "spawngroup": "nosey_novice",
             "grid": null,
@@ -1129,7 +1129,7 @@
                 "animation": 0
             }
         },
-        "Dungeon_hesitant_monk": {
+        "#Dungeon_hesitant_monk": {
             "layout": "single",
             "spawngroup": "hesitant_monk",
             "grid": null,
@@ -1142,7 +1142,7 @@
                 "animation": 1
             }
         },
-        "Dungeon_thisisnottheways_corpse": {
+        "#Dungeon_thisisnottheways_corpse": {
             "layout": "single",
             "spawngroup": "thisisnottheways_corpse",
             "grid": null,
@@ -1641,7 +1641,7 @@
                 "respawntime": 300
             }
         },
-        "Lord_of_Injustice": {
+        "#Lord_of_Injustice": {
             "layout": "single",
             "spawngroup": "Lord_of_Injustice",
             "grid": null,

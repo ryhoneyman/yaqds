@@ -39,6 +39,7 @@
                 "runspeed": {"type": "d", "default": 0.00},
                 "walkspeed": {"type": "d", "default": 0.00},
                 "npc_aggro": {"type": "i", "default": 0},
+                "aggro_pc": {"type": "i", "default": 0},
                 "MR": {"type": "i", "default": 0},
                 "CR": {"type": "i", "default": 0},
                 "DR": {"type": "i", "default": 0},
