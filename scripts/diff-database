@@ -374,11 +374,6 @@ function processDeletes($main)
     
       $newTableInfo = $data['new'][$tableName];
 
-      if ($tableName == 'graveyard') {
-         var_dump("OLD",$oldTableInfo['data'],"NEW",$newTableInfo['data']);
-         exit;
-      }
-
       foreach ($oldTableInfo['refs']['primary'] as $oldRowKey => $oldDataRef) {
          if (!$oldDataRef) { continue; }
 
