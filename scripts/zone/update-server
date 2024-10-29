@@ -1,0 +1,4 @@
+#!/bin/sh
+export MYSQL_PWD='quarm'
+./create-npcs | mysql -h 192.168.1.24 -uquarm quarm
+

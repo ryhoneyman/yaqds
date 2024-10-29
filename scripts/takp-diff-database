@@ -3,6 +3,9 @@
 include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
+print "This is no longer used, use diff-database\n";
+exit;
+
 define('RULE_NPC_STARTENRAGEVALUE',10);
 define('RULE_COMBAT_MAXRAMPAGETARGET',3);
 

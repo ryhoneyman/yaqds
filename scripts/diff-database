@@ -176,7 +176,7 @@ foreach ($diffAvailable as $diffKey) {
       'old' => processDatabaseFile($main,$main->var('oldFile')),
       'new' => processDatabaseFile($main,$main->var('newFile')),
    ]);
-   
+
    $main->var('results',[
       'meta' => [
          'newFile' => basename($main->var('newFile')),
@@ -184,6 +184,7 @@ foreach ($diffAvailable as $diffKey) {
       ],
       'analysis' => [],
       'modifiedTables' => [],
+      'tableInfo' => $main->var('tableInfo'),
    ]);
    
    $cache = [];
@@ -1667,7 +1668,7 @@ function processDatabaseFile($main, $fileName)
    
    $tableName   = null;
    $tableCreate = false;
-   $tableInfo   = [];
+   $tableData   = [];
    $export      = $main->var('tableInfo') ?: ['keys' => [], 'columns' => [], 'refs' => []];
 
    $data = file_get_contents($fileName);
@@ -1681,29 +1682,29 @@ function processDatabaseFile($main, $fileName)
          if (isset($tableOpts[$tableFound]['skip'])) { continue; }
          if (isset($tableOpts[$tableFound]['keys'])) { 
             //print "+++ Using static keys for $tableFound (".json_encode($tableOpts[$tableFound]['keys']).")\n";
-            $tableInfo[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; 
+            $tableData[$tableFound]['keys']['primary'] = $tableOpts[$tableFound]['keys']; 
          }
 
          $tableName   = $tableFound;
          $tableCreate = true;
-         $tableInfo[$tableName]['name']     = $tableName;
-         $tableInfo[$tableName]['exists']   = true;
-         $tableInfo[$tableName]['rowCount'] = 0;
+         $tableData[$tableName]['name']     = $tableName;
+         $tableData[$tableName]['exists']   = true;
+         $tableData[$tableName]['rowCount'] = 0;
 
       }
       else if ($tableCreate && preg_match('/^\s*`(\w+?)`\s+(\w+)/',$line,$match)) {
-         $tableInfo[$tableName]['columns'][] = $match[1];
+         $tableData[$tableName]['columns'][] = $match[1];
          $export['columns'][$tableName][$match[1]] = $match[2];
       }
       else if ($tableName && preg_match('/^\s*PRIMARY KEY \((.*?)\)/',$line,$match)) {
          $tableKeys = explode(',',str_replace('`','',$match[1]));
-         $tableInfo[$tableName]['keys']['primary'] = $tableKeys;
+         $tableData[$tableName]['keys']['primary'] = $tableKeys;
          $tableCreate = false;
       }
       else if ($tableName && preg_match('/\s*(?:UNIQUE )?KEY `(\S+)` \((.*?)\)/',$line,$match)) {
          $keyName   = strtolower($match[1]);
          $tableKeys = explode(',',str_replace('`','',$match[2]));
-         $tableInfo[$tableName]['keys'][$keyName] = $tableKeys;
+         $tableData[$tableName]['keys'][$keyName] = $tableKeys;
          $tableCreate = false;
       }
       else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
@@ -1712,8 +1713,8 @@ function processDatabaseFile($main, $fileName)
 
          if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
 
-         $columnIndex = array_flip($tableInfo[$tableInsert]['columns']);
-         $tableKeys   = $tableInfo[$tableInsert]['keys'];
+         $columnIndex = array_flip($tableData[$tableInsert]['columns']);
+         $tableKeys   = $tableData[$tableInsert]['keys'];
 
          if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
 
@@ -1725,14 +1726,14 @@ function processDatabaseFile($main, $fileName)
          $rowList = preg_split('/\)\,\(/',$match[2]);
 
          foreach ($rowList as $row) {
-            $rowCount   = $tableInfo[$tableName]['rowCount']++;
+            $rowCount   = $tableData[$tableName]['rowCount']++;
             $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
             //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
             //print "PROCESSES: ".json_encode($rowColumns)."\n";
 
             $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
 
-            $tableInfo[$tableInsert]['data'][$rowCount] = $rowJson;
+            $tableData[$tableInsert]['data'][$rowCount] = $rowJson;
 
             foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
                $rowKeyList = [];
@@ -1743,7 +1744,7 @@ function processDatabaseFile($main, $fileName)
 
                $rowKey = implode('^',$rowKeyList);
 
-               $tableInfo[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+               $tableData[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
             }
          }
       }
@@ -1751,7 +1752,7 @@ function processDatabaseFile($main, $fileName)
 
    $main->var('tableInfo',$export);
 
-   return $tableInfo;
+   return $tableData;
 }
 
 function displayFormattedData($format, $values) 
