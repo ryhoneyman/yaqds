@@ -25,16 +25,31 @@ $alte  = $main->obj('adminlte');
 $main->title('Database Changes');
 $main->pageDescription('Perform enriched database differentials between data sets');
 
+$typeList = [
+    'quarm' => [
+       'prepend' => '',
+       'dbDir' => '/quarm/db',
+       'prefix' => 'quarm',
+    ],
+    'takp' => [
+       'prepend' => 'takp.',
+       'dbDir' => '/takp/db',
+       'prefix' => 'alkabor',
+    ]
+ ];
+
+$diffType  = $input->get('type','alphanumeric') ?: 'quarm';
 $diffValue = $input->get('diff','numeric,dash') ?: null;
 $download  = $input->get('download','alphanumeric') ?: null;
+$prepend   = $typeList[$diffType]['prepend'];
 
-$databaseInfo     = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/database.info.json'),true);
+$databaseInfo     = json_decode(file_get_contents(APP_CONFIGDIR."/database/changes/{$prepend}database.info.json"),true);
 $formats          = json_decode(file_get_contents(APP_CONFIGDIR.'/database/changes/display.format.json'),true);
 $diffsList        = $databaseInfo['diffs'];
-$diffAvailable    = array_merge($diffsList['releases'],$diffsList['sequential']);
+$diffAvailable    = array_merge($diffsList['releases'] ?: [],$diffsList['sequential'] ?: []);
 $dbLabels         = $databaseInfo['labels'];
 $dbDiffDir        = sprintf("%s/database/changes/diffs",APP_CONFIGDIR);
-$dbDiffFileFormat = "diff.%s.%s.json";
+$dbDiffFileFormat = "{$prepend}diff.%s.%s.json";
 
 if (!in_array($diffValue,$diffAvailable)) { $diffValue = end($diffAvailable); }
 
@@ -66,7 +81,8 @@ $selectOpts = array('class' => 'form-control gear', 'script' => 'onchange="autoC
 
 print $alte->displayCard($alte->displayRow(
     $html->startForm().
-    "<div class='input-group' style='width:fit-content;'>".    
+    "<div class='input-group' style='width:fit-content;'>".  
+    $html->inputHidden('type',$diffType).  
     $html->select('diff',$pulldown,$diffValue,$selectOpts).
     $html->submit('download','Download',array('class' => 'btn-wide btn btn-success')).
     "</div>".
