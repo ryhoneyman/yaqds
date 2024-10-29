@@ -374,6 +374,11 @@ function processDeletes($main)
     
       $newTableInfo = $data['new'][$tableName];
 
+      if ($tableName == 'graveyard') {
+         var_dump("OLD",$oldTableInfo['data'],"NEW",$newTableInfo['data']);
+         exit;
+      }
+
       foreach ($oldTableInfo['refs']['primary'] as $oldRowKey => $oldDataRef) {
          if (!$oldDataRef) { continue; }
 
@@ -393,7 +398,14 @@ function processDeletes($main)
 
             $deletesLeft--;
 
-            $oldData = array_combine($oldTableInfo['columns'],json_decode($oldDataJson,true));
+            $oldDataValues = json_decode($oldDataJson,true);
+
+            if (!$oldDataValues) {
+               $main->debug->trace(0,"MALFORMED/MISSING JSON: $tableName, primary/$oldRowKey - $oldDataJson");
+               continue;
+            }
+
+            $oldData = array_combine($oldTableInfo['columns'],$oldDataValues);
 
             $analysis = provideAnalysis($main,$tableName,$sourceData['removed'],$state,$oldData,[]);
 
@@ -1676,18 +1688,47 @@ function processDatabaseFile($main, $fileName)
       ],
    ];
    
-   $tableName   = null;
-   $tableCreate = false;
-   $tableData   = [];
-   $export      = $main->var('tableInfo') ?: ['keys' => [], 'columns' => [], 'refs' => []];
+   $tableName     = null;
+   $tableCreate   = false;
+   $insertRunning = false;
+   $tableData     = [];
+   $insertData    = [];
+   $export        = $main->var('tableInfo') ?: ['keys' => [], 'columns' => [], 'refs' => []];
 
    $data = file_get_contents($fileName);
 
    print "@@@ Processing $fileName\n";
 
-   foreach (explode("\n",$data) as $line) {
-      if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
-         $tableFound = $match[1];
+   foreach (explode("\n",$data) as $line) { 
+      if (preg_match('/^\((.*)\),\s*/',$line,$match)) {
+         if (!$insertRunning) { continue; }
+         $insertData[] = $match[1];
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES\s*$/',$line,$match)) {
+         $tableInsert = $match[1];
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $insertRunning = true;
+      }
+      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
+         $tableInsert   = $match[1];
+         $tableCreate   = false;
+         $insertRunning = false;
+
+         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
+
+         $rowList = preg_split('/\)\,\(/',$match[2]);
+
+         processInsertData($tableData,$export,$tableInsert,$rowList);
+      }
+      else if (preg_match('/\/\*/',$line)) {
+         $tableCreate   = false;
+         $insertRunning = false;
+      }
+      else if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
+         $tableFound    = $match[1];
+         $insertRunning = false;
          
          if (isset($tableOpts[$tableFound]['skip'])) { continue; }
          if (isset($tableOpts[$tableFound]['keys'])) { 
@@ -1717,52 +1758,52 @@ function processDatabaseFile($main, $fileName)
          $tableData[$tableName]['keys'][$keyName] = $tableKeys;
          $tableCreate = false;
       }
-      else if (preg_match('/^INSERT INTO `(\w+?)` VALUES \((.*)\);/',$line,$match)) {
-         $tableInsert = $match[1];
-         $tableCreate = false;
 
-         if (isset($tableOpts[$tableInsert]['skip'])) { continue; }
-
-         $columnIndex = array_flip($tableData[$tableInsert]['columns']);
-         $tableKeys   = $tableData[$tableInsert]['keys'];
-
-         if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
-
-         if (!isset($export['keys'][$tableInsert])) { 
-            //print "=== Exporting keys for $tableInsert (".json_encode($tableKeys['primary']).")\n";
-            $export['keys'][$tableInsert] = $tableKeys['primary']; 
-         }
-
-         $rowList = preg_split('/\)\,\(/',$match[2]);
-
-         foreach ($rowList as $row) {
-            $rowCount   = $tableData[$tableName]['rowCount']++;
-            $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
-            //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
-            //print "PROCESSES: ".json_encode($rowColumns)."\n";
-
-            $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
-
-            $tableData[$tableInsert]['data'][$rowCount] = $rowJson;
-
-            foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
-               $rowKeyList = [];
-
-               foreach ($tableKeyColumns as $tableKeyColumn) {
-                  $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
-               }
-
-               $rowKey = implode('^',$rowKeyList);
-
-               $tableData[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
-            }
-         }
+      if (!$insertRunning && $insertData) {
+         processInsertData($tableData,$export,$tableInsert,$insertData);
+         $insertData = [];
       }
    }
 
    $main->var('tableInfo',$export);
 
    return $tableData;
+}
+
+function processInsertData(&$tableData, &$export, $tableInsert, $rowList)
+{
+   $columnIndex = array_flip($tableData[$tableInsert]['columns']);
+   $tableKeys   = $tableData[$tableInsert]['keys'];
+
+   if (!$tableKeys['primary']) { $tableKeys['primary'] = reset($tableKeys); }
+
+   if (!isset($export['keys'][$tableInsert])) { 
+      //print "=== Exporting keys for $tableInsert (".json_encode($tableKeys['primary']).")\n";
+      $export['keys'][$tableInsert] = $tableKeys['primary']; 
+   }
+
+   foreach ($rowList as $row) {
+      $rowCount   = $tableData[$tableInsert]['rowCount']++;
+      $rowColumns = json_decode('['.trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()').']',true);
+      //print "ROWCOLUMNS: [".trim(str_replace('NULL','null',str_replace('\\"',"'",str_replace("'",'"',$row))),'()')."]\n";
+      //print "PROCESSES: ".json_encode($rowColumns)."\n";
+
+      $rowJson = json_encode($rowColumns,JSON_UNESCAPED_SLASHES);
+
+      $tableData[$tableInsert]['data'][$rowCount] = $rowJson;
+
+      foreach ($tableKeys as $tableKey => $tableKeyColumns) { 
+         $rowKeyList = [];
+
+         foreach ($tableKeyColumns as $tableKeyColumn) {
+            $rowKeyList[] = $rowColumns[$columnIndex[$tableKeyColumn]];
+         }
+
+         $rowKey = implode('^',$rowKeyList);
+
+         $tableData[$tableInsert]['refs'][$tableKey][$rowKey] = $rowCount;
+      }
+   }
 }
 
 function displayFormattedData($format, $values) 
