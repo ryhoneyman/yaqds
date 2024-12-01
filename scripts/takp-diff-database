@@ -311,7 +311,7 @@ function processDatabaseDB($main, $dbName)
 
    print "@@@ Processing $dbName\n";
 
-
+   $data = '';
 
    foreach (explode("\n",$data) as $line) {
       if (preg_match('/^CREATE TABLE `(\S+)`/',$line,$match)) {
