@@ -23,22 +23,22 @@ $main->connectDatabase('db.takpmerge.conf','takpmerge');
 
 $db = $main->db('takpmerge');
 
-$opts = getopt(null,array('diff:','exec','remove','add','change','all','debug'));
+$opts = getopt(null,array('diff:','exec','remove','add','change','all','debug','file:','write:'));
 
 $diff      = $opts['diff'] ?: '20240717-20240828';
 $diffDates = preg_replace('/\-/','.',$diff);
 
-$fileName = APP_CONFIGDIR."/database/changes/diffs/takp.diff.$diffDates.json";
+$fileName = $opts['file'] ?: APP_CONFIGDIR."/database/changes/diffs/takp.diff.$diffDates.json";
 $data     = json_decode(file_get_contents($fileName),true);
 
 if (!$data) {
-   print "\nNo data for ($diff) $fileName\n";
+   print "\nNo data for $fileName\n";
    exit;
 }
 
 $keys     = $data['tableInfo']['keys'];
 $columns  = $data['tableInfo']['columns'];
-$sqlFile  = APP_BASEDIR.'/scripts/data/apply.sql';
+$sqlFile  = $opts['write'] ?: APP_BASEDIR.'/scripts/data/apply.sql';
 $execSql  = (isset($opts['exec'])) ? true : false;
 $doRemove = (isset($opts['remove'])) ? true : false;
 $doAdd    = (isset($opts['add'])) ? true : false;
@@ -98,7 +98,7 @@ if ($doRemove) {
          $stats['removed'][$tableName]++;
          $stats['table'][$tableName]++;
 
-         //$comment = sprintf("/* %s(%s) = %s */",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
+         //$comment = sprintf("-- %s(%s) = %s",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
          $delete  = sprintf("DELETE FROM $tableName WHERE %s",implode(' AND ', $whereCond));
 
          if ($debugOn) { $output[] = "[DEBUG] (removed) $delete"; }
@@ -153,7 +153,7 @@ if ($doAdd) {
          $stats['added'][$tableName]++;
          $stats['table'][$tableName]++;
 
-         //$comment = sprintf("/* %s(%s) = %s */",$tableItems['objectKey'],$tableItems['objectValue'],$tableItems['objectInfo']);
+         //$comment = sprintf("-- %s(%s) = %s",$tableItems['objectKey'],$tableItems['objectValue'],$tableItems['objectInfo']);
          $insert  = sprintf("INSERT INTO $tableName (%s) VALUES (%s)",implode(', ',$valuesInsert),implode(', ',$valuesFields));
 
          if ($debugOn) { $output[] = "[DEBUG] (added) $insert"; }
@@ -229,7 +229,7 @@ if ($doChange) {
          $stats['changed'][$tableName]++;
          $stats['table'][$tableName]++;
 
-         $comment = sprintf("/* %s(%s) = %s */",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
+         $comment = sprintf("-- %s(%s) = %s",$tableChangeItems['objectKey'],$tableChangeItems['objectValue'],$tableChangeItems['objectInfo']);
          $update  = sprintf("UPDATE $tableName SET %s WHERE %s",implode(', ',$setFields),implode(' AND ', $whereCond));
 
          $sqlData[] = $comment;
