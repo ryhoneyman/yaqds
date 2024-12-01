@@ -1,0 +1,4 @@
+#!/bin/bash
+DIFFDATES=$1
+./diff-database --type takp --diff $DIFFDATES --force --flags strip-custom-keys=true --write ./data/takp/data.$DIFFDATES.json
+./apply-dump-db --diff $DIFFDATES --all --exec --file ./data/takp/data.$DIFFDATES.json --write ./data/takp/apply.$DIFFDATES.sql > ./data/takp/apply.$DIFFDATES.output

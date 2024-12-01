@@ -26,7 +26,7 @@ if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php'))
 if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
 if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache','flags:','update','type:'));
+$opts      = getopt(null,array('diff:','filter:','limit:','force','skipcache','flags:','update','type:','write:'));
 $diff      = $opts['diff'] ?: null;                       // Force diff between OLD-NEW
 $filter    = strtolower($opts['filter']) ?: null;         // Filter to specific table only
 $limit     = $opts['limit'] ?: null;                      // Limit processing counts
@@ -169,8 +169,8 @@ if ($diff && in_array($diff,$diffAvailable)) { $diffAvailable = [$diff]; }
 foreach ($diffAvailable as $diffKey) {
    list($dbOldDate,$dbNewDate) = explode('-',$diffKey);
 
-   $diffFile  = APP_CONFIGDIR."/database/changes/diffs/{$prepend}diff.$dbOldDate.$dbNewDate.json";
-   $diffGz    = APP_CONFIGDIR."/database/changes/diffsgz/{$prepend}diff.$dbOldDate.$dbNewDate.json.gz";
+   $diffFile  = $opts['write'] ?: APP_CONFIGDIR."/database/changes/diffs/{$prepend}diff.$dbOldDate.$dbNewDate.json";
+   $diffGz    = ($opts['write']) ? null : APP_CONFIGDIR."/database/changes/diffsgz/{$prepend}diff.$dbOldDate.$dbNewDate.json.gz";
    
    if ($dbOldDate == $dbNewDate || $processed[$diffKey] || (file_exists($diffFile) && (!$force && !$update))) {
       if (file_exists($diffFile)) { print "Differential exists $dbOldDate/$dbNewDate, --force or --update not specified, skipping...\n"; }
@@ -220,7 +220,8 @@ foreach ($diffAvailable as $diffKey) {
       }
       else { $results = $main->var('results'); }
 
-      file_put_contents("compress.zlib://$diffGz",json_encode($results,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT));
+      if ($diffGz) { file_put_contents("compress.zlib://$diffGz",json_encode($results,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)); }
+
       file_put_contents($diffFile,json_encode($results,JSON_UNESCAPED_SLASHES));
 
       $fileStats = stat($diffFile);
