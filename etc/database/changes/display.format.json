@@ -107,6 +107,9 @@
         "skill_caps": {
             "default": ["STATE","skillName","className","level","cap"]
         },
+        "skill_difficulty": {
+            "default": ["STATE","skillid","name","difficulty","class"]
+        },
         "npc_faction": {
             "default": ["STATE","id","name","primaryfaction","ignore_primary_assist"]
         },

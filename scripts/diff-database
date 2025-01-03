@@ -300,6 +300,8 @@ function processChanges($main)
          if ($newDataJson != $oldDataJson) { 
             $main->debug->trace(9,"CHANGE DETECTED! $tableName, primary/$newRowKey"); 
 
+            //if ($tableName == 'lootdrop') { print "NEW: $newDataJson\nOLD: $oldDataJson\n"; }
+
             $newData = array_combine($newTableInfo['columns'],json_decode($newDataJson,true));
    
             if ($newDataJson && $oldDataJson && (is_null($changesLeft) || $changesLeft > 0)) {
@@ -558,6 +560,22 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
       }
       
    }
+   else if ($tableName == 'skill_difficulty') {
+      $skillId   = $objectData['skillid'];
+      $skillName = $objectData['name'];
+        
+      if ($state == 'added' || $state == 'removed') {       
+         $analysis = [
+            'skillid'    => $skillId,
+            'name'       => $skillName,
+            'difficulty' => $objectData['difficulty'],
+            'class'      => $objectData['class'],
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $skillName;
+      }
+   }
    else if ($tableName == 'npc_types') {
       $npcId   = $objectData['id'];
       $npcName = $objectData['name'];
@@ -683,6 +701,9 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'spawnGroupIdList' => $spawnGroupIdList,
             'zoneNameList'     => $zoneNameList,
          ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s",$itemName);
       }
    }
    else if ($tableName == 'grid_entries') {
@@ -972,6 +993,9 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'chance'      => $catchChance,
          ];
       }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$itemName,$zoneName);
+      }
    }
    else if ($tableName == 'tradeskill_recipe') {
       $recipeId     = $objectData['id'];
@@ -996,6 +1020,9 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'quest'       => $quest,
             'enabled'     => $enabled,
          ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s",$recipeName);
       }
    }
    else if ($tableName == 'tradeskill_recipe_entries') {
@@ -1023,6 +1050,9 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'recipeEntryType'  => $recipeEntryType,
             'recipeEntryCount' => $recipeEntryCount,
          ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s",$recipeName,$itemName);
       }
    }
    else if ($tableName == 'ground_spawns') {
