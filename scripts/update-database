@@ -58,7 +58,7 @@ rm $AVAILFILE
 
 ### Remove MariaDB bugged sandbox line
 printf "* Preparing quarm data file\n"
-tail -n +2 quarm_*.sql > quarm-import.sql
+tail -n +3 quarm_*.sql > quarm-import.sql
 
 export MYSQL_PWD="$DBPASS"
 
