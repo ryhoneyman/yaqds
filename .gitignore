@@ -1,4 +1,5 @@
 /etc/db*.conf
+/etc/version.json
 /quarmdb
 /var/cache/**
 !/var/cache/**/
