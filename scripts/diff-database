@@ -151,6 +151,12 @@ $main->var('lookup',[
    'npc_spells_entries' => [
       'tableRefs' => ['npc_spells','spells_new'],
    ],
+   'char_create_combinations' => [
+      'tableRefs' => ['zone'],
+   ],
+   'start_zones' => [
+      'tableRefs' => ['zone'],
+   ]
 ]);
 
 $main->var('rules',processFlags($flags));
@@ -1505,7 +1511,7 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
          $analysis['objectInfo'] = sprintf("%s/%s/L%s",$className,$skillName,$level);
       }
    }
-   else if ($tableName == 'spells_new') {
+   else if ($tableName == 'spells_new' || $tableName == 'spells_en') {
       $spellId             = $objectData['id'];
       $spellName           = $objectData['name'];
       $range               = $objectData['range'];
@@ -1517,8 +1523,11 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
       $manaCost            = $objectData['mana'];
       $castingSkill        = $objectData['skill'];
       $targetType          = $objectData['targettype'];
+      $targetTypeName      = $conv->convertSpellTargetType($targetType);
       $resistType          = $objectData['resistType'];
       $resistDiff          = $objectData['ResistDiff'];
+      $skillName           = $conv->convertSkill($castingSkill);
+      $resistTypeName      = $conv->convertResistType($resistType);
 
       $effectList    = $conv->convertSpellEffectList($objectData);
       $classList     = $conv->convertSpellClasses($objectData);
@@ -1547,6 +1556,9 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
             'minDuration'         => $minDuration,
             'maxDuration'         => $maxDuration,
             'duration'            => $duration,
+            'targetTypeName'      => $targetTypeName,
+            'skillName'           => $skillName,
+            'resistTypeName'      => $resistTypeName,
          ];
       }
       else if ($state == 'changed') {
@@ -1635,6 +1647,97 @@ function provideAnalysis($main, $tableName, $sourceData, $state, $objectData, $p
       }
       else if ($state == 'changed') {
          $analysis['objectInfo'] = $itemName;
+      }
+   }
+   else if ($tableName == 'char_create_combinations') {
+      $allocationId   = $objectData['allocation_id'];
+      $raceId         = $objectData['race'];
+      $classId        = $objectData['class'];
+      $deityId        = $objectData['deity'];
+      $startZoneId    = $objectData['start_zone'];
+      $startZoneName  = getTableDataByKey($sourceData['zone'],$startZoneId,'zoneidnumber','short_name');
+      $expansionsReq  = $objectData['expansions_req'];
+      $className      = $conv->convertClass($classId);
+      $raceName       = $conv->convertRace($raceId);
+      $deityName      = $conv->convertDeity($deityId);
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'allocation_id'  => $allocationId,
+            'race'           => $raceId,
+            'class'          => $classId,
+            'deity'          => $deityId,
+            'start_zone'     => $startZoneId,
+            'expansions_req' => $expansionsReq,
+            'className'      => $className,
+            'raceName'       => $raceName,
+            'deityName'      => $deityName,
+            'startZoneName'  => $startZoneName,
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s/%s/%s",$raceName,$className,$deityName,$startZoneName);
+      }
+   }
+   else if ($tableName == 'start_zones') {
+      $startX          = $objectData['x'];
+      $startY          = $objectData['y'];
+      $startZ          = $objectData['z'];
+      $startZoneId     = $objectData['zone_id'];
+      $playerClassId   = $objectData['player_class'];
+      $playerRaceId    = $objectData['player_race'];
+      $playerDeityId   = $objectData['player_deity'];
+      $bindX           = $objectData['bind_x'];
+      $bindY           = $objectData['bind_y'];
+      $bindZ           = $objectData['bind_z'];
+      $bindZoneId      = $objectData['start_zone'];
+      $selectRank      = $objectData['select_rank'];
+      $startZoneName   = getTableDataByKey($sourceData['zone'],$startZoneId,'zoneidnumber','short_name');
+      $bindZoneName    = getTableDataByKey($sourceData['zone'],$startZoneId,'zoneidnumber','short_name');
+      $playerClassName = $conv->convertClass($playerClassId);
+      $playerRaceName  = $conv->convertRace($playerRaceId);
+      $playerDeityName = $conv->convertDeity($playerDeityId);
+
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = [
+            'x'               => $startX,
+            'y'               => $startY,
+            'z'               => $startZ,
+            'zone_id'         => $startZoneId,
+            'player_class'    => $playerClassId,
+            'player_race'     => $playerRaceId,
+            'player_deity'    => $playerDeityId,
+            'bind_x'          => $bindX,
+            'bind_y'          => $bindY,
+            'bind_z'          => $bindZ,
+            'select_rank'     => $selectRank,
+            'playerClassName' => $playerClassName,
+            'playerRaceName'  => $playerRaceName,
+            'playerDeityName' => $playerDeityName,
+            'startZoneName'   => $startZoneName,
+            'bindZoneName'    => $bindZoneName,
+            'startLocation'   => sprintf("y:%s,x:%s,z:%s",$startY,$startX,$startZ),
+            'bindLocation'    => sprintf("y:%s,x:%s,z:%s",$bindY,$bindX,$bindZ),
+         ];
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = sprintf("%s/%s/%s/%s",$raceName,$className,$deityName,$startZoneName);
+      }
+   }
+   else if ($tableName == 'char_create_point_allocations') {
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = $objectData;
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $objectData['id'];
+      }
+   }
+   else if ($tableName == 'npc_types_tint') {
+      if ($state == 'added' || $state == 'removed') {
+         $analysis = $objectData;
+      }
+      else if ($state == 'changed') {
+         $analysis['objectInfo'] = $objectData['id'];
       }
    }
 
