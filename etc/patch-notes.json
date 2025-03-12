@@ -11,7 +11,8 @@
             ],
             "frontend": [],
             "backend": [
-                "Updated database differential algorithms and additional table decodes"
+                "Updated database differential algorithms and additional table decodes",
+                "Updated loot code to align with TAKP merge in December 2024"
             ],
             "library": []
         }
