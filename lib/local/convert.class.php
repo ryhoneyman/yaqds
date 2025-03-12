@@ -1100,6 +1100,32 @@ class Convert extends LWPLib\Base
    
       return $classList[$classId] ?: null;
    }
+
+   public function convertDeity($deityId)
+   {
+      $deityList = [
+         '0'   => 'Unknown',
+         '396' => 'Agnostic',
+         '201' => 'Bertoxxulous',
+         '202' => 'Brell Serilis',
+         '203' => 'Cazic-Thule',
+         '204' => 'Erollisi Marr',
+         '205' => 'Fizzlethorpe Bristlebane',
+         '206' => 'Innoruuk',
+         '207' => 'Karana',
+         '208' => 'Mithaniel Marr',
+         '209' => 'Prexus',
+         '210' => 'Quellious',
+         '211' => 'Rallos Zek',
+         '212' => 'Rodcet Nife',
+         '213' => 'Solusek Ro', 
+         '214' => 'The Tribunal', 
+         '215' => 'Tunare', 
+         '216' => 'Veeshan', 
+      ];
+   
+      return $deityList[$deityId] ?: null;
+   }
    
    public function convertSkill($skillId)
    {

@@ -130,6 +130,24 @@
         },
         "npc_spells_entries": {
             "default": ["STATE","npcSpellsName","spellName","recast_delay","priority","resist_adjust"]
+        },
+        "char_create_combinations": {
+            "default": ["STATE","raceName","className","deityName","startZoneName","expansions_req"]
+        },
+        "char_create_point_allocations": {
+            "default": ["STATE","id","base_str","base_sta","base_dex","base_agi","base_int","base_wis","base_cha","alloc_str","alloc_sta","alloc_dex","alloc_agi","alloc_int","alloc_wis","alloc_cha"]
+        },
+        "spells_new": {
+            "default": ["STATE","id","name","range","cast_time","recovery_time","recast_time","mana","skillName","targetTypeName","resistTypeName","ResistDiff","duration"]
+        },
+        "spells_en": {
+            "default": ["STATE","id","name","range","cast_time","recovery_time","recast_time","mana","skillName","targetTypeName","resistTypeName","ResistDiff","duration"]
+        },
+        "npc_types_tint": {
+            "default": ["STATE","id","tint_set_name","red1h","grn1h","blu1h","red2c","grn2c","blu2c","red3a","grn3a","blu3a","red4b","grn4b","blu4b","red5g","grn5g","blu5g","red6l","grn6l","blu6l","red7f","grn7f","blu7f","red8x","grn8x","blu8x","red9x","grn9x","blu9x"]
+        },
+        "start_zones": {
+            "default": ["STATE","playerClassName","playerRaceName","playerDeityName","select_rank","startZoneName","startLocation","bindZoneName","bindLocation"]
         }
     }
 }
