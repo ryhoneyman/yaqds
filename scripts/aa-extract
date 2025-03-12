@@ -1,0 +1,88 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+if (!$main->buildClass('csv','LWPLib\CSV',null,'csv.class.php')) { exit; }
+
+$rawEQStrings = explode("\n",file_get_contents('./data/eqstr_en.txt'));
+$aaNameList   = getAANameList($main);
+$outData      = processEQStringsData($rawEQStrings,$aaNameList);
+
+$outData = array_merge([['Skill Name','Skill ID','String ID','String Description']],$outData);
+
+file_put_contents('./data/aa.list.json',json_encode($outData,JSON_PRETTY_PRINT));
+
+$main->obj('csv')->writeFile('./data/aa.list.csv',$outData);
+
+//print "\n".json_encode(array_diff_key($aaNameList,$outData),JSON_PRETTY_PRINT)."\n";
+
+?>
+<?php
+
+function processEQStringsData($stringsData, $aaNameList)
+{
+   $return = [];
+
+   $capture = null;
+
+   foreach ($stringsData as $line) {
+      if (!preg_match('/^(\d+)\s+(.*)$/',$line,$match)) { continue; }
+
+      $stringId   = $match[1];
+      $stringDesc = $match[2];
+
+      if ($aaNameList[$stringDesc]) { $capture = $stringDesc; }
+      else if ($capture) {
+         $return[$capture] = [
+            'skill_name'  => $capture,
+            'skill_id'    => $aaNameList[$capture]['skill_id'],
+            'string_id'   => $stringId,
+            'string_desc' => $stringDesc,
+         ];
+         $capture = false;
+      }
+   }
+
+   return $return;
+}
+
+function getAANameList($main)
+{
+   $statement = 'SELECT name,skill_id FROM altadv_vars';
+   $result    = $main->db()->query($statement);
+
+   $translate = [
+      'Lifeburn'           => 'Life Burn',
+      'Ayonaes Tutelage'   => "Ayonae's Tutelage",
+      'Jewelcraft Mastery' => 'Jewel Craft Mastery',
+      'Fletching Mastery'  => 'Fletching/Bowyer Mastery',
+   ];
+
+   foreach ($translate as $before => $after) {
+      if ($result[$before]) {
+         $result[$after] = $result[$before];
+         unset($result[$before]);
+      }
+   }
+   
+   return $result;
+}
+
+?>
