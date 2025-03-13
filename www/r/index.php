@@ -58,7 +58,7 @@ function routeItem($main)
     $values = [
         'URL'         => sprintf("%s%s",$baseUrl,$requestUri),
         'TITLE'       => sprintf("%s | Item | YAQDS",$response['name']),
-        'DESCRIPTION' => implode("<br>",$response['_description']),
+        'DESCRIPTION' => implode("\n",$response['_description']),
         'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$response['icon']),
     ];
 
