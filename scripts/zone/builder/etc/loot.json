@@ -1,0 +1,27 @@
+{
+    "93074_an_orc_scout_MAGELO-GEN": {
+        "id": 93074,   
+        "coin": {
+            "min": {"P":0, "G":0, "S":0, "C":1 },
+            "max": {"P":1, "G":0, "S":0, "C":0 },
+            "avg": {"P":0, "G":0, "S":5, "C":0 }
+        },
+        "expansion": {
+            "min": "Any",
+            "max": "Any"
+        },
+        "content-flags": {
+            "enabled": null,
+            "disabled": null
+        },
+        "raw": {
+            "done": 0
+        }
+    } 
+}
+
+{
+    "a_skeleton": {
+        "loot": "93074_an_orc_scout_MAGELO-GEN"
+    }
+}
