@@ -44,12 +44,12 @@ class Main extends LWPLib\MainBase
    {
       parent::initialize($options);
 
-      if ($options['data']) {
+      if (isset($options['data']) && $options['data']) {
          if (!$this->buildClass('data','Data',array('db' => $this->db(), 'file' => $options['data']),'local/data.class.php')) { exit; }
          $this->data = $this->obj('data');
       }
    
-      if ($options['map']) {
+      if (isset($options['map']) && $options['map']) {
          if (!$this->buildClass('map','Map',null,'local/map.class.php')) { exit; }
          $this->map = $this->obj('map');
       }
