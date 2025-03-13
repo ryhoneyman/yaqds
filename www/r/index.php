@@ -51,7 +51,38 @@ function routeItem($main)
 
     if (!$response || $response['error']) { $restapi->sendResponse($response['error'] ?: null,null,404,'html'); }
 
-    print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+    //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+
+    $baseUrl = 'https://yaqds.cc';
+
+    $values = [
+        'URL'         => sprintf("%s%s",$baseUrl,$requestUri),
+        'TITLE'       => sprintf("%s | Item | YAQDS",$response['name']),
+        'DESCRIPTION' => implode("<br>",$response['_description']),
+        'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$response['icon']),
+    ];
+
+    $template = "<html><head>\n". 
+                "<meta property='og:url' content='{{URL}}'>\n".
+                "<meta property='og:type' content='website'>\n".
+                "<meta property='og:title' content='{{TITLE}}'>\n".
+                "<meta property='og:description' content='{{DESCRIPTION}}'>\n".
+                "<meta property='og:image' content='{{IMAGE}}'>\n". 
+                "</head></html>";
+
+    print replaceValues($template,$values);
+}
+
+function replaceValues($string, $values)
+{
+    if (!is_null($values) && is_array($values)) {
+        $replace = array();
+        foreach ($values as $key => $value) { $replace['{{'.$key.'}}'] = ((is_array($value)) ? implode('|',array_filter(array_unique($value))) : ((is_bool($value)) ? json_encode($value) : $value)); }
+
+        $string = str_replace(array_keys($replace),array_values($replace),$string);
+    }
+
+    return $string;
 }
 
 ?>
