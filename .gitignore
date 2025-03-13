@@ -1,5 +1,6 @@
 /etc/db*.conf
 /etc/version.json
+/etc/settings.json
 /www/thj/** 
 /www/dynamic/**
 /quarmdb
