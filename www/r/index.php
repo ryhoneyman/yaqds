@@ -51,10 +51,7 @@ function routeItem($main)
 
     if (!$response || $response['error']) { $restapi->sendResponse($response['error'] ?: null,null,404,'html'); }
 
-    $itemData = $response['data'];
-    $itemDesc = $response['description'];
-
-    print json_encode($itemDesc,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+    print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 }
 
 ?>
