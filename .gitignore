@@ -1,5 +1,7 @@
 /etc/db*.conf
 /etc/version.json
+/www/thj/** 
+/www/dynamic/**
 /quarmdb
 /var/cache/**
 !/var/cache/**/
