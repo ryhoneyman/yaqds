@@ -55,6 +55,8 @@ function routeItem($main)
 
     $baseUrl = 'https://yaqds.cc';
 
+    ksort($itemData);
+
     $values = [
         'URL'         => sprintf("%s%s",$baseUrl,$requestUri),
         'TITLE'       => sprintf("%s | Item | YAQDS",$itemData['name']),
@@ -63,7 +65,7 @@ function routeItem($main)
         'DATA'        => json_encode($itemData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
     ];
 
-    $values['BODY'] = "<div style='background:black; color:white; font-family:arial; padding:5px; width:min-content;'>\n". 
+    $values['BODY'] = "<div style='background:black; color:white; font-family:arial; font-size:15px; padding:5px; width:min-content;'>\n". 
                       "<div style='background:black; color:#bbb; font-family:arial; border:1px solid #333; padding:5px; width:auto; min-width:400px; text-align:center;'>".$itemData['name']."</div>\n". 
                       "<div style='padding:2px;'></div>\n".
                       "<div style='background:black; color:white; font-family:arial; border:1px solid #333; white-space:pre; padding:10px; width:auto; min-width:400px;'>".
