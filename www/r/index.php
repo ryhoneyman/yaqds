@@ -60,7 +60,7 @@ function routeItem($main)
     $values = [
         'URL'         => sprintf("%s%s",$baseUrl,$requestUri),
         'TITLE'       => sprintf("%s | Item | YAQDS",$itemData['name']),
-        'DESCRIPTION' => implode("\n",$itemData['_description']),
+        'DESCRIPTION' => htmlentities(implode("\n",$itemData['_description'])),
         'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$itemData['icon']),
         'DATA'        => json_encode($itemData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
     ];
