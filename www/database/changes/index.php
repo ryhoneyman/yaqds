@@ -73,7 +73,11 @@ if ($download) {
     exit;
 }
 
-$diff = json_decode(file_get_contents(sprintf("%s/%s",$dbDiffDir,$diffFileName)),true);
+$filePath = sprintf("%s/%s",$dbDiffDir,$diffFileName);
+$diffStat = stat($filePath);
+$skipDiff = ($diffStat['size'] > (32 * 1024 * 1024)) ? true : false;
+
+$diff = ($skipDiff) ? [] : json_decode(file_get_contents($filePath),true);
 
 include 'ui/header.php';
 
@@ -92,6 +96,10 @@ print $alte->displayCard($alte->displayRow(
 
 printf("<h5>Differential between <span class='text-warning'>%s</span> and <span class='text-warning'>%s</span>:</h5><br>",
        $dbLabels[$diffOldDate],$dbLabels[$diffNewDate]);
+
+if ($skipDiff) {
+    print "<b><i>This differential is too large to display on screen, please use the download feature to obtain the data.</i></b>";
+}
 
 ksort($diff['modifiedTables']);
 
