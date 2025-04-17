@@ -3,7 +3,7 @@ include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
 $main = new Main([
-    'debugLevel'     => 0,
+    'debugLevel'     => 9,
     'debugType'      => DEBUG_COMMENT,
     'debugBuffer'    => false,
     'debugLogDir'    => APP_LOGDIR,
