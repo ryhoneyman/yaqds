@@ -3,11 +3,11 @@ include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
 $main = new Main([
-    'debugLevel'     => 9,
+    'debugLevel'     => 0,
     'debugType'      => DEBUG_COMMENT,
     'debugBuffer'    => true,
     'debugLogDir'    => APP_LOGDIR,
-    'errorReporting' => true, 
+    'errorReporting' => false, 
     'sessionStart'   => true,
     'memoryLimit'    => null,
     'sendHeaders'    => true,
@@ -48,8 +48,6 @@ function routeItem($main)
 
     $itemId   = $match[1];
     $itemData = $api->v1Item($itemId);
-
-    var_dump($itemData);
 
     if (!$itemData || $itemData['error']) { $router->sendResponse($itemData['error'] ?: null,null,404,'html'); }
 
