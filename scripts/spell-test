@@ -20,20 +20,28 @@ $main = new Main(array(
    'html'           => false,
    'adminlte'       => false,
    'data'           => APP_CONFIGDIR.'/global.json',
+   'cliLongOpts'    => 'name:,npc,id:',
 ));
 
 if (!$main->buildClass('format','LWPLib\Format',null,'common/format.class.php')) { exit; }
 if (!$main->buildClass('conv','Convert',null,'local/convert.class.php')) { exit; }
 if (!$main->buildClass('spell','Spell',null,'local/spell.class.php')) { exit; }
 
-$conv   = $main->obj('conv');
-$spell  = $main->obj('spell');
+/** @var Convert $conv */
+$conv = $main->obj('conv');
+
+/** @var Spell $spell */
+$spell = $main->obj('spell');
+
+/** @var LWPLib\Format $format */
 $format = $main->obj('format');
 
-$opts     = getopt(null,array('name:','npc','id:'));
-$name     = $opts['name'] ?: null;
-$id       = $opts['id'] ?: null;
-$npcSpell = isset($opts['npc']) ? 1 : 0;
+/** @var LWPLib\Options $opts */
+$opts = $main->obj('options');
+
+$name     = $opts->getOption('name');
+$id       = $opts->getOption('id');
+$npcSpell = $opts->ifOptionSet('npc',1,0);
 
 $maxServerLevel = 65;
 $tickInSecs     = 6;
