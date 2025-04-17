@@ -5,7 +5,7 @@ include_once 'local/main.class.php';
 $main = new Main([
     'debugLevel'     => 9,
     'debugType'      => DEBUG_COMMENT,
-    'debugBuffer'    => false,
+    'debugBuffer'    => true,
     'debugLogDir'    => APP_LOGDIR,
     'errorReporting' => true, 
     'sessionStart'   => true,
