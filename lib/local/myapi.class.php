@@ -25,12 +25,13 @@ class MyAPI extends LWPLib\APIBase
             'v1-data-provider-query-table' => '/v1/data/provider/query/{{database}}/{{table}}',
             'v1-data-provider-modify'      => '/v1/data/provider/modify/{{database}}',
             'v1-item'                      => '/v1/item/{{id}}',
+            'v1-item-search'               => '/v1/item/search',
             'v1-item-description'          => '/v1/item/description/{{id}}',
         ]);
     }
     
     /**
-     * v1ItemDescription
+     * v1Item
      *
      * @param  int $itemId
      * @return bool|array
@@ -41,6 +42,33 @@ class MyAPI extends LWPLib\APIBase
             'params' => ['id' => $itemId],
             'options' => [
                 'method' => 'GET',
+            ],
+        ];
+ 
+        if (!$this->makeRequest('v1-item','auth,json',$request)) { 
+            $this->error($this->clientError());
+            return false; 
+        }
+    
+        return $this->clientResponse();
+    } 
+
+    /**
+     * v1ItemSearch
+     *
+     * @param  int $itemName
+     * @return bool|array
+     */
+    public function v1ItemSearch(int $itemName, bool $likeSearch, $maxReturns = null)
+    {
+        $request = [
+            'data' => [
+                'name' => $itemName,
+                'like' => $likeSearch,
+                'max'  => $maxReturns,
+            ],
+            'options' => [
+                'method' => 'POST',
             ],
         ];
  
