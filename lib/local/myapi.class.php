@@ -49,8 +49,6 @@ class MyAPI extends LWPLib\APIBase
             $this->error($this->clientError());
             return false; 
         }
-
-        var_dump($this->clientResponse());
     
         return $this->clientResponse();
     } 
