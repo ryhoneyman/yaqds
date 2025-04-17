@@ -6,8 +6,6 @@ include_once 'common/mainbase.class.php';
 
 class Main extends LWPLib\MainBase
 {
-   public $userId       = null;
-   public $hashTypes    = null;
    public $yaqdsVersion = null;
    public $quarmDb      = null;
    public $data         = null;
