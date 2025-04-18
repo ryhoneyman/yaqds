@@ -44,11 +44,13 @@ class MyAPI extends LWPLib\APIBase
                 'method' => 'GET',
             ],
         ];
- 
+
         if (!$this->makeRequest('v1-item','auth,json',$request)) { 
             $this->error($this->clientError());
             return false; 
         }
+
+        $this->debug->writeFile('api.call.debug.log',json_encode([$request,$this->clientResponse()]));
     
         return $this->clientResponse();
     } 
