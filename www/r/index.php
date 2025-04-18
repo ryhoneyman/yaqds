@@ -49,7 +49,7 @@ function routeItem($main)
     $itemId   = $match[1];
     $itemData = $api->v1Item($itemId);
 
-    if (!$itemData || $itemData['error']) { $router->sendResponse($itemData['error'] ?: null,null,404,'html'); }
+    if (!$itemData || $itemData['error']) { $router->sendResponse($itemData['error'] ?: 'Item not found',null,404,'html'); }
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
