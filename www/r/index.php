@@ -31,11 +31,31 @@ if (!$main->buildClass('router','LWPLib\SimpleRouter',null,'simplerouter.class.p
 $router = $main->obj('router');
 
 $router->process($main,[
-    '/r/item/' => ['function' => 'routeItem', 'method' => ['GET']],
+    '/r/item/'  => ['function' => 'routeItem', 'method' => ['GET']],
+    '/r/spell/' => ['function' => 'routeSpell', 'method' => ['GET']],
 ]);
  
 ?>
 <?php
+
+function routeSpell($main)
+{
+    $api    = $main->obj('api');
+    $router = $main->obj('router');
+
+    $requestUri = $router->http->requestUri();
+
+    if (!preg_match('~/(\d+)$~',$requestUri,$match)) { $router->sendResponse(null,null,500,'html'); }
+
+    $spellId   = $match[1];
+    $spellData = $api->v1Spell($spellId);
+
+    if (!$spellData || $spellData['error']) { $router->sendResponse($spellData['error'] ?: 'Spell not found',null,404,'html'); }
+
+    //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+
+    print gameCard($requestUri,$spellData);
+}
 
 function routeItem($main)
 {
@@ -53,20 +73,26 @@ function routeItem($main)
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
+    print gameCard($requestUri,$itemData);
+}
+
+function gameCard($cardLink, $cardData)
+{
     $baseUrl = 'https://yaqds.cc';
 
-    ksort($itemData);
+    ksort($cardData);
 
     $values = [
-        'URL'         => sprintf("%s%s",$baseUrl,$requestUri),
-        'TITLE'       => sprintf("%s",$itemData['name']),
-        'DESCRIPTION' => htmlentities(implode("\n",$itemData['_description'])),
-        'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$itemData['icon']),
-        'DATA'        => json_encode($itemData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
+        'NAME'        => sprintf("%s",$cardData['name']),
+        'URL'         => sprintf("%s%s",$baseUrl,$cardLink),
+        'TITLE'       => sprintf("%s",$cardData['name']),
+        'DESCRIPTION' => htmlentities(implode("\n",$cardData['_description'])),
+        'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$cardData['icon']),
+        'DATA'        => json_encode($cardData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
     ];
 
     $values['BODY'] = "<div style='background:black; color:white; font-family:arial; font-size:15px; padding:5px; width:min-content;'>\n". 
-                      "<div style='background:black; color:#bbb; font-family:arial; border:1px solid #333; padding:5px; width:auto; min-width:400px; text-align:center;'>".$itemData['name']."</div>\n". 
+                      "<div style='background:black; color:#bbb; font-family:arial; border:1px solid #333; padding:5px; width:auto; min-width:400px; text-align:center;'>".$values['NAME']."</div>\n". 
                       "<div style='padding:2px;'></div>\n".
                       "<div style='background:black; color:white; font-family:arial; border:1px solid #333; white-space:pre; padding:10px; width:auto; min-width:400px;'>".
                       "<img src='".$values['IMAGE']."' style='float:right; height:auto;'>".$values['DESCRIPTION']."</div>\n". 
@@ -82,7 +108,7 @@ function routeItem($main)
                 "<body>{{BODY}}</body>\n".
                 "</html>";
 
-    print replaceValues($template,$values);
+    return replaceValues($template,$values);
 }
 
 function replaceValues($string, $values)
