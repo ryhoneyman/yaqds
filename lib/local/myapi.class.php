@@ -27,9 +27,33 @@ class MyAPI extends LWPLib\APIBase
             'v1-item'                      => '/v1/item/{{id}}',
             'v1-item-search'               => '/v1/item/search',
             'v1-item-description'          => '/v1/item/description/{{id}}',
+            'v1-spell'                     => '/v1/spell/{{id}}',
         ]);
     }
     
+/**
+     * v1Spell
+     *
+     * @param  int $spellId
+     * @return bool|array
+     */
+    public function v1Spell(int $spellId)
+    {
+        $request = [
+            'params' => ['id' => $spellId],
+            'options' => [
+                'method' => 'GET',
+            ],
+        ];
+
+        if (!$this->makeRequest('v1-spell','auth,json',$request)) { 
+            $this->error($this->clientError());
+            return false; 
+        }
+
+        return $this->clientResponse();
+    } 
+
     /**
      * v1Item
      *
@@ -50,8 +74,6 @@ class MyAPI extends LWPLib\APIBase
             return false; 
         }
 
-        $this->debug->writeFile('api.call.debug.log',json_encode([$request,$this->clientResponse()]));
-    
         return $this->clientResponse();
     } 
 
