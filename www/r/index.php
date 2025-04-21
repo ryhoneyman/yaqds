@@ -28,6 +28,8 @@ if (!$main->buildClass('router','LWPLib\SimpleRouter',null,'simplerouter.class.p
 
 //$main->prepareDatabase('db.yaqds.conf','yaqds');
 
+$main->var('settings',$settings);
+
 $router = $main->obj('router');
 
 $router->process($main,[
@@ -54,7 +56,14 @@ function routeSpell($main)
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
-    print gameCard($requestUri,$spellData);
+    $baseUrl   = $main->var('settings')['YAQDS_URL'];
+    $spellType = ($spellData['_is_bard_song']) ? 'Song' : 'Spell';
+
+    print gameCard($spellData,[
+        'name'      => sprintf("%s: %s",$spellType,$spellData['name']),
+        'url'       => sprintf("%s%s",$baseUrl,$requestUri),
+        'iconImage' => sprintf("%s/images/icons/%d.gif",$baseUrl,$spellData['custom_icon']),
+    ]);
 }
 
 function routeItem($main)
@@ -73,30 +82,36 @@ function routeItem($main)
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
-    print gameCard($requestUri,$itemData);
+    $baseUrl = $main->var('settings')['YAQDS_URL'];
+
+    print gameCard($itemData,[
+        'name'      => sprintf("%s",$itemData['name']),
+        'url'       => sprintf("%s%s",$baseUrl,$requestUri),
+        'iconImage' => sprintf("%s/images/icons/item_%d.png",$baseUrl,$itemData['icon']),
+    ]);
 }
 
-function gameCard($cardLink, $cardData)
+function gameCard($cardData, $data = null)
 {
-    $baseUrl = 'https://yaqds.cc';
-
     ksort($cardData);
 
     $values = [
-        'NAME'        => sprintf("%s",$cardData['name']),
-        'URL'         => sprintf("%s%s",$baseUrl,$cardLink),
-        'TITLE'       => sprintf("%s",$cardData['name']),
-        'DESCRIPTION' => htmlentities(implode("\n",$cardData['_description'])),
-        'IMAGE'       => sprintf("%s/images/icons/item_%d.png",$baseUrl,$cardData['icon']),
+        'NAME'        => $data['name'],
+        'URL'         => $data['url'],
+        'TITLE'       => $data['name'],
+        'DESCRIPTION' => htmlentities(implode("\n",$cardData['_description'] ?? [])),
+        'IMAGE'       => $data['iconImage'] ?: '',
         'DATA'        => json_encode($cardData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
     ];
 
-    $values['BODY'] = "<div style='background:black; color:white; font-family:arial; font-size:15px; padding:5px; width:min-content;'>\n". 
-                      "<div style='background:black; color:#bbb; font-family:arial; border:1px solid #333; padding:5px; width:auto; min-width:400px; text-align:center;'>".$values['NAME']."</div>\n". 
-                      "<div style='padding:2px;'></div>\n".
-                      "<div style='background:black; color:white; font-family:arial; border:1px solid #333; white-space:pre; padding:10px; width:auto; min-width:400px;'>".
-                      "<img src='".$values['IMAGE']."' style='float:right; height:auto;'>".$values['DESCRIPTION']."</div>\n". 
-                      "</div><p><pre>".$values['DATA']."</pre>";
+    $bodyTemplate = "<div style='background:black; color:white; font-family:arial; font-size:15px; padding:5px; width:min-content;'>\n". 
+                    "<div style='background:black; color:#bbb; font-family:arial; border:1px solid #333; padding:5px; width:auto; min-width:400px; text-align:center;'>{{NAME}}</div>\n". 
+                    "<div style='padding:2px;'></div>\n".
+                    "<div style='background:black; color:white; font-family:arial; border:1px solid #333; white-space:pre; padding:10px; width:auto; min-width:400px;'>".
+                    "<img src='{{IMAGE}}' style='float:right; height:auto;'>{{DESCRIPTION}}</div>\n". 
+                    "</div><p><pre>{{DATA}}</pre>";
+
+    $values['BODY'] = replaceValues($bodyTemplate,$values);
 
     $template = "<html><head>\n". 
                 "<meta property='og:url' content='{{URL}}'>\n".
