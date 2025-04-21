@@ -96,9 +96,9 @@ function gameCard($cardData, $data = null)
     ksort($cardData);
 
     $values = [
-        'NAME'        => $data['name'],
+        'NAME'        => htmlentities($data['name']),
         'URL'         => $data['url'],
-        'TITLE'       => $data['name'],
+        'TITLE'       => htmlentities($data['name']),
         'DESCRIPTION' => htmlentities(implode("\n",$cardData['_description'] ?? [])),
         'IMAGE'       => $data['iconImage'] ?: '',
         'DATA'        => json_encode($cardData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),
