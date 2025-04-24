@@ -5,7 +5,8 @@
         "changes": {
             "frontend": [],
             "backend": [
-                "Updated loot code with scripted spawns not appearing in the spawn2 table"
+                "Updated loot code with scripted spawns not appearing in the spawn2 table",
+                "Updated zone viewer with scripted spawns not appearing in the spawn2 table"
             ],
             "library": []
         }
