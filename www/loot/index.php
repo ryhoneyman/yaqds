@@ -54,7 +54,7 @@ foreach ($npcLootTableList['data'] as $index => $data) {
    ksort($data['zone']);
 
    $zoneList = implode('/',array_keys($data['zone']));
-   $lootExp  = ($data['min_expansion'] != -1 || $data['max_expansion'] != -1) ? sprintf("%1.1f-%1.1f; ",$data['min_expansion'],$data['max_expansion']) : '';
+   $lootExp  = ($data['min_expansion'] != -1 || $data['max_expansion'] != -1) ? sprintf("%1.1f/%1.1f; ",$data['min_expansion'],$data['max_expansion']) : '';
    $npcList[$data['hash']] = sprintf("%s (%s%s)",$data['name'],$lootExp,$zoneList); 
 }
 
@@ -244,7 +244,8 @@ else if ($analyze) {
          $itemInfo       = $itemLookup[$tableId][$itemName] ?: array();
          $minExpansion   = $itemInfo['min_expansion'];
          $maxExpansion   = $itemInfo['max_expansion'];
-         $itemExpansion  = (!$minExpansion && !$maxExpansion) ? '' : sprintf("<b class='text-primary'>expansion(%s-%s)</b>",$minExpansion,$maxExpansion);
+         //$itemExpansion  = ($minExpansion == -1 && $maxExpansion == -1) ? '' : sprintf("<b class='text-primary'>expansion(%s to %s)</b>",$minExpansion,$maxExpansion);
+         $itemExpansion  = ($minExpansion == -1 && $maxExpansion == -1) ? '' : expansionIcon($main,$minExpansion,$maxExpansion);
 
          printf("  %5.1f%% %s dropped(%d) relativeTableChance(%1.1f%%) %s\n",$globalPercent,$itemName,$itemCount,$perKillPercent,$itemExpansion);
       }
