@@ -9,10 +9,10 @@ CREATE TABLE `yaqds_npc_loottable` (
   `se_spawngroup_id` INT UNSIGNED,
   `s2_id` INT UNSIGNED,
   `s2_zone` VARCHAR(32),
-  `s2_min_expansion` DECIMAL(3,1) DEFAULT 0,
-  `s2_max_expansion` DECIMAL(3,1) DEFAULT 0,
-  `se_min_expansion` DECIMAL(3,1) DEFAULT 0,
-  `se_max_expansion` DECIMAL(3,1) DEFAULT 0,
+  `s2_min_expansion` DECIMAL(3,1) DEFAULT -1,
+  `s2_max_expansion` DECIMAL(3,1) DEFAULT -1,
+  `se_min_expansion` DECIMAL(3,1) DEFAULT -1,
+  `se_max_expansion` DECIMAL(3,1) DEFAULT -1,
   PRIMARY KEY (`id`),
   UNIQUE (`nt_name`,`nt_loottable_id`,`s2_zone`)
 );
@@ -23,4 +23,11 @@ INSERT INTO yaqds_npc_loottable (nt_id,nt_name,nt_level,nt_loottable_id,se_spawn
   LEFT JOIN spawnentry se ON nt.id = se.npcID 
   LEFT JOIN spawn2 s2 ON se.spawngroupID = s2.spawngroupID 
   WHERE nt.loottable_id > 0 AND s2.id IS NOT NULL
+  ON DUPLICATE KEY UPDATE nt_id = nt_id;
+
+INSERT INTO yaqds_npc_loottable (nt_id,nt_name,nt_level,nt_loottable_id,s2_zone)
+  SELECT nt.id,nt.name,nt.level,nt.loottable_id,'scripted'
+  FROM npc_types nt 
+  LEFT JOIN spawnentry se ON nt.id = se.npcID 
+  WHERE nt.loottable_id > 0 AND se.npcID IS NULL
   ON DUPLICATE KEY UPDATE nt_id = nt_id;
