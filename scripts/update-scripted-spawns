@@ -71,12 +71,12 @@ if ($data) {
    $result = $main->db()->bindExecute($statement,$types,$data);
 
    if ($result) {
-      $this->debug("Scripted spawns updated successfully."); 
+      $this->debug(0,"Scripted spawns updated successfully."); 
       exit(0); 
    }
 }  
 
-$this->debug("Failed to update scripted spawns.");
+$this->debug(0,"Failed to update scripted spawns.");
 exit(-1);
 
 ?>
