@@ -1,5 +1,4 @@
 DROP TABLE IF EXISTS `yaqds_npc_loottable`;
-
 CREATE TABLE `yaqds_npc_loottable` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `nt_id` INT UNSIGNED NOT NULL,
@@ -31,3 +30,20 @@ INSERT INTO yaqds_npc_loottable (nt_id,nt_name,nt_level,nt_loottable_id,s2_zone)
   LEFT JOIN spawnentry se ON nt.id = se.npcID 
   WHERE nt.loottable_id > 0 AND se.npcID IS NULL
   ON DUPLICATE KEY UPDATE nt_id = nt_id;
+
+
+
+DROP TABLE IF EXISTS `yaqds_scripted_spawns`;
+CREATE TABLE `yaqds_scripted_spawns` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `file_name` VARCHAR(64) NOT NULL,
+  `zone_name` VARCHAR(32) NOT NULL,
+  `npc_id` INT UNSIGNED NOT NULL,
+  `grid_id` INT UNSIGNED,
+  `x` float(14,6) NOT NULL,
+  `y` float(14,6) NOT NULL,
+  `z` float(14,6) NOT NULL,
+  `heading` float(14,6) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE (`zone_name`,`npc_id`)
+);
