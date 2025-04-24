@@ -257,26 +257,38 @@ class Data extends LWPLib\Base
 
       $anyExpansion = $this->forceExpansion('any');
 
-      $query = "SELECT concat(se.spawngroupID,'.',se.npcID,'.',s2.x,'.',s2.y) as keyid, z.short_name, z.zoneidnumber as zoneID, nt.name, nt.level, nt.maxlevel, sg.id as sgID, \n".
-               "       nt.id as npcID, s2.min_expansion as spawnMinEx, s2.max_expansion as spawnMaxEx, se.min_expansion as entryMinEx, se.max_expansion as entryMaxEx, \n".
-               "       se.chance, s2.x, s2.y, s2.z, s2.heading, s2.pathgrid as gridID, sg.name as sgName, sg.min_x as sgMinX, sg.min_y as sgMinY, ". 
-               "       sg.max_x as sgMaxX, sg.max_y as sgMaxY \n".
-               "FROM spawn2 s2 \n".
-               "LEFT JOIN spawngroup sg ON s2.spawngroupID = sg.id \n".
-               "LEFT JOIN spawnentry se ON se.spawngroupID = sg.id \n".
-               "LEFT JOIN npc_types nt  ON nt.id = se.npcID \n".
-               "LEFT JOIN zone z        ON z.short_name = s2.zone \n".
-               "WHERE z.short_name = '$zoneName' \n".
-               ((is_null($expansion)) ? '' :
-               "AND   (((se.min_expansion <= $expansion or se.min_expansion = $anyExpansion) and (se.max_expansion >= $expansion or se.max_expansion = $anyExpansion)) \n".
-               "       AND ((s2.min_expansion <= $expansion or s2.min_expansion = $anyExpansion) and (s2.max_expansion >= $expansion or s2.max_expansion = $anyExpansion))) \n".
-               "AND z.expansion <= $expansion \n").
-               "AND nt.bodytype < 64 \n".
-               ((is_null($zoneFloor)) ? '' : "AND s2.z >= $zoneFloor \n").
-               ((is_null($zoneCeil)) ? '' : "AND s2.z <= $zoneCeil \n").
-               "ORDER BY sg.id, s2.x, s2.y, s2.z";
+      $spawnQuery = "SELECT concat(se.spawngroupID,'.',se.npcID,'.',s2.x,'.',s2.y) as keyid, z.short_name, z.zoneidnumber as zoneID, nt.name, nt.level, nt.maxlevel, sg.id as sgID, \n".
+                    "       nt.id as npcID, s2.min_expansion as spawnMinEx, s2.max_expansion as spawnMaxEx, se.min_expansion as entryMinEx, se.max_expansion as entryMaxEx, \n".
+                    "       se.chance, s2.x, s2.y, s2.z, s2.heading, s2.pathgrid as gridID, sg.name as sgName, sg.min_x as sgMinX, sg.min_y as sgMinY, ". 
+                    "       sg.max_x as sgMaxX, sg.max_y as sgMaxY, 'spawn' as source \n".
+                    "FROM spawn2 s2 \n".
+                    "LEFT JOIN spawngroup sg ON s2.spawngroupID = sg.id \n".
+                    "LEFT JOIN spawnentry se ON se.spawngroupID = sg.id \n".
+                    "LEFT JOIN npc_types nt  ON nt.id = se.npcID \n".
+                    "LEFT JOIN zone z        ON z.short_name = s2.zone \n".
+                    "WHERE z.short_name = '$zoneName' \n".
+                    ((is_null($expansion)) ? '' :
+                    "AND   (((se.min_expansion <= $expansion or se.min_expansion = $anyExpansion) and (se.max_expansion >= $expansion or se.max_expansion = $anyExpansion)) \n".
+                    "       AND ((s2.min_expansion <= $expansion or s2.min_expansion = $anyExpansion) and (s2.max_expansion >= $expansion or s2.max_expansion = $anyExpansion))) \n".
+                    "AND z.expansion <= $expansion \n").
+                    "AND nt.bodytype < 64 \n".
+                    ((is_null($zoneFloor)) ? '' : "AND s2.z >= $zoneFloor \n").
+                    ((is_null($zoneCeil)) ? '' : "AND s2.z <= $zoneCeil \n").
+                    "ORDER BY sg.id, s2.x, s2.y, s2.z";
       
-      return $this->db->query($query);
+      $spawnList = $this->db->query($spawnQuery);
+
+      $scriptQuery = "SELECT concat(yss.id,'.',yss.npc_id,'.',yss.x,'.',yss.y) as keyid, yss.id as scriptID, yss.zone_name as short_name, z.zoneidnumber as zoneID, nt.name, nt.level, nt.maxlevel, \n".
+                     "       yss.x, yss.y, yss.z, yss.heading, yss.grid_id as gridID, 'scripted' as source, 'Script' as sgName, 100 as chance, yss.file_name as sgID \n".
+                     "FROM yaqds_scripted_spawns yss ".
+                     "LEFT JOIN npc_types nt ON yss.npc_id = nt.id \n".
+                     "LEFT JOIN zone z ON z.short_name = yss.zone_name \n".
+                     "WHERE z.short_name = '$zoneName' \n";
+                     "AND nt.bodytype < 64";
+
+      $scriptList = $this->db->query($scriptQuery);
+      
+      return ($spawnList + $scriptList);
    }
 
    public function cleanName($name)
