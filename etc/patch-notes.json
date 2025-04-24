@@ -1,5 +1,16 @@
 [
     {
+        "version": "1.6.0",
+        "datetime": "2025-04-24 19:30 UTC",
+        "changes": {
+            "frontend": [],
+            "backend": [
+                "Updated loot code with scripted spawns not appearing in the spawn2 table"
+            ],
+            "library": []
+        }
+    },
+    {
         "version": "1.5.1",
         "datetime": "2025-03-12 17:30 UTC",
         "changes": {
