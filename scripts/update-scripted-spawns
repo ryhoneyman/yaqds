@@ -19,7 +19,7 @@ $main = new Main(array(
    'data'           => APP_CONFIGDIR.'/global.json',
 ));
 
-$spawnData = json_decode(file_get_contents('./data/scripted.spawns.json'),true);
+$spawnData = json_decode(file_get_contents(APP_CONFIGDIR.'/scripted.spawns.json'),true);
 
 $spawnInfo = [];
 $npcIdList = [];

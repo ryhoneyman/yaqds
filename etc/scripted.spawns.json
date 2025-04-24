@@ -1,0 +1,2872 @@
+[
+    {
+      "zone": "acrylia",
+      "file": "encounters/Burrower.lua",
+      "npcId": "154017",
+      "grid": "0",
+      "x": "-796",
+      "y": "-161",
+      "z": "-9",
+      "heading": "111"
+    },
+    {
+      "zone": "acrylia",
+      "file": "encounters/Burrower.lua",
+      "npcId": "154017",
+      "grid": "0",
+      "x": "-796",
+      "y": "-161",
+      "z": "-9",
+      "heading": "111"
+    },
+    {
+      "zone": "acrylia",
+      "file": "encounters/Burrower.lua",
+      "npcId": "154017",
+      "grid": "0",
+      "x": "-796",
+      "y": "-161",
+      "z": "-9",
+      "heading": "111"
+    },
+    {
+      "zone": "acrylia",
+      "file": "encounters/HighPriest.lua",
+      "npcId": "154022",
+      "grid": "0",
+      "x": "142",
+      "y": "-690",
+      "z": "3",
+      "heading": "66"
+    },
+    {
+      "zone": "acrylia",
+      "file": "encounters/HighPriest.lua",
+      "npcId": "154023",
+      "grid": "0",
+      "x": "142",
+      "y": "-690",
+      "z": "3",
+      "heading": "66"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "#Sister_of_the_Spire.lua",
+      "npcId": "71058",
+      "grid": "0",
+      "x": "-960",
+      "y": "-1037",
+      "z": "1093",
+      "heading": "64"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Key_Master.lua",
+      "npcId": "71575",
+      "grid": "0",
+      "x": "-1484",
+      "y": "720",
+      "z": "146",
+      "heading": "8.0"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Kihun_Solstin.lua",
+      "npcId": "71040",
+      "grid": "0",
+      "x": "604.5",
+      "y": "1346.3",
+      "z": "-766",
+      "heading": "0"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Kihun_Solstin.lua",
+      "npcId": "71040",
+      "grid": "0",
+      "x": "604.5",
+      "y": "1346.3",
+      "z": "-766",
+      "heading": "0"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Medicine_Man_Veetra.lua",
+      "npcId": "71087",
+      "grid": "0",
+      "x": "631.9",
+      "y": "1401.9",
+      "z": "-766.9",
+      "heading": "129.8"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Medicine_Man_Veetra.lua",
+      "npcId": "71093",
+      "grid": "0",
+      "x": "653.4",
+      "y": "1399.0",
+      "z": "-766.9",
+      "heading": "129.8"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "Noble_Dojorn.lua",
+      "npcId": "71534",
+      "grid": "0",
+      "x": "-540.6",
+      "y": "767.1",
+      "z": "174.1",
+      "heading": "65"
+    },
+    {
+      "zone": "air_instanced",
+      "file": "a_thunder_spirit_princess.lua",
+      "npcId": "71073",
+      "grid": "0",
+      "x": "287.9",
+      "y": "662.5",
+      "z": "-54.1",
+      "heading": "109.3"
+    },
+    {
+      "zone": "airplane",
+      "file": "Key_Master.lua",
+      "npcId": "71075",
+      "grid": "0",
+      "x": "-996.3",
+      "y": "910.5",
+      "z": "192.3",
+      "heading": "18.0"
+    },
+    {
+      "zone": "airplane",
+      "file": "Kihun_Solstin.lua",
+      "npcId": "71040",
+      "grid": "0",
+      "x": "604.5",
+      "y": "1346.3",
+      "z": "-766",
+      "heading": "0"
+    },
+    {
+      "zone": "airplane",
+      "file": "Kihun_Solstin.lua",
+      "npcId": "71040",
+      "grid": "0",
+      "x": "604.5",
+      "y": "1346.3",
+      "z": "-766",
+      "heading": "0"
+    },
+    {
+      "zone": "airplane",
+      "file": "Medicine_Man_Veetra.lua",
+      "npcId": "71087",
+      "grid": "0",
+      "x": "631.9",
+      "y": "1401.9",
+      "z": "-766.9",
+      "heading": "129.8"
+    },
+    {
+      "zone": "airplane",
+      "file": "Medicine_Man_Veetra.lua",
+      "npcId": "71093",
+      "grid": "0",
+      "x": "653.4",
+      "y": "1399.0",
+      "z": "-766.9",
+      "heading": "129.8"
+    },
+    {
+      "zone": "airplane",
+      "file": "Noble_Dojorn.lua",
+      "npcId": "71034",
+      "grid": "0",
+      "x": "-540.6",
+      "y": "767.1",
+      "z": "174.1",
+      "heading": "65"
+    },
+    {
+      "zone": "airplane",
+      "file": "Overseer_of_Air.lua",
+      "npcId": "71060",
+      "grid": "48",
+      "x": "-1462.2",
+      "y": "-270.1",
+      "z": "1250.9",
+      "heading": "62.9"
+    },
+    {
+      "zone": "airplane",
+      "file": "a_thunder_spirit_princess.lua",
+      "npcId": "71073",
+      "grid": "0",
+      "x": "287.9",
+      "y": "662.5",
+      "z": "-54.1",
+      "heading": "109.3"
+    },
+    {
+      "zone": "akanon",
+      "file": "Drekon_Vebnebber.lua",
+      "npcId": "55001",
+      "grid": "39",
+      "x": "-300",
+      "y": "1504",
+      "z": "-120",
+      "heading": "0"
+    },
+    {
+      "zone": "bothunder",
+      "file": "##Askr_the_Lost.lua",
+      "npcId": "209158",
+      "grid": "0",
+      "x": "-1110",
+      "y": "-1735",
+      "z": "1740",
+      "heading": "0"
+    },
+    {
+      "zone": "butcher",
+      "file": "Guard_Haldin.lua",
+      "npcId": "68011",
+      "grid": "13",
+      "x": "-510",
+      "y": "1094",
+      "z": "8",
+      "heading": "0"
+    },
+    {
+      "zone": "butcher",
+      "file": "Guard_Kizzburr.lua",
+      "npcId": "68011",
+      "grid": "13",
+      "x": "-510",
+      "y": "1094",
+      "z": "8",
+      "heading": "0"
+    },
+    {
+      "zone": "butcher",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "68340",
+      "grid": "0",
+      "x": "1376",
+      "y": "2943",
+      "z": "53.5",
+      "heading": "110"
+    },
+    {
+      "zone": "cabeast",
+      "file": "Klok_Unlar.lua",
+      "npcId": "106302",
+      "grid": "0",
+      "x": "120",
+      "y": "563",
+      "z": "4",
+      "heading": "0"
+    },
+    {
+      "zone": "cabeast",
+      "file": "Lord_Qyzar.lua",
+      "npcId": "106301",
+      "grid": "0",
+      "x": "-113",
+      "y": "1000",
+      "z": "-23.9",
+      "heading": "30"
+    },
+    {
+      "zone": "cauldron",
+      "file": "Ghilanbiddle_Nylwadil.lua",
+      "npcId": "70072",
+      "grid": "0",
+      "x": "-2133",
+      "y": "-726",
+      "z": "156",
+      "heading": "0"
+    },
+    {
+      "zone": "charasis",
+      "file": "#Venril_Sathir.lua",
+      "npcId": "105187",
+      "grid": "0",
+      "x": "0",
+      "y": "-673",
+      "z": "8",
+      "heading": "0"
+    },
+    {
+      "zone": "charasis",
+      "file": "A_Swirling_Bone_Mass.lua",
+      "npcId": "105021",
+      "grid": "0",
+      "x": "-5",
+      "y": "-670",
+      "z": "8",
+      "heading": "64"
+    },
+    {
+      "zone": "charasis",
+      "file": "A_Swirling_Bone_Mass.lua",
+      "npcId": "105004",
+      "grid": "0",
+      "x": "5",
+      "y": "-670",
+      "z": "8",
+      "heading": "192"
+    },
+    {
+      "zone": "charasis",
+      "file": "An_Iksar_Apparition.lua",
+      "npcId": "105186",
+      "grid": "0",
+      "x": "-13",
+      "y": "-658",
+      "z": "8",
+      "heading": "100"
+    },
+    {
+      "zone": "charasis",
+      "file": "An_Iksar_Apparition.lua",
+      "npcId": "105183",
+      "grid": "0",
+      "x": "13",
+      "y": "-658",
+      "z": "8",
+      "heading": "160"
+    },
+    {
+      "zone": "charasis",
+      "file": "An_Iksar_Apparition.lua",
+      "npcId": "105184",
+      "grid": "0",
+      "x": "13",
+      "y": "-690",
+      "z": "8",
+      "heading": "228"
+    },
+    {
+      "zone": "charasis",
+      "file": "An_Iksar_Apparition.lua",
+      "npcId": "105185",
+      "grid": "0",
+      "x": "-13",
+      "y": "-690",
+      "z": "8",
+      "heading": "34"
+    },
+    {
+      "zone": "charasis",
+      "file": "Venril_Sathir.lua",
+      "npcId": "105022",
+      "grid": "0",
+      "x": "-13",
+      "y": "-658",
+      "z": "8",
+      "heading": "100"
+    },
+    {
+      "zone": "charasis",
+      "file": "Venril_Sathir.lua",
+      "npcId": "105023",
+      "grid": "0",
+      "x": "13",
+      "y": "-658",
+      "z": "8",
+      "heading": "160"
+    },
+    {
+      "zone": "charasis",
+      "file": "Venril_Sathir.lua",
+      "npcId": "105024",
+      "grid": "0",
+      "x": "13",
+      "y": "-690",
+      "z": "8",
+      "heading": "228"
+    },
+    {
+      "zone": "charasis",
+      "file": "Venril_Sathir.lua",
+      "npcId": "105025",
+      "grid": "0",
+      "x": "-13",
+      "y": "-690",
+      "z": "8",
+      "heading": "34"
+    },
+    {
+      "zone": "codecay",
+      "file": "#Avhi_Escron.lua",
+      "npcId": "200228",
+      "grid": "0",
+      "x": "258",
+      "y": "84",
+      "z": "-70",
+      "heading": "0"
+    },
+    {
+      "zone": "codecay",
+      "file": "#Bishop_Toluwon.lua",
+      "npcId": "200245",
+      "grid": "0",
+      "x": "306",
+      "y": "318",
+      "z": "-64",
+      "heading": "128"
+    },
+    {
+      "zone": "codecay",
+      "file": "#Bishop_Toluwon.lua",
+      "npcId": "200261",
+      "grid": "24",
+      "x": "200",
+      "y": "294",
+      "z": "-59",
+      "heading": "0"
+    },
+    {
+      "zone": "codecay",
+      "file": "#Bishop_Toluwon.lua",
+      "npcId": "200258",
+      "grid": "25",
+      "x": "496",
+      "y": "241",
+      "z": "-74",
+      "heading": "0"
+    },
+    {
+      "zone": "codecay",
+      "file": "#Carprin_Deatharn.lua",
+      "npcId": "200225",
+      "grid": "0",
+      "x": "405",
+      "y": "135",
+      "z": "-54",
+      "heading": "128"
+    },
+    {
+      "zone": "codecay",
+      "file": "#High_Priest_Ultor_Szanvon.lua",
+      "npcId": "200267",
+      "grid": "0",
+      "x": "309",
+      "y": "330",
+      "z": "-72.122",
+      "heading": "128"
+    },
+    {
+      "zone": "codecay",
+      "file": "#_Carprin_Deatharn.lua",
+      "npcId": "200229",
+      "grid": "0",
+      "x": "382",
+      "y": "-127",
+      "z": "-62",
+      "heading": "192"
+    },
+    {
+      "zone": "codecay",
+      "file": "#_Carprin_Deatharn.lua",
+      "npcId": "200230",
+      "grid": "0",
+      "x": "364",
+      "y": "-108",
+      "z": "-62",
+      "heading": "192"
+    },
+    {
+      "zone": "codecay",
+      "file": "#_Carprin_Deatharn.lua",
+      "npcId": "200222",
+      "grid": "0",
+      "x": "384",
+      "y": "-94",
+      "z": "-62",
+      "heading": "192"
+    },
+    {
+      "zone": "commons",
+      "file": "Kizdean_Gix.lua",
+      "npcId": "21141",
+      "grid": "0",
+      "x": "3036",
+      "y": "-706",
+      "z": "-39",
+      "heading": "0"
+    },
+    {
+      "zone": "commons",
+      "file": "Mojax_Hikspin.lua",
+      "npcId": "21136",
+      "grid": "8",
+      "x": "2720",
+      "y": "-520",
+      "z": "-51",
+      "heading": "0"
+    },
+    {
+      "zone": "dawnshroud",
+      "file": "#Carre_Harger.lua",
+      "npcId": "174034",
+      "grid": "0",
+      "x": "1097",
+      "y": "1598",
+      "z": "93",
+      "heading": "0"
+    },
+    {
+      "zone": "dawnshroud",
+      "file": "#Carre_Harger.lua",
+      "npcId": "174035",
+      "grid": "0",
+      "x": "1287",
+      "y": "1531",
+      "z": "93",
+      "heading": "0"
+    },
+    {
+      "zone": "dawnshroud",
+      "file": "A_Tribal_Prowler.lua",
+      "npcId": "174033",
+      "grid": "0",
+      "x": "1180",
+      "y": "1502",
+      "z": "98",
+      "heading": "13"
+    },
+    {
+      "zone": "eastkarana",
+      "file": "Althele.lua",
+      "npcId": "15178",
+      "grid": "0",
+      "x": "-1595",
+      "y": "-2595",
+      "z": "4",
+      "heading": "127"
+    },
+    {
+      "zone": "eastkarana",
+      "file": "Ganelorn_Oast.lua",
+      "npcId": "15183",
+      "grid": "0",
+      "x": "-800",
+      "y": "-2712",
+      "z": "15.6",
+      "heading": "138"
+    },
+    {
+      "zone": "eastkarana",
+      "file": "Milea_Clothspinner.lua",
+      "npcId": "15193",
+      "grid": "11",
+      "x": "-5521",
+      "y": "-1870",
+      "z": "3",
+      "heading": "226"
+    },
+    {
+      "zone": "eastkarana",
+      "file": "Nuien.lua",
+      "npcId": "15170",
+      "grid": "0",
+      "x": "-2854",
+      "y": "-3840",
+      "z": "126.5",
+      "heading": "61.8"
+    },
+    {
+      "zone": "eastkarana",
+      "file": "Sionae.lua",
+      "npcId": "15167",
+      "grid": "0",
+      "x": "300",
+      "y": "-3657",
+      "z": "3",
+      "heading": "183"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "#Boridain_Glacierbane.lua",
+      "npcId": "116017",
+      "grid": "14",
+      "x": "1510",
+      "y": "-2532",
+      "z": "307",
+      "heading": "0"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "116177.lua",
+      "npcId": "116020",
+      "grid": "0",
+      "x": "-110",
+      "y": "-2715",
+      "z": "152",
+      "heading": "200"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "Captain_Berradin.lua",
+      "npcId": "116037",
+      "grid": "0",
+      "x": "2365",
+      "y": "-61",
+      "z": "150",
+      "heading": "119"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "Corbin_Blackwell.lua",
+      "npcId": "116036",
+      "grid": "0",
+      "x": "-3188",
+      "y": "-574",
+      "z": "158",
+      "heading": "62"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "Gloradin_Coldheart.lua",
+      "npcId": "116064",
+      "grid": "22",
+      "x": "-390",
+      "y": "-2713",
+      "z": "181.5",
+      "heading": "19"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "Peffin_Ambersnow.lua",
+      "npcId": "116038",
+      "grid": "0",
+      "x": "3413",
+      "y": "-1742",
+      "z": "143",
+      "heading": "194"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "encounters/ringfour.lua",
+      "npcId": "116018",
+      "grid": "0",
+      "x": "-3260",
+      "y": "-4819",
+      "z": "190",
+      "heading": "65"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "encounters/ringseven.lua",
+      "npcId": "116035",
+      "grid": "0",
+      "x": "-3188",
+      "y": "-574",
+      "z": "158",
+      "heading": "62"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "encounters/ringsix.lua",
+      "npcId": "116026",
+      "grid": "0",
+      "x": "-4495",
+      "y": "-3319",
+      "z": "148",
+      "heading": "0"
+    },
+    {
+      "zone": "eastwastes",
+      "file": "encounters/rodrick.lua",
+      "npcId": "116141",
+      "grid": "0",
+      "x": "1056",
+      "y": "-3405",
+      "z": "150",
+      "heading": "199"
+    },
+    {
+      "zone": "ecommons",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "22209",
+      "grid": "0",
+      "x": "3827",
+      "y": "-428",
+      "z": "-53.5",
+      "heading": "225"
+    },
+    {
+      "zone": "everfrost",
+      "file": "Eichvul.lua",
+      "npcId": "30004",
+      "grid": "0",
+      "x": "-6302",
+      "y": "2842",
+      "z": "-53",
+      "heading": "92"
+    },
+    {
+      "zone": "everfrost",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "30244",
+      "grid": "0",
+      "x": "1012",
+      "y": "-289",
+      "z": "-62",
+      "heading": "244"
+    },
+    {
+      "zone": "feerrott",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "47353",
+      "grid": "0",
+      "x": "-1553",
+      "y": "1199",
+      "z": "-24.2",
+      "heading": "174"
+    },
+    {
+      "zone": "felwithea",
+      "file": "Inkeeper_Freegraze.lua",
+      "npcId": "61095",
+      "grid": "0",
+      "x": "-343",
+      "y": "155",
+      "z": "17",
+      "heading": "8"
+    },
+    {
+      "zone": "firiona",
+      "file": "#Sir_Hobble.lua",
+      "npcId": "84007",
+      "grid": "23",
+      "x": "2884",
+      "y": "-3028",
+      "z": "-77",
+      "heading": "128"
+    },
+    {
+      "zone": "firiona",
+      "file": "Lenka_Stoutheart.lua",
+      "npcId": "84005",
+      "grid": "22",
+      "x": "-3148",
+      "y": "-1305",
+      "z": "256",
+      "heading": "0"
+    },
+    {
+      "zone": "firiona",
+      "file": "Sergeant_Daelione.lua",
+      "npcId": "84017",
+      "grid": "0",
+      "x": "2490",
+      "y": "-518",
+      "z": "-24",
+      "heading": "135"
+    },
+    {
+      "zone": "firiona",
+      "file": "Vekis.lua",
+      "npcId": "84026",
+      "grid": "26",
+      "x": "2945",
+      "y": "-3812",
+      "z": "-49",
+      "heading": "0"
+    },
+    {
+      "zone": "firiona",
+      "file": "Vekis.lua",
+      "npcId": "84029",
+      "grid": "0",
+      "x": "2140",
+      "y": "-2589",
+      "z": "-78",
+      "heading": "108"
+    },
+    {
+      "zone": "freporte",
+      "file": "Groflah_Steadirt.lua",
+      "npcId": "10003",
+      "grid": "0",
+      "x": "-920",
+      "y": "-210",
+      "z": "-52.1",
+      "heading": "0"
+    },
+    {
+      "zone": "freportn",
+      "file": "Bondl_Felligan.lua",
+      "npcId": "8117",
+      "grid": "0",
+      "x": "62",
+      "y": "66",
+      "z": "32.1",
+      "heading": "254"
+    },
+    {
+      "zone": "freportn",
+      "file": "Merko_Quetalis.lua",
+      "npcId": "8110",
+      "grid": "0",
+      "x": "-257",
+      "y": "132",
+      "z": "-17",
+      "heading": "120"
+    },
+    {
+      "zone": "freportn",
+      "file": "a_greater_spirit.lua",
+      "npcId": "8118",
+      "grid": "0",
+      "x": "67",
+      "y": "103",
+      "z": "32.1",
+      "heading": "508"
+    },
+    {
+      "zone": "freportn",
+      "file": "a_greater_spirit.lua",
+      "npcId": "8118",
+      "grid": "0",
+      "x": "67",
+      "y": "103",
+      "z": "32.1",
+      "heading": "508"
+    },
+    {
+      "zone": "freportn",
+      "file": "a_greater_spirit.lua",
+      "npcId": "8118",
+      "grid": "0",
+      "x": "67",
+      "y": "103",
+      "z": "32.1",
+      "heading": "508"
+    },
+    {
+      "zone": "freportw",
+      "file": "Guard_Alayle.lua",
+      "npcId": "9143",
+      "grid": "87",
+      "x": "-154",
+      "y": "-55",
+      "z": "-10",
+      "heading": "128"
+    },
+    {
+      "zone": "frozenshadow",
+      "file": "#Amontehepna.lua",
+      "npcId": "111163",
+      "grid": "0",
+      "x": "199",
+      "y": "987",
+      "z": "187",
+      "heading": "128"
+    },
+    {
+      "zone": "frozenshadow",
+      "file": "#a_shadow_beast_guard.lua",
+      "npcId": "111058",
+      "grid": "0",
+      "x": "-399",
+      "y": "400",
+      "z": "25.4",
+      "heading": "125"
+    },
+    {
+      "zone": "frozenshadow",
+      "file": "#an_ice_shade.lua",
+      "npcId": "111058",
+      "grid": "0",
+      "x": "-399",
+      "y": "400",
+      "z": "25.4",
+      "heading": "125"
+    },
+    {
+      "zone": "fungusgrove",
+      "file": "Scout_Halmia.lua",
+      "npcId": "157009",
+      "grid": "0",
+      "x": "-13",
+      "y": "638",
+      "z": "-259",
+      "heading": "128"
+    },
+    {
+      "zone": "fungusgrove",
+      "file": "Scout_Halmia.lua",
+      "npcId": "157069",
+      "grid": "0",
+      "x": "-86",
+      "y": "585",
+      "z": "-259",
+      "heading": "90"
+    },
+    {
+      "zone": "gfaydark",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "54388",
+      "grid": "0",
+      "x": "-2188",
+      "y": "2351",
+      "z": "30",
+      "heading": "82"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "Sentry_Badain.lua",
+      "npcId": "118137",
+      "grid": "0",
+      "x": "-74",
+      "y": "-19",
+      "z": "208",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118021",
+      "grid": "58",
+      "x": "141",
+      "y": "-1085",
+      "z": "21",
+      "heading": "258"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118083",
+      "grid": "104",
+      "x": "240",
+      "y": "-2545",
+      "z": "-85",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118022",
+      "grid": "0",
+      "x": "-142",
+      "y": "-520",
+      "z": "78",
+      "heading": "128"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118052",
+      "grid": "0",
+      "x": "-142",
+      "y": "-520",
+      "z": "78",
+      "heading": "128"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118024",
+      "grid": "0",
+      "x": "-130",
+      "y": "-525",
+      "z": "78",
+      "heading": "144"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118033",
+      "grid": "0",
+      "x": "-120",
+      "y": "-550",
+      "z": "77",
+      "heading": "200"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118028",
+      "grid": "0",
+      "x": "-125",
+      "y": "-565",
+      "z": "78",
+      "heading": "227"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118031",
+      "grid": "0",
+      "x": "-140",
+      "y": "-570",
+      "z": "78",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118025",
+      "grid": "0",
+      "x": "-120",
+      "y": "-535",
+      "z": "78",
+      "heading": "170"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118029",
+      "grid": "0",
+      "x": "-140",
+      "y": "-545",
+      "z": "78",
+      "heading": "64"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118055",
+      "grid": "0",
+      "x": "-130",
+      "y": "-525",
+      "z": "78",
+      "heading": "144"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118048",
+      "grid": "0",
+      "x": "-120",
+      "y": "-550",
+      "z": "77",
+      "heading": "200"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118057",
+      "grid": "0",
+      "x": "-125",
+      "y": "-565",
+      "z": "78",
+      "heading": "227"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118058",
+      "grid": "0",
+      "x": "-140",
+      "y": "-570",
+      "z": "78",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "encounters/Ring10.lua",
+      "npcId": "118056",
+      "grid": "0",
+      "x": "-120",
+      "y": "-535",
+      "z": "78",
+      "heading": "170"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "shardwurm_broodmother.lua",
+      "npcId": "118020",
+      "grid": "57",
+      "x": "-3194",
+      "y": "-6207",
+      "z": "-367",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "shardwurm_broodmother.lua",
+      "npcId": "118018",
+      "grid": "0",
+      "x": "-3171",
+      "y": "-6187",
+      "z": "-370",
+      "heading": "0"
+    },
+    {
+      "zone": "greatdivide",
+      "file": "shardwurm_broodmother.lua",
+      "npcId": "118019",
+      "grid": "0",
+      "x": "-3194",
+      "y": "-6207",
+      "z": "-367",
+      "heading": "0"
+    },
+    {
+      "zone": "grimling",
+      "file": "Captain_Necin.lua",
+      "npcId": "167691",
+      "grid": "0",
+      "x": "-489",
+      "y": "-1075",
+      "z": "3.5",
+      "heading": "224"
+    },
+    {
+      "zone": "grimling",
+      "file": "Spiritist_Roleko.lua",
+      "npcId": "167037",
+      "grid": "0",
+      "x": "-956",
+      "y": "-884",
+      "z": "3",
+      "heading": "0"
+    },
+    {
+      "zone": "grimling",
+      "file": "Spiritist_Roleko.lua",
+      "npcId": "167039",
+      "grid": "0",
+      "x": "-967",
+      "y": "-867",
+      "z": "0",
+      "heading": "0"
+    },
+    {
+      "zone": "grobb",
+      "file": "Basher_Avisk.lua",
+      "npcId": "52126",
+      "grid": "0",
+      "x": "-107",
+      "y": "194",
+      "z": "46.6",
+      "heading": "64"
+    },
+    {
+      "zone": "grobb",
+      "file": "Basher_Nanrum.lua",
+      "npcId": "52125",
+      "grid": "0",
+      "x": "-466",
+      "y": "361",
+      "z": "9.8",
+      "heading": "41"
+    },
+    {
+      "zone": "grobb",
+      "file": "Urako.lua",
+      "npcId": "52056",
+      "grid": "0",
+      "x": "-265",
+      "y": "156",
+      "z": "8",
+      "heading": "258"
+    },
+    {
+      "zone": "growthplane",
+      "file": "encounters/Tunare.lua",
+      "npcId": "127001",
+      "grid": "0",
+      "x": "-1632",
+      "y": "1525",
+      "z": "206",
+      "heading": "0"
+    },
+    {
+      "zone": "growthplane",
+      "file": "encounters/Tunare.lua",
+      "npcId": "127002",
+      "grid": "0",
+      "x": "-247",
+      "y": "1609",
+      "z": "-40",
+      "heading": "424"
+    },
+    {
+      "zone": "growthplane",
+      "file": "encounters/Tunare.lua",
+      "npcId": "127001",
+      "grid": "0",
+      "x": "-1632",
+      "y": "1525",
+      "z": "206",
+      "heading": "0"
+    },
+    {
+      "zone": "highkeep",
+      "file": "Fenn_Kaedrick.lua",
+      "npcId": "6185",
+      "grid": "0",
+      "x": "-258",
+      "y": "-102",
+      "z": "4",
+      "heading": "16"
+    },
+    {
+      "zone": "highkeep",
+      "file": "Fenn_Kaedrick.lua",
+      "npcId": "6186",
+      "grid": "0",
+      "x": "-259",
+      "y": "-78",
+      "z": "4",
+      "heading": "0"
+    },
+    {
+      "zone": "highkeep",
+      "file": "Fenn_Kaedrick.lua",
+      "npcId": "6187",
+      "grid": "0",
+      "x": "-240",
+      "y": "-78",
+      "z": "4",
+      "heading": "0"
+    },
+    {
+      "zone": "highkeep",
+      "file": "Rodrick_Marslett.lua",
+      "npcId": "6184",
+      "grid": "0",
+      "x": "-89.59",
+      "y": "-24.55",
+      "z": "83.10",
+      "heading": "66"
+    },
+    {
+      "zone": "highkeep",
+      "file": "Tearon_Bleanix.lua",
+      "npcId": "6573",
+      "grid": "0",
+      "x": "52.0",
+      "y": "13.0",
+      "z": "3.70",
+      "heading": "161"
+    },
+    {
+      "zone": "highpass",
+      "file": "Anson_McBale.lua",
+      "npcId": "5088",
+      "grid": "0",
+      "x": "336",
+      "y": "10",
+      "z": "45",
+      "heading": "225"
+    },
+    {
+      "zone": "highpass",
+      "file": "Anson_McBale.lua",
+      "npcId": "5088",
+      "grid": "0",
+      "x": "336",
+      "y": "10",
+      "z": "45",
+      "heading": "225"
+    },
+    {
+      "zone": "highpass",
+      "file": "Prak.lua",
+      "npcId": "5119",
+      "grid": "0",
+      "x": "464",
+      "y": "127",
+      "z": "31.75",
+      "heading": "47"
+    },
+    {
+      "zone": "iceclad",
+      "file": "encounters/shawleight.lua",
+      "npcId": "110026",
+      "grid": "0",
+      "x": "1310",
+      "y": "4573",
+      "z": "84",
+      "heading": "0"
+    },
+    {
+      "zone": "iceclad",
+      "file": "encounters/stormfeather.lua",
+      "npcId": "110005",
+      "grid": "48",
+      "x": "850",
+      "y": "6042",
+      "z": "194",
+      "heading": "193"
+    },
+    {
+      "zone": "iceclad2",
+      "file": "encounters/shawleight.lua",
+      "npcId": "110026",
+      "grid": "0",
+      "x": "1310",
+      "y": "4573",
+      "z": "84",
+      "heading": "0"
+    },
+    {
+      "zone": "iceclad2",
+      "file": "encounters/stormfeather.lua",
+      "npcId": "110005",
+      "grid": "48",
+      "x": "850",
+      "y": "6042",
+      "z": "194",
+      "heading": "193"
+    },
+    {
+      "zone": "innothule",
+      "file": "Basher_Sklama.lua",
+      "npcId": "52125",
+      "grid": "0",
+      "x": "216",
+      "y": "-1757",
+      "z": "-19.8",
+      "heading": "131"
+    },
+    {
+      "zone": "innothule",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "46221",
+      "grid": "0",
+      "x": "1479",
+      "y": "-2569",
+      "z": "-23",
+      "heading": "89"
+    },
+    {
+      "zone": "jaggedpine",
+      "file": "encounters/jpfwar.lua",
+      "npcId": "181048",
+      "grid": "0",
+      "x": "1988",
+      "y": "1084",
+      "z": "-11",
+      "heading": "196"
+    },
+    {
+      "zone": "kael",
+      "file": "#The_Idol_of_Rallos_Zek.lua",
+      "npcId": "113244",
+      "grid": "0",
+      "x": "1292",
+      "y": "1058",
+      "z": "-95",
+      "heading": "259"
+    },
+    {
+      "zone": "kael",
+      "file": "113121.lua",
+      "npcId": "113341",
+      "grid": "0",
+      "x": "1289",
+      "y": "1300",
+      "z": "-90",
+      "heading": "259"
+    },
+    {
+      "zone": "kael",
+      "file": "113121.lua",
+      "npcId": "113244",
+      "grid": "0",
+      "x": "1292",
+      "y": "1058",
+      "z": "-95",
+      "heading": "259"
+    },
+    {
+      "zone": "kael",
+      "file": "The_Statue_of_Rallos_Zek.lua",
+      "npcId": "113341",
+      "grid": "0",
+      "x": "1289",
+      "y": "1300",
+      "z": "-90",
+      "heading": "259"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113261",
+      "grid": "0",
+      "x": "1170",
+      "y": "-825",
+      "z": "-116",
+      "heading": "177"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113262",
+      "grid": "0",
+      "x": "1175",
+      "y": "-856",
+      "z": "-116",
+      "heading": "204"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113263",
+      "grid": "28",
+      "x": "1133",
+      "y": "-911",
+      "z": "-116",
+      "heading": "0"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113264",
+      "grid": "29",
+      "x": "1125",
+      "y": "-768",
+      "z": "-116",
+      "heading": "0"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113265",
+      "grid": "28",
+      "x": "1133",
+      "y": "-911",
+      "z": "-116",
+      "heading": "0"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113266",
+      "grid": "29",
+      "x": "1125",
+      "y": "-768",
+      "z": "-116",
+      "heading": "0"
+    },
+    {
+      "zone": "kael",
+      "file": "encounters/plate_cycle.lua",
+      "npcId": "113260",
+      "grid": "30",
+      "x": "1143",
+      "y": "-840",
+      "z": "-126",
+      "heading": "0"
+    },
+    {
+      "zone": "kaladima",
+      "file": "King_Kazon_Stormhammer.lua",
+      "npcId": "60004",
+      "grid": "0",
+      "x": "-360",
+      "y": "-200",
+      "z": "11.5",
+      "heading": "10"
+    },
+    {
+      "zone": "kaladima",
+      "file": "King_Kazon_Stormhammer.lua",
+      "npcId": "60005",
+      "grid": "0",
+      "x": "-360",
+      "y": "-200",
+      "z": "11.5",
+      "heading": "10"
+    },
+    {
+      "zone": "kaladimb",
+      "file": "Jark.lua",
+      "npcId": "67090",
+      "grid": "0",
+      "x": "178.5",
+      "y": "708.9",
+      "z": "3.4",
+      "heading": "194.2"
+    },
+    {
+      "zone": "katta",
+      "file": "#Legionnaire_Claudius.lua",
+      "npcId": "160137",
+      "grid": "0",
+      "x": "-1149",
+      "y": "67",
+      "z": "-265",
+      "heading": "100"
+    },
+    {
+      "zone": "katta",
+      "file": "Lathin_Firetree.lua",
+      "npcId": "160133",
+      "grid": "0",
+      "x": "-75",
+      "y": "-807",
+      "z": "8",
+      "heading": "164"
+    },
+    {
+      "zone": "katta",
+      "file": "Lathin_Firetree.lua",
+      "npcId": "160142",
+      "grid": "0",
+      "x": "-120",
+      "y": "-808",
+      "z": "8",
+      "heading": "88"
+    },
+    {
+      "zone": "katta",
+      "file": "Lathin_Firetree.lua",
+      "npcId": "160160",
+      "grid": "0",
+      "x": "-97",
+      "y": "-858",
+      "z": "8",
+      "heading": "0"
+    },
+    {
+      "zone": "katta",
+      "file": "Roshawna_Rhorer.lua",
+      "npcId": "160171",
+      "grid": "31",
+      "x": "-544",
+      "y": "665",
+      "z": "4",
+      "heading": "0"
+    },
+    {
+      "zone": "katta",
+      "file": "The_study.lua",
+      "npcId": "160097",
+      "grid": "0",
+      "x": "-719",
+      "y": "288",
+      "z": "35",
+      "heading": "0"
+    },
+    {
+      "zone": "katta",
+      "file": "Yurddle_the_Caretaker.lua",
+      "npcId": "160168",
+      "grid": "0",
+      "x": "-1702",
+      "y": "-633",
+      "z": "11",
+      "heading": "2"
+    },
+    {
+      "zone": "katta",
+      "file": "Yurddle_the_Caretaker.lua",
+      "npcId": "160169",
+      "grid": "0",
+      "x": "-1730",
+      "y": "-568",
+      "z": "11",
+      "heading": "100"
+    },
+    {
+      "zone": "katta",
+      "file": "Yurddle_the_Caretaker.lua",
+      "npcId": "160170",
+      "grid": "0",
+      "x": "-1667",
+      "y": "-559",
+      "z": "11",
+      "heading": "130"
+    },
+    {
+      "zone": "katta",
+      "file": "encounters/vampyre.lua",
+      "npcId": "160165",
+      "grid": "0",
+      "x": "-97",
+      "y": "-822",
+      "z": "11",
+      "heading": "0"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Adjutant_D-kan.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Advisor_C-zatl.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Brigadier_G-tav.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Coercer_Q-ioul.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Ioltos_V-ghera.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#Tasi_V-ghera.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "kithicor",
+      "file": "#War_Priestess_T-zan.lua",
+      "npcId": "20205",
+      "grid": "0",
+      "x": "2297",
+      "y": "827",
+      "z": "275",
+      "heading": "128"
+    },
+    {
+      "zone": "lakerathe",
+      "file": "Shmendrik_Lavawalker.lua",
+      "npcId": "51138",
+      "grid": "32",
+      "x": "160",
+      "y": "3630.3",
+      "z": "51",
+      "heading": "192.4"
+    },
+    {
+      "zone": "lavastorm",
+      "file": "a_fire_sprite.lua",
+      "npcId": "27119",
+      "grid": "0",
+      "x": "298",
+      "y": "1037",
+      "z": "-60",
+      "heading": "0"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126007",
+      "grid": "0",
+      "x": "-301",
+      "y": "152",
+      "z": "118",
+      "heading": "194"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126012",
+      "grid": "0",
+      "x": "-441",
+      "y": "186",
+      "z": "118",
+      "heading": "128"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126006",
+      "grid": "0",
+      "x": "-480",
+      "y": "147",
+      "z": "118",
+      "heading": "62"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126013",
+      "grid": "0",
+      "x": "-479",
+      "y": "44",
+      "z": "118",
+      "heading": "62"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126008",
+      "grid": "0",
+      "x": "-437",
+      "y": "9",
+      "z": "118",
+      "heading": "0"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126011",
+      "grid": "0",
+      "x": "-340",
+      "y": "6",
+      "z": "118",
+      "heading": "0"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126009",
+      "grid": "0",
+      "x": "-300",
+      "y": "48",
+      "z": "118",
+      "heading": "194"
+    },
+    {
+      "zone": "mischiefplane",
+      "file": "encounters/mainhalltreasure.lua",
+      "npcId": "126010",
+      "grid": "0",
+      "x": "-341",
+      "y": "186",
+      "z": "118",
+      "heading": "128"
+    },
+    {
+      "zone": "mistmoore",
+      "file": "an_advisor.lua",
+      "npcId": "59129",
+      "grid": "0",
+      "x": "-165",
+      "y": "90",
+      "z": "-221",
+      "heading": "56"
+    },
+    {
+      "zone": "misty",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "33246",
+      "grid": "0",
+      "x": "-806",
+      "y": "1045",
+      "z": "18.4",
+      "heading": "123"
+    },
+    {
+      "zone": "netherbian",
+      "file": "#Legionnaire_Dalini.lua",
+      "npcId": "161007",
+      "grid": "0",
+      "x": "-365",
+      "y": "-89",
+      "z": "2.1",
+      "heading": "88"
+    },
+    {
+      "zone": "northkarana",
+      "file": "Zahal_the_Vile.lua",
+      "npcId": "13042",
+      "grid": "0",
+      "x": "-1560",
+      "y": "1450",
+      "z": "50",
+      "heading": "125.5"
+    },
+    {
+      "zone": "oggok",
+      "file": "Marda.lua",
+      "npcId": "49127",
+      "grid": "0",
+      "x": "383",
+      "y": "-205.3",
+      "z": "66.1",
+      "heading": "0"
+    },
+    {
+      "zone": "oot",
+      "file": "Styria_Fearnon.lua",
+      "npcId": "69132",
+      "grid": "0",
+      "x": "-7332",
+      "y": "-612",
+      "z": "1",
+      "heading": "90"
+    },
+    {
+      "zone": "paineel",
+      "file": "Miadera_Shadowfyre.lua",
+      "npcId": "75195",
+      "grid": "0",
+      "x": "421",
+      "y": "1182",
+      "z": "-37",
+      "heading": "128"
+    },
+    {
+      "zone": "paineel",
+      "file": "Nivold_Predd.lua",
+      "npcId": "75194",
+      "grid": "0",
+      "x": "474",
+      "y": "1230",
+      "z": "-37",
+      "heading": "128"
+    },
+    {
+      "zone": "paw",
+      "file": "#Kurrpok_Splitpaw.lua",
+      "npcId": "18026",
+      "grid": "15",
+      "x": "-189",
+      "y": "623",
+      "z": "4.95",
+      "heading": "195"
+    },
+    {
+      "zone": "paw",
+      "file": "Ghanex_Drah.lua",
+      "npcId": "18032",
+      "grid": "0",
+      "x": "-172",
+      "y": "1263",
+      "z": "2.7",
+      "heading": "0"
+    },
+    {
+      "zone": "poeartha",
+      "file": "arbitor_guy.lua",
+      "npcId": "218375",
+      "grid": "0",
+      "x": "1530",
+      "y": "-2739",
+      "z": "28",
+      "heading": "192"
+    },
+    {
+      "zone": "poearthb",
+      "file": "A_Rathe_Councilman.lua",
+      "npcId": "222040",
+      "grid": "0",
+      "x": "2050",
+      "y": "410",
+      "z": "-210",
+      "heading": "0"
+    },
+    {
+      "zone": "ponightmare",
+      "file": "#The_Bullyrag_Bat.lua",
+      "npcId": "204482",
+      "grid": "0",
+      "x": "727",
+      "y": "4567",
+      "z": "-97.75",
+      "heading": "127"
+    },
+    {
+      "zone": "ponightmare",
+      "file": "#The_Fearsome_Hobgoblin.lua",
+      "npcId": "204479",
+      "grid": "0",
+      "x": "1484",
+      "y": "2650",
+      "z": "-69.5",
+      "heading": "183"
+    },
+    {
+      "zone": "ponightmare",
+      "file": "#The_Fearsome_Hobgoblin.lua",
+      "npcId": "204468",
+      "grid": "0",
+      "x": "1465",
+      "y": "2625",
+      "z": "-80.875",
+      "heading": "183"
+    },
+    {
+      "zone": "ponightmare",
+      "file": "#The_Fearsome_Hobgoblin.lua",
+      "npcId": "204465",
+      "grid": "0",
+      "x": "1459",
+      "y": "2660",
+      "z": "-79",
+      "heading": "183"
+    },
+    {
+      "zone": "ponightmare",
+      "file": "#The_Painwrack_Hobgoblin.lua",
+      "npcId": "204481",
+      "grid": "0",
+      "x": "1686",
+      "y": "4079",
+      "z": "36.875",
+      "heading": "166"
+    },
+    {
+      "zone": "potorment",
+      "file": "An_Unimaginable_Horror.lua",
+      "npcId": "207319",
+      "grid": "0",
+      "x": "5",
+      "y": "-1041",
+      "z": "-26.25",
+      "heading": "0"
+    },
+    {
+      "zone": "qcat",
+      "file": "#Corrupt_Guard_Helminth.lua",
+      "npcId": "45009",
+      "grid": "0",
+      "x": "-130",
+      "y": "425",
+      "z": "-36",
+      "heading": "0"
+    },
+    {
+      "zone": "qcat",
+      "file": "#Corrupt_Guard_Helminth.lua",
+      "npcId": "45010",
+      "grid": "0",
+      "x": "-130",
+      "y": "455",
+      "z": "-36",
+      "heading": "128"
+    },
+    {
+      "zone": "qcat",
+      "file": "#Corrupt_Guard_Helminth.lua",
+      "npcId": "45011",
+      "grid": "0",
+      "x": "-270",
+      "y": "441",
+      "z": "-38",
+      "heading": "64"
+    },
+    {
+      "zone": "qcat",
+      "file": "#Guard_Helminth.lua",
+      "npcId": "45007",
+      "grid": "0",
+      "x": "-49",
+      "y": "410",
+      "z": "-38",
+      "heading": "128"
+    },
+    {
+      "zone": "qcat",
+      "file": "#Guard_Helminth.lua",
+      "npcId": "45008",
+      "grid": "0",
+      "x": "-49",
+      "y": "330",
+      "z": "-38",
+      "heading": "0"
+    },
+    {
+      "zone": "qcat",
+      "file": "Sragg_Bloodheart.lua",
+      "npcId": "45040",
+      "grid": "0",
+      "x": "-321",
+      "y": "415",
+      "z": "-38",
+      "heading": "64"
+    },
+    {
+      "zone": "qcat",
+      "file": "an_investigator.lua",
+      "npcId": "45005",
+      "grid": "0",
+      "x": "-49",
+      "y": "378",
+      "z": "-39",
+      "heading": "128"
+    },
+    {
+      "zone": "qey2hh1",
+      "file": "Chrislin_Baker.lua",
+      "npcId": "12001",
+      "grid": "0",
+      "x": "-11512",
+      "y": "763",
+      "z": "16",
+      "heading": "135"
+    },
+    {
+      "zone": "qey2hh1",
+      "file": "Linaya_Sowlin.lua",
+      "npcId": "12181",
+      "grid": "0",
+      "x": "-8000",
+      "y": "-3400",
+      "z": "23",
+      "heading": "102.9"
+    },
+    {
+      "zone": "qey2hh1",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "4209",
+      "grid": "0",
+      "x": "1081",
+      "y": "2806",
+      "z": "-33.3",
+      "heading": "28"
+    },
+    {
+      "zone": "qey2hh1",
+      "file": "Yiz_Pon.lua",
+      "npcId": "12005",
+      "grid": "0",
+      "x": "-15467",
+      "y": "1118",
+      "z": "21",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "#Riley_Shplots.lua",
+      "npcId": "1201",
+      "grid": "0",
+      "x": "-414",
+      "y": "-11",
+      "z": "-25",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "#Willie_Garrote.lua",
+      "npcId": "1197",
+      "grid": "0",
+      "x": "55",
+      "y": "-341",
+      "z": "-16",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "Captain_Tillin.lua",
+      "npcId": "1202",
+      "grid": "62",
+      "x": "-412",
+      "y": "75",
+      "z": "-24",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "Gash_Flockwalker.lua",
+      "npcId": "1179",
+      "grid": "0",
+      "x": "-100",
+      "y": "222",
+      "z": "3",
+      "heading": "128"
+    },
+    {
+      "zone": "qeynos",
+      "file": "an_investigator.lua",
+      "npcId": "1314",
+      "grid": "66",
+      "x": "-413",
+      "y": "50",
+      "z": "-24",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "an_investigator.lua",
+      "npcId": "1182",
+      "grid": "64",
+      "x": "-246",
+      "y": "145",
+      "z": "3",
+      "heading": "0"
+    },
+    {
+      "zone": "qeynos",
+      "file": "an_investigator.lua",
+      "npcId": "1183",
+      "grid": "0",
+      "x": "-324",
+      "y": "200",
+      "z": "6",
+      "heading": "120"
+    },
+    {
+      "zone": "qeytoqrg",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "4209",
+      "grid": "0",
+      "x": "1081",
+      "y": "2806",
+      "z": "-33.3",
+      "heading": "28"
+    },
+    {
+      "zone": "solrotower",
+      "file": "Guardian_of_Dresolik.lua",
+      "npcId": "212408",
+      "grid": "0",
+      "x": "606",
+      "y": "1584",
+      "z": "-152",
+      "heading": "64"
+    },
+    {
+      "zone": "southkarana",
+      "file": "#Shaman_Lenrel.lua",
+      "npcId": "14124",
+      "grid": "0",
+      "x": "2038",
+      "y": "-4821",
+      "z": "20",
+      "heading": "0"
+    },
+    {
+      "zone": "southkarana",
+      "file": "#Shaman_Lenrel.lua",
+      "npcId": "14124",
+      "grid": "0",
+      "x": "2050",
+      "y": "-1545",
+      "z": "0",
+      "heading": "0"
+    },
+    {
+      "zone": "southkarana",
+      "file": "#Shaman_Ren-Rex.lua",
+      "npcId": "14011",
+      "grid": "0",
+      "x": "-2482",
+      "y": "-7426",
+      "z": "53",
+      "heading": "0"
+    },
+    {
+      "zone": "southkarana",
+      "file": "#Shaman_Ren-Rex.lua",
+      "npcId": "14011",
+      "grid": "0",
+      "x": "-258",
+      "y": "-6483",
+      "z": "3",
+      "heading": "0"
+    },
+    {
+      "zone": "southkarana",
+      "file": "a_hermit.lua",
+      "npcId": "14172",
+      "grid": "16",
+      "x": "-3723",
+      "y": "-5561",
+      "z": "0",
+      "heading": "0"
+    },
+    {
+      "zone": "southkarana",
+      "file": "an_interrogator.lua",
+      "npcId": "14146",
+      "grid": "0",
+      "x": "-2680",
+      "y": "-5465",
+      "z": "0",
+      "heading": "192"
+    },
+    {
+      "zone": "southkarana",
+      "file": "an_interrogator.lua",
+      "npcId": "14147",
+      "grid": "0",
+      "x": "-3287",
+      "y": "-6040",
+      "z": "0",
+      "heading": "28"
+    },
+    {
+      "zone": "southkarana",
+      "file": "an_interrogator.lua",
+      "npcId": "14127",
+      "grid": "0",
+      "x": "-3280",
+      "y": "-6050",
+      "z": "0",
+      "heading": "31"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Mozdezh.lua",
+      "npcId": "162030",
+      "grid": "0",
+      "x": "420",
+      "y": "-144",
+      "z": "270.1",
+      "heading": "0"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Mozdezh.lua",
+      "npcId": "162498",
+      "grid": "0",
+      "x": "449",
+      "y": "-163",
+      "z": "268",
+      "heading": "224"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Mozdezh.lua",
+      "npcId": "162495",
+      "grid": "0",
+      "x": "377",
+      "y": "-71",
+      "z": "261",
+      "heading": "64"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Mozdezh.lua",
+      "npcId": "162496",
+      "grid": "0",
+      "x": "465",
+      "y": "-71",
+      "z": "261",
+      "heading": "192"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Mozdezh.lua",
+      "npcId": "162497",
+      "grid": "0",
+      "x": "389",
+      "y": "-163",
+      "z": "268",
+      "heading": "32"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Zhezum.lua",
+      "npcId": "162192",
+      "grid": "0",
+      "x": "644",
+      "y": "-280",
+      "z": "152",
+      "heading": "196"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Zhezum.lua",
+      "npcId": "162194",
+      "grid": "0",
+      "x": "660",
+      "y": "-310",
+      "z": "149.5",
+      "heading": "218"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Zhezum.lua",
+      "npcId": "162196",
+      "grid": "0",
+      "x": "561",
+      "y": "-324",
+      "z": "142",
+      "heading": "0"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Zhezum.lua",
+      "npcId": "162193",
+      "grid": "0",
+      "x": "561",
+      "y": "-236",
+      "z": "142",
+      "heading": "130"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "#Rhag-Zhezum.lua",
+      "npcId": "162195",
+      "grid": "0",
+      "x": "660",
+      "y": "-247",
+      "z": "149.5",
+      "heading": "165"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162192",
+      "grid": "0",
+      "x": "644",
+      "y": "-280",
+      "z": "152",
+      "heading": "196"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162194",
+      "grid": "0",
+      "x": "660",
+      "y": "-310",
+      "z": "149.5",
+      "heading": "218"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162196",
+      "grid": "0",
+      "x": "561",
+      "y": "-324",
+      "z": "142",
+      "heading": "0"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162193",
+      "grid": "0",
+      "x": "561",
+      "y": "-236",
+      "z": "142",
+      "heading": "130"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162195",
+      "grid": "0",
+      "x": "660",
+      "y": "-247",
+      "z": "149.5",
+      "heading": "165"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162030",
+      "grid": "0",
+      "x": "420",
+      "y": "-144",
+      "z": "270.1",
+      "heading": "0"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162498",
+      "grid": "0",
+      "x": "449",
+      "y": "-163",
+      "z": "268",
+      "heading": "224"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162495",
+      "grid": "0",
+      "x": "377",
+      "y": "-71",
+      "z": "261",
+      "heading": "64"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162496",
+      "grid": "0",
+      "x": "465",
+      "y": "-71",
+      "z": "261",
+      "heading": "192"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "162007.lua",
+      "npcId": "162497",
+      "grid": "0",
+      "x": "389",
+      "y": "-163",
+      "z": "268",
+      "heading": "32"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162258",
+      "grid": "0",
+      "x": "-211",
+      "y": "131",
+      "z": "-183",
+      "heading": "134"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162038",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162037",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162258",
+      "grid": "0",
+      "x": "-211",
+      "y": "131",
+      "z": "-183",
+      "heading": "134"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162040",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162039",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162040",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162039",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162042",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "ssratemple",
+      "file": "encounters/CurseCycle.lua",
+      "npcId": "162042",
+      "grid": "0",
+      "x": "-51",
+      "y": "-9",
+      "z": "-218",
+      "heading": "63"
+    },
+    {
+      "zone": "steamfont",
+      "file": "Cargo_Clockwork.lua",
+      "npcId": "56178",
+      "grid": "0",
+      "x": "30",
+      "y": "-700",
+      "z": "-109",
+      "heading": "62"
+    },
+    {
+      "zone": "steamfont",
+      "file": "Cargo_Clockwork.lua",
+      "npcId": "56179",
+      "grid": "0",
+      "x": "95",
+      "y": "-732",
+      "z": "-108",
+      "heading": "240"
+    },
+    {
+      "zone": "steamfont",
+      "file": "Cargo_Clockwork.lua",
+      "npcId": "56180",
+      "grid": "0",
+      "x": "53",
+      "y": "-615",
+      "z": "-107",
+      "heading": "113"
+    },
+    {
+      "zone": "steamfont",
+      "file": "Ennixy_Frennor.lua",
+      "npcId": "56150",
+      "grid": "0",
+      "x": "-836",
+      "y": "1385",
+      "z": "-110",
+      "heading": "128"
+    },
+    {
+      "zone": "steamfont",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "56331",
+      "grid": "0",
+      "x": "876",
+      "y": "766",
+      "z": "-100.7",
+      "heading": "46"
+    },
+    {
+      "zone": "stonebrunt",
+      "file": "Scout_Malom.lua",
+      "npcId": "100019",
+      "grid": "0",
+      "x": "-3346",
+      "y": "4266",
+      "z": "2057",
+      "heading": "0"
+    },
+    {
+      "zone": "stonebrunt",
+      "file": "a_spirit.lua",
+      "npcId": "100017",
+      "grid": "7",
+      "x": "-70",
+      "y": "474",
+      "z": "509",
+      "heading": "33.5"
+    },
+    {
+      "zone": "tenebrous",
+      "file": "#Heratius_Grolden.lua",
+      "npcId": "172014",
+      "grid": "0",
+      "x": "-1425",
+      "y": "576",
+      "z": "317",
+      "heading": "64"
+    },
+    {
+      "zone": "tenebrous",
+      "file": "Legionnaire_Falion.lua",
+      "npcId": "172186",
+      "grid": "0",
+      "x": "-1414",
+      "y": "-1265",
+      "z": "-38",
+      "heading": "0"
+    },
+    {
+      "zone": "tenebrous",
+      "file": "Trilexior_Aeridia.lua",
+      "npcId": "172013",
+      "grid": "0",
+      "x": "-1391",
+      "y": "632",
+      "z": "317",
+      "heading": "128"
+    },
+    {
+      "zone": "tenebrous",
+      "file": "encounters/johanius.lua",
+      "npcId": "172006",
+      "grid": "0",
+      "x": "-377",
+      "y": "1268",
+      "z": "-28",
+      "heading": "0"
+    },
+    {
+      "zone": "tenebrous",
+      "file": "encounters/johanius.lua",
+      "npcId": "172005",
+      "grid": "0",
+      "x": "-366",
+      "y": "1254",
+      "z": "-28",
+      "heading": "0"
+    },
+    {
+      "zone": "thedeep",
+      "file": "encounters/BurrowerBeast.lua",
+      "npcId": "164012",
+      "grid": "0",
+      "x": "1561",
+      "y": "284",
+      "z": "-53",
+      "heading": "64"
+    },
+    {
+      "zone": "timorous",
+      "file": "Jhassad_Oceanson.lua",
+      "npcId": "96086",
+      "grid": "21",
+      "x": "-1886",
+      "y": "-11661",
+      "z": "1",
+      "heading": "192"
+    },
+    {
+      "zone": "timorous",
+      "file": "Omat_Vastsea.lua",
+      "npcId": "96080",
+      "grid": "0",
+      "x": "-2198",
+      "y": "-11601",
+      "z": "76",
+      "heading": "192"
+    },
+    {
+      "zone": "timorous",
+      "file": "Omat_Vastsea.lua",
+      "npcId": "96080",
+      "grid": "0",
+      "x": "-2198",
+      "y": "-11601",
+      "z": "76",
+      "heading": "192"
+    },
+    {
+      "zone": "timorous",
+      "file": "Omat_Vastsea.lua",
+      "npcId": "96074",
+      "grid": "0",
+      "x": "-1781",
+      "y": "-11959",
+      "z": "14.3",
+      "heading": "1"
+    },
+    {
+      "zone": "timorous",
+      "file": "Omat_Vastsea.lua",
+      "npcId": "96074",
+      "grid": "0",
+      "x": "-1781",
+      "y": "-11959",
+      "z": "14.3",
+      "heading": "1"
+    },
+    {
+      "zone": "timorous",
+      "file": "Omat_Vastsea.lua",
+      "npcId": "96086",
+      "grid": "21",
+      "x": "-1886",
+      "y": "-11661",
+      "z": "1",
+      "heading": "192"
+    },
+    {
+      "zone": "timorous",
+      "file": "The_Great_Oowomp.lua",
+      "npcId": "96088",
+      "grid": "0",
+      "x": "3122.8",
+      "y": "5725.2",
+      "z": "7.9",
+      "heading": "13.0"
+    },
+    {
+      "zone": "tox",
+      "file": "Lorisyn_Oakwynd.lua",
+      "npcId": "38239",
+      "grid": "0",
+      "x": "2515",
+      "y": "592",
+      "z": "-28.7",
+      "heading": "195"
+    },
+    {
+      "zone": "trakanon",
+      "file": "Kaiaren.lua",
+      "npcId": "95040",
+      "grid": "0",
+      "x": "2470",
+      "y": "306",
+      "z": "-339",
+      "heading": "0"
+    },
+    {
+      "zone": "twilight",
+      "file": "Elisah_Astari.lua",
+      "npcId": "170002",
+      "grid": "1",
+      "x": "1859",
+      "y": "903",
+      "z": "55",
+      "heading": "0"
+    },
+    {
+      "zone": "umbral",
+      "file": "Radir_Fireshower.lua",
+      "npcId": "176019",
+      "grid": "0",
+      "x": "-2037",
+      "y": "-765",
+      "z": "-17",
+      "heading": "0"
+    },
+    {
+      "zone": "umbral",
+      "file": "Tawro_Icequake.lua",
+      "npcId": "176020",
+      "grid": "0",
+      "x": "60",
+      "y": "2899",
+      "z": "352",
+      "heading": "128"
+    },
+    {
+      "zone": "umbral",
+      "file": "encounters/doomshade.lua",
+      "npcId": "176017",
+      "grid": "0",
+      "x": "120",
+      "y": "-298",
+      "z": "5",
+      "heading": "0"
+    },
+    {
+      "zone": "unrest",
+      "file": "Khrix_Fritchoff.lua",
+      "npcId": "63111",
+      "grid": "0",
+      "x": "60",
+      "y": "622",
+      "z": "20",
+      "heading": "0"
+    },
+    {
+      "zone": "wakening",
+      "file": "Lieutenant_Krofer.lua",
+      "npcId": "119022",
+      "grid": "0",
+      "x": "-4975",
+      "y": "-699",
+      "z": "-182",
+      "heading": "63"
+    },
+    {
+      "zone": "wakening",
+      "file": "Lieutenant_Krofer.lua",
+      "npcId": "119025",
+      "grid": "0",
+      "x": "-4954",
+      "y": "-697",
+      "z": "-182",
+      "heading": "63"
+    },
+    {
+      "zone": "wakening",
+      "file": "Lieutenant_Krofer.lua",
+      "npcId": "119027",
+      "grid": "0",
+      "x": "-4954",
+      "y": "-671",
+      "z": "-182",
+      "heading": "63"
+    },
+    {
+      "zone": "wakening",
+      "file": "Lieutenant_Krofer.lua",
+      "npcId": "119028",
+      "grid": "0",
+      "x": "-4976",
+      "y": "-672",
+      "z": "-182",
+      "heading": "63"
+    },
+    {
+      "zone": "wakening",
+      "file": "encounters/reinforcement.lua",
+      "npcId": "119030",
+      "grid": "0",
+      "x": "-4457",
+      "y": "-1288",
+      "z": "-115",
+      "heading": "9"
+    },
+    {
+      "zone": "warrens",
+      "file": "a_rabid_kobold.lua",
+      "npcId": "101006",
+      "grid": "0",
+      "x": "-866",
+      "y": "713",
+      "z": "-33",
+      "heading": "260"
+    },
+    {
+      "zone": "warrens",
+      "file": "a_rabid_kobold.lua",
+      "npcId": "101006",
+      "grid": "0",
+      "x": "-473",
+      "y": "577",
+      "z": "-74",
+      "heading": "200"
+    },
+    {
+      "zone": "warrens",
+      "file": "a_rabid_kobold.lua",
+      "npcId": "101006",
+      "grid": "0",
+      "x": "-1019",
+      "y": "506",
+      "z": "-78",
+      "heading": "60"
+    }
+  ]
