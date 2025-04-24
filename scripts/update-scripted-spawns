@@ -68,7 +68,15 @@ foreach ($spawnInfo as $keyId => $spawnEntry) {
 }
 
 if ($data) {
-   $main->db()->bindExecute($statement,$types,$data);
+   $result = $main->db()->bindExecute($statement,$types,$data);
+
+   if ($result) {
+      $this->debug("Scripted spawns updated successfully."); 
+      exit(0); 
+   }
 }  
+
+$this->debug("Failed to update scripted spawns.");
+exit(-1);
 
 ?>
