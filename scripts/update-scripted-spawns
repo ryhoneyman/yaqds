@@ -37,6 +37,13 @@ $npcIds    = implode(',',$npcIdList);
 
 $npcData = $main->db()->query("SELECT id,name,level,maxlevel FROM npc_types WHERE id in ($npcIds)");
 
+$truncateResult = $main->db()->execute("TRUNCATE TABLE yaqds_scripted_spawns");
+
+if (!$truncateResult) {
+   $main->debug->trace(0,"Failed to truncate scripted spawns table.");
+   exit(-1);
+}
+
 $statement = "INSERT INTO yaqds_scripted_spawns (file_name,zone_name,npc_id,grid_id,x,y,z,heading) VALUES (?,?,?,?,?,?,?,?)";
 $types     = "sssiiiii";
 $data      = [];
