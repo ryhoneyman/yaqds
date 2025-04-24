@@ -1,0 +1,74 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 9,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
+
+$spawnData = json_decode(file_get_contents('./data/scripted.spawns.json'),true);
+
+$spawnInfo = [];
+$npcIdList = [];
+
+foreach ($spawnData as $spawnEntry) {
+   $keyId = sprintf("%s_%s_%s_%s",$spawnEntry['zone'],$spawnEntry['npcId'],$spawnEntry['x'],$spawnEntry['y']);
+
+   $spawnInfo[$keyId] = $spawnEntry;
+
+   $npcIdList[] = $spawnEntry['npcId'];
+}
+   
+$npcIdList = array_unique($npcIdList);
+$npcIds    = implode(',',$npcIdList);
+
+$npcData = $main->db()->query("SELECT id,name,level,maxlevel FROM npc_types WHERE id in ($npcIds)");
+
+$statement = "INSERT INTO yaqds_scripted_spawns (file_name,zone_name,npc_id,grid_id,x,y,z,heading) VALUES (?,?,?,?,?,?,?,?)";
+$types     = "sssiiiii";
+$data      = [];
+
+foreach ($spawnInfo as $keyId => $spawnEntry) {
+   $spawnZone    = $spawnEntry['zone'];
+   $spawnFile    = $spawnEntry['file'];
+   $spawnNpcId   = $spawnEntry['npcId'];
+   $spawnGridId  = $spawnEntry['grid'];
+   $spawnX       = $spawnEntry['x'];
+   $spawnY       = $spawnEntry['y'];
+   $spawnZ       = $spawnEntry['z'];
+   $spawnHeading = $spawnEntry['heading'];
+
+   $spawnNpcData = $npcData[$spawnNpcId];
+
+   if (!$spawnNpcData || !$spawnNpcData['name']) { continue; }
+
+   $data[] = [
+      $spawnFile,
+      $spawnZone,
+      (int)$spawnNpcId,
+      (int)$spawnGridId ?: 0,
+      (float)$spawnX,
+      (float)$spawnY,
+      (float)$spawnZ,
+      (float)$spawnHeading
+   ];
+}
+
+if ($data) {
+   $main->db()->bindExecute($statement,$types,$data);
+}  
+
+?>
