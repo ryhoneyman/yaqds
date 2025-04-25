@@ -37,6 +37,11 @@ $npcIds    = implode(',',$npcIdList);
 
 $npcData = $main->db()->query("SELECT id,name,level,maxlevel FROM npc_types WHERE id in ($npcIds)");
 
+if (!$npcData) {
+   $main->debug->trace(0,"Failed to get NPC data.");
+   exit(-1);
+}
+
 $truncateResult = $main->db()->execute("TRUNCATE TABLE yaqds_scripted_spawns");
 
 if (!$truncateResult) {
@@ -75,9 +80,10 @@ foreach ($spawnInfo as $keyId => $spawnEntry) {
 }
 
 if ($data) {
-   $result = $main->db()->bindExecute($statement,$types,$data);
+   $result  = $main->db()->bindExecute($statement,$types,$data);
+   $success = (!$result) ? true : false;
 
-   if ($result) {
+   if ($success) {
       $main->debug->trace(0,"Scripted spawns updated successfully."); 
       exit(0); 
    }
