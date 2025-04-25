@@ -1,8 +1,26 @@
 ### First time lwplib init on destination
 git submodule update --init --recursive
 
-### Hostinger:  
-# copy .htaccess, robots.txt sitemap.txt to www (webroot)
-# change PHP version to 7.4, in PHP Configuration admin panel on hostinger.com
-# update yaqds-init.php and make sure paths are correct
 
+### Copy .htaccess, robots.txt sitemap.txt from files/www to the host www (webroot)
+### Update .htaccess with proper include_path, edit robots/sitemap with domain  
+cp ./deploy/files/www/* ./www
+cp ./deploy/files/www/r/* ./www/r
+
+
+### Copy yaqds-init.php to include path from .htaccess
+### Update yaqds-init.php and make sure paths are correct
+cp ./deploy/files/yaqds-init.php /home/u690380958/php
+
+
+### Copy db.conf skeleton file to some temporary location to edit (update values as needed):
+cp ./deploy/files/etc/db.conf.base64.skel /tmp/db.conf
+
+### Edit /tmp/db.conf and replace any values, then base64 encode it and place it in etc (remove tmp file after)
+cat /tmp/db.conf | base64 -w0 > ./etc/db.conf
+rm /tmp/db.conf
+
+
+### Copy db.conf skeleton file to some temporary location to edit (update values as needed):
+cp ./deploy/files/etc/settings.json.skel ./etc/settings.json
+cp ./deploy/files/etc/version.json.skel ./etc/version.json

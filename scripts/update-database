@@ -73,7 +73,7 @@ printf "* Importing new tables\n"
 mysql -h $DBHOST -u $DBUSER $DBNAME < quarm-import.sql
 
 printf "* Executing custom table queries\n"
-mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/yaqds-tables.sql
+mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/sql/yaqds-tables.sql
 
 printf "* Executing scripted spawn insertion\n"
 INCLUDEPATH=$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d include_path=$PHPINCLUDEDIR:.")
