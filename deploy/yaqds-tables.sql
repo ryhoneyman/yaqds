@@ -45,5 +45,5 @@ CREATE TABLE `yaqds_scripted_spawns` (
   `z` float(14,6) NOT NULL,
   `heading` float(14,6) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE (`zone_name`,`npc_id`)
+  UNIQUE (`zone_name`,`npc_id`,`x`,`y`)
 );
