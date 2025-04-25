@@ -76,7 +76,7 @@ printf "* Executing custom table queries\n"
 mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/yaqds-tables.sql
 
 printf "* Executing scripted spawn insertion\n"
-INCLUDEPATH=$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d 'include_path=$PHPINCLUDEDIR:.'")
+INCLUDEPATH=$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d include_path=$PHPINCLUDEDIR:.")
 UPDATERESULT=$(php $INCLUDEPATH $SCRIPTSDIR/update-scripted-spawns)
 printf "  - $UPDATERESULT\n"
 
