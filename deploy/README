@@ -3,14 +3,17 @@ git submodule update --init --recursive
 
 
 ### Copy .htaccess, robots.txt sitemap.txt from files/www to the host www (webroot)
-### Update .htaccess with proper include_path, edit robots/sitemap with domain  
+### Update .htaccess with proper include_path, edit robots/sitemap with domain
+### Can skip using .htaccess if default php include_path is writable by your username  
 cp ./deploy/files/www/* ./www
 cp ./deploy/files/www/r/* ./www/r
 
 
 ### Copy yaqds-init.php to include path from .htaccess
 ### Update yaqds-init.php and make sure paths are correct
-cp ./deploy/files/yaqds-init.php /home/u690380958/php
+cp ./deploy/files/yaqds-init.php /usr/share/php              # /usr/share/php writeable by user
+# -OR-
+cp ./deploy/files/yaqds-init.php /home/u690380958/php        # alternate custom writeable include path
 
 
 ### Copy db.conf skeleton file to some temporary location to edit (update values as needed):
