@@ -4,7 +4,7 @@ include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
 $main = new Main(array(
-   'debugLevel'     => 9,
+   'debugLevel'     => 0,
    'debugType'      => DEBUG_CLI,
    'errorReporting' => false,
    'sessionStart'   => false,
@@ -37,17 +37,11 @@ $npcIds    = implode(',',$npcIdList);
 
 $npcData = $main->db()->query("SELECT id,name,level,maxlevel FROM npc_types WHERE id in ($npcIds)");
 
-if (!$npcData) {
-   $main->debug->trace(0,"Failed to get NPC data.");
-   exit(-1);
-}
+if (!$npcData) { messageExit(-1,"Failed to get NPC data."); }
 
 $truncateResult = $main->db()->execute("TRUNCATE TABLE yaqds_scripted_spawns");
 
-if (!$truncateResult) {
-   $main->debug->trace(0,"Failed to truncate scripted spawns table.");
-   exit(-1);
-}
+if (!$truncateResult) { messageExit(-1,"Failed to truncate scripted spawns table.");}
 
 $statement = "INSERT INTO yaqds_scripted_spawns (file_name,zone_name,npc_id,grid_id,x,y,z,heading) VALUES (?,?,?,?,?,?,?,?)";
 $types     = "sssiiiii";
@@ -79,17 +73,26 @@ foreach ($spawnInfo as $keyId => $spawnEntry) {
    ];
 }
 
-if ($data) {
-   $result  = $main->db()->bindExecute($statement,$types,$data);
-   $success = (!$result) ? true : false;
+if (!$data) { messageExit(-1,"No scripted spawns to update."); }
 
-   if ($success) {
-      $main->debug->trace(0,"Scripted spawns updated successfully."); 
-      exit(0); 
-   }
-}  
+$result = $main->db()->bindExecute($statement,$types,$data);
 
-$main->debug->trace(0,"Failed to update scripted spawns.");
-exit(-1);
+if ($result) { 
+   messageExit(0,"Scripted spawns updated successfully."); 
+}
+else {
+   $errorItem = $main->db()->lastError();
+   messageExit(-1,"Failed to update scripted spawns: ".$errorItem[1]);
+}
+
+
+?>
+<?php
+
+function messageExit($exitCode, $message)
+{
+   print $message."\n";
+   exit($exitCode);
+}
 
 ?>
