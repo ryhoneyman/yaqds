@@ -18,17 +18,20 @@ if [ ! -f "$JQBIN" ]; then
     exit;
 fi
 
-### Database connect string parameters
-DBHOST=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.hostname')
-DBUSER=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.username')
-DBNAME=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.database')
-DBPASS=$(cat $BASEDIR/etc/db.conf | base64 -d | $JQBIN -r '.password')
-
 DEPLOYDIR="$BASEDIR/deploy"
 DBDUMPDIR="$BASEDIR/quarm/db"
 VERSIONJSON="$BASEDIR/etc/version.json"
+SETTINGSJSON="$BASEDIR/etc/settings.json"
+DBCONFIGFILE="$BASEDIR/etc/db.conf"
+
+### Database connect string parameters
+DBHOST=$(cat $DBCONFIGFILE | base64 -d | $JQBIN -r '.hostname')
+DBUSER=$(cat $DBCONFIGFILE | base64 -d | $JQBIN -r '.username')
+DBNAME=$(cat $DBCONFIGFILE | base64 -d | $JQBIN -r '.database')
+DBPASS=$(cat $DBCONFIGFILE | base64 -d | $JQBIN -r '.password')
 
 ### Remote latest available downoad, filename, and date
+PHPINCLUDEDIR=$(cat $SETTINGSJSON | $JQBIN -r '.PHP_INCLUDE_DIR')
 LATESTAVAIL=$(wget -q -O - --header "Accept: application/vnd.github.v3+json" https://api.github.com/repos/SecretsOTheP/EQMacEmu/contents/utils/sql/database_full | $JQBIN -r '.[length -1].download_url')
 AVAILFILE=$(basename $LATESTAVAIL)
 AVAILDATE=$(echo "$AVAILFILE" | grep -Eo '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}' | tr -d '-')
@@ -70,6 +73,11 @@ mysql -h $DBHOST -u $DBUSER $DBNAME < quarm-import.sql
 
 printf "* Executing custom table queries\n"
 mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/yaqds-tables.sql
+
+printf "* Executing scripted spawn insertion\n"
+INCLUDEPATH==$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d 'include_path=$PHPINCLUDEDIR:.'")
+UPDATERESULT=$(php $INCLUDEPATH $SCRIPTDIR/update-scripted-spawns)
+
 
 printf "* Cleaning up\n"
 rm quarm-import.sql
