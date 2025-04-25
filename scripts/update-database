@@ -23,6 +23,7 @@ DBDUMPDIR="$BASEDIR/quarm/db"
 VERSIONJSON="$BASEDIR/etc/version.json"
 SETTINGSJSON="$BASEDIR/etc/settings.json"
 DBCONFIGFILE="$BASEDIR/etc/db.conf"
+SCRIPTSDIR="$BASEDIR/scripts"
 
 ### Database connect string parameters
 DBHOST=$(cat $DBCONFIGFILE | base64 -d | $JQBIN -r '.hostname')
@@ -75,9 +76,9 @@ printf "* Executing custom table queries\n"
 mysql -h $DBHOST -u $DBUSER $DBNAME < $DEPLOYDIR/yaqds-tables.sql
 
 printf "* Executing scripted spawn insertion\n"
-INCLUDEPATH==$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d 'include_path=$PHPINCLUDEDIR:.'")
-UPDATERESULT=$(php $INCLUDEPATH $SCRIPTDIR/update-scripted-spawns)
-
+INCLUDEPATH=$([ "$PHPINCLUDEDIR" = "null" ] && echo "" || echo "-d 'include_path=$PHPINCLUDEDIR:.'")
+UPDATERESULT=$(php $INCLUDEPATH $SCRIPTSDIR/update-scripted-spawns)
+printf "  - $UPDATERESULT\n"
 
 printf "* Cleaning up\n"
 rm quarm-import.sql
