@@ -13,15 +13,14 @@ $main = new Main([
     'sendHeaders'    => true,
     'database'       => false,
     'dbConfigDir'    => APP_CONFIGDIR,
-    'fileDefines'    => null,
-    'dbDefines'      => null,
+    'fileDefine'     => APP_CONFIGDIR.'/settings.json',
+    'dbDefine'       => null,
     'input'          => false,
     'html'           => false,
     'adminlte'       => false,
 ]);
 
-$settings   = json_decode(file_get_contents(APP_CONFIGDIR.'/settings.json'),true);
-$apiOptions = ['baseUrl' => $settings['YAQDS_API_URL'], 'authToken' => $settings['YAQDS_API_AUTH_TOKEN']];
+$apiOptions = ['baseUrl' => MY_API_URL, 'authToken' => MY_API_AUTH_TOKEN];
 
 if (!$main->buildClass('api','MyAPI',$apiOptions,'local/myapi.class.php')) { exit; }
 if (!$main->buildClass('router','LWPLib\SimpleRouter',null,'simplerouter.class.php')) { exit; }
@@ -56,7 +55,7 @@ function routeSpell($main)
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
-    $baseUrl   = $main->var('settings')['YAQDS_URL'];
+    $baseUrl   = MY_URL;
     $spellType = ($spellData['_is_bard_song']) ? 'Song' : 'Spell';
 
     print gameCard($spellData,[
@@ -82,7 +81,7 @@ function routeItem($main)
 
     //print json_encode($response,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
 
-    $baseUrl = $main->var('settings')['YAQDS_URL'];
+    $baseUrl = MY_URL;
 
     print gameCard($itemData,[
         'name'      => sprintf("%s",$itemData['name']),
