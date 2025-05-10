@@ -15,7 +15,7 @@ $main = new Main([
     'dbConfigDir'    => APP_CONFIGDIR,
     'fileDefine'     => APP_CONFIGDIR.'/settings.json',
     'dbDefine'       => null,
-    'input'          => false,
+    'input'          => true,
     'html'           => false,
     'adminlte'       => false,
 ]);
@@ -27,17 +27,48 @@ if (!$main->buildClass('router','LWPLib\SimpleRouter',null,'simplerouter.class.p
 
 //$main->prepareDatabase('db.yaqds.conf','yaqds');
 
-$main->var('settings',$settings);
-
 $router = $main->obj('router');
 
 $router->process($main,[
-    '/r/item/'  => ['function' => 'routeItem', 'method' => ['GET']],
-    '/r/spell/' => ['function' => 'routeSpell', 'method' => ['GET']],
+    '/r/item/'       => ['function' => 'routeItem', 'method' => ['GET']],
+    '/r/spell/'      => ['function' => 'routeSpell', 'method' => ['GET']],
+    '/r/data/spell' => ['function' => 'routeSpellData', 'method' => ['GET']],
 ]);
  
 ?>
 <?php
+
+function routeSpellData($main)
+{
+    $api    = $main->obj('api');
+    $router = $main->obj('router');
+    $input  = $main->obj('input');
+
+    $headless   = preg_match('~application/json~i',$_SERVER['HTTP_ACCEPT']) ? true : false;
+    $zealFormat = preg_match('/^(1|yes|true)$/i',$input->get('zeal','alphanumeric')) ? true : false;
+
+    $spellData = $api->v1SpellData();
+
+    if (!$spellData || $spellData['error']) { $router->sendResponse($spellData['error'] ?: 'Could not load spell data',null,400,'html'); }
+
+    if (!$headless) { print "<pre>\n"; }
+
+    if ($zealFormat) {
+        $spellText = [];
+        for ($spellId = 1; $spellId <= 4000; $spellId++) {
+            if (!isset($spellData[$spellId]['data'])) { $spellText[] = ''; }
+
+            $spellText[] = implode('^',$spellData[$spellId]['data'] ?? []);
+        }
+
+        print implode("\n",$spellText);
+    }
+    else {
+        print json_encode($spellData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+    }
+
+    if (!$headless) { print "</pre>\n"; }
+}
 
 function routeSpell($main)
 {

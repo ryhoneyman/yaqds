@@ -28,10 +28,33 @@ class MyAPI extends LWPLib\APIBase
             'v1-item-search'               => '/v1/item/search',
             'v1-item-description'          => '/v1/item/description/{{id}}',
             'v1-spell'                     => '/v1/spell/{{id}}',
+            'v1-spell-data'                => '/v1/data/spell/',
         ]);
     }
+
+    /**
+     * v1SpellData
+     * 
+     * @return bool|array
+     */
+    public function v1SpellData()
+    {
+        $request = [
+            'params' => [],
+            'options' => [
+                'method' => 'GET',
+            ],
+        ];
+
+        if (!$this->makeRequest('v1-spell-data','auth,json',$request)) { 
+            $this->error($this->clientError());
+            return false; 
+        }
+
+        return $this->clientResponse();
+    } 
     
-/**
+    /**
      * v1Spell
      *
      * @param  int $spellId
