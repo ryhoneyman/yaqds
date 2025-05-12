@@ -19,7 +19,7 @@ $main = new Main(array(
    'data'           => APP_CONFIGDIR.'/global.json',
 ));
 
-$main->connectDatabase('db.takpmerge.conf','takpmerge');
+$main->connectDatabase('takpmerge','db.takpmerge.conf');
 
 $db = $main->db('takpmerge');
 
