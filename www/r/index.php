@@ -24,6 +24,7 @@ $apiOptions = ['baseUrl' => MY_API_URL, 'authToken' => MY_API_AUTH_TOKEN];
 
 if (!$main->buildClass('api','MyAPI',$apiOptions,'local/myapi.class.php')) { exit; }
 if (!$main->buildClass('router','LWPLib\SimpleRouter',null,'simplerouter.class.php')) { exit; }
+if (!$main->buildClass('cache','Cache',null,'local/cache.class.php')) { exit; }
 
 //$main->prepareDatabase('db.yaqds.conf','yaqds');
 
@@ -32,7 +33,7 @@ $router = $main->obj('router');
 $router->process($main,[
     '/r/item/'       => ['function' => 'routeItem', 'method' => ['GET']],
     '/r/spell/'      => ['function' => 'routeSpell', 'method' => ['GET']],
-    '/r/data/spell' => ['function' => 'routeSpellData', 'method' => ['GET']],
+    '/r/data/spell'  => ['function' => 'routeSpellData', 'method' => ['GET']],
 ]);
  
 ?>
@@ -44,21 +45,22 @@ function routeSpellData($main)
     $router = $main->obj('router');
     $input  = $main->obj('input');
 
-    $headless   = preg_match('~application/json~i',$_SERVER['HTTP_ACCEPT']) ? true : false;
-    $zealFormat = preg_match('/^(1|yes|true)$/i',$input->get('zeal','alphanumeric')) ? true : false;
+    /** @var Cache $cache */
+    $cache  = $main->obj('cache');
 
-    $spellData = $api->v1SpellData();
+    $isBrowser  = preg_match('~text/html~i',$_SERVER['HTTP_ACCEPT']) ? true : false;
+    $zealFormat = preg_match('/^(1|yes|true)$/i',$input->get('zeal','alphanumeric')) ? true : false;
+    $spellData  = $cache->readFile('data.spell',['onlyIfVersionMatch' => $main->quarmDb]) ?: $api->v1SpellData();
 
     if (!$spellData || $spellData['error']) { $router->sendResponse($spellData['error'] ?: 'Could not load spell data',null,400,'html'); }
 
-    if (!$headless) { print "<pre>\n"; }
+    if ($isBrowser) { print "<pre>\n"; }
 
     if ($zealFormat) {
         $spellText = [];
         for ($spellId = 1; $spellId <= 4000; $spellId++) {
             if (!isset($spellData[$spellId]['data'])) { $spellText[] = ''; }
-
-            $spellText[] = implode('^',$spellData[$spellId]['data'] ?? []);
+            else { $spellText[] = trim(implode('^',$spellData[$spellId]['data'] ?? []),'^'); }
         }
 
         print implode("\n",$spellText);
@@ -67,7 +69,11 @@ function routeSpellData($main)
         print json_encode($spellData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     }
 
-    if (!$headless) { print "</pre>\n"; }
+    if ($isBrowser) { print "</pre>\n"; }
+
+    if (!$cache->cacheUsed) {
+        $cache->writeFile('data.spell',$spellData,['version' => $main->quarmDb]);
+    }
 }
 
 function routeSpell($main)
