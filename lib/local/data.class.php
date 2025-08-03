@@ -113,9 +113,10 @@ class Data extends LWPLib\Base
 
       //$npcLootTables = $this->db->query("SELECT distinct(concat(nt.name,'^',nt.loottable_id,'^',s2.zone,'^',s2.min_expansion,'-',s2.max_expansion,'^',se.min_expansion,'-',se.max_expansion)) as entry FROM npc_types nt LEFT JOIN spawnentry se ON nt.id = se.npcID LEFT JOIN spawn2 s2 ON se.spawngroupID = s2.spawngroupID WHERE nt.loottable_id > 0 and nt.level >= 10");
       
-      $npcLootTables = $this->db->query("SELECT id, nt_name, nt_loottable_id, s2_zone, s2_min_expansion, s2_max_expansion, se_min_expansion, se_max_expansion FROM yaqds_npc_loottable WHERE nt_level >= 10");
+      $npcLootTables = $this->db->query("SELECT id, nt_id, nt_name, nt_loottable_id, s2_zone, s2_min_expansion, s2_max_expansion, se_min_expansion, se_max_expansion FROM yaqds_npc_loottable WHERE nt_level >= 10");
 
       foreach ($npcLootTables as $entry => $entryInfo) {
+         $npcId       = $entryInfo['nt_id'];
          $name        = $entryInfo['nt_name'];
          $lootTableId = $entryInfo['nt_loottable_id'];
          $zone        = $entryInfo['s2_zone'];
@@ -135,6 +136,7 @@ class Data extends LWPLib\Base
          if (!isset($return['data'][$index])) {
             $return['data'][$index] = array(
                'hash'          => $hash,
+               'id'            => $npcId,
                'raw_name'      => $name,
                'name'          => $cleanName,
                'min_expansion' => $minExp,

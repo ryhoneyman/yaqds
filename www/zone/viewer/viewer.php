@@ -110,6 +110,9 @@ foreach (array_keys($spawnLabels['mobs']['by-name']) as $npcName) {
    $npcSelect[sprintf('nn%s',hash('crc32',$npcName))] = $npcName;
 }
 
+$npcSearchName = $npcSelect[$npcSearch] ?: null;
+$npcSearchId   = isset($spawnLabels['mobs']['by-name'][$npcSearchName]) ? key($spawnLabels['mobs']['by-name'][$npcSearchName]) : null;
+
 // Dynamic styles
 print "<style>\n". 
       ".gridS  { stroke-width: $gridSize; stroke-dasharray: $gridSize; }\n".
@@ -140,6 +143,10 @@ print "<div class='mb-1'>".
       "<div class='d-inline-block align-top'style='width:fit-content;'>".
       $html->select('bg',['default' => 'Default Background', 'white' => 'White Background'],$bgControl,$selectOpts).
       "</div>".
+      (($npcSearchId) ?
+      "<div class='d-inline-block align-top ml-2'style='width:fit-content;'>".
+      "<a href='https://www.pqdi.cc/npc/{$npcSearchId}' target='_blank' class='btn-sm btn-danger'>PQDI: {$npcSearchName}</a>".
+      "</div>" : '').
       //"<div class='d-inline-block align-top'>".
       //$html->select('pathing',array('enabled' => 'Pathing Enabled (slower)', 'disabled' => 'Pathing Disabled'),$zonePathing,$selectOpts).
       //"</div>".

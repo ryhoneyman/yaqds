@@ -79,6 +79,7 @@ if ($npcHash && $npcLootTableList['lookup'][$npcHash]) {
    $lootTableEntries = $main->data->getLootTableEntriesById($lootTableId);
 
    $lootTables['npc_name']     = $npcLootTableList['data'][$npcIndex]['name'];
+   $lootTables['npc_id']       = $npcLootTableList['data'][$npcIndex]['id'];
    $lootTables['tableEntries'] = $lootTableEntries;
 
    //print "<pre class='text-white'>\n";
@@ -117,7 +118,9 @@ if ($main->debug->level() >= 8) {
    print "<pre class='text-white'>\n".json_encode($lootTables,JSON_PRETTY_PRINT)."</pre>\n";
 }
 
-$npc     = $lootTables['npc_name'];
+$npcName = $lootTables['npc_name'];
+$npcId   = $lootTables['npc_id'];
+
 $done    = false;
 $counter = 0;
 $stats   = array();
@@ -187,7 +190,7 @@ if ($sample) {
    print $alte->displayCard($alte->displayRow(
             $lootDisplay,
             array('container' => 'col-xl-9 col-12')
-         ),array('container' => 'col-xl-9 col-12', 'title' => sprintf("Simulated loot results for %s",$npc), 'card' => 'card-warning'));
+         ),array('container' => 'col-xl-9 col-12', 'title' => sprintf("Simulated loot results for %s",$npcName), 'card' => 'card-warning'));
 
    $lootTableEntries = $lootTables['tableEntries'] ?: array();
    $lootTableCount   = count($lootTableEntries);
@@ -226,7 +229,7 @@ else if ($analyze) {
    $statTables = $stats['table'];
 
    printf("<pre class='text-white'>\n");
-   printf("<b class='text-green'>Checking loot results for <u>%s</u> after %d kills:</b>\n\n",$npc,$totalKills);
+   printf("<b class='text-green'>Checking loot results for <a href='https://www.pqdi.cc/npc/%d' target='_blank' class='btn-sm btn-danger'>%s</a> after %d kills:</b>\n\n",$npcId,$npcName,$totalKills);
 
    $tableCount = 1;
 
