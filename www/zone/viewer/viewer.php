@@ -24,7 +24,7 @@ $html  = $main->obj('html');
 
 $main->title('Zone Viewer');
 
-$currentExpansion = $main->data->forceExpansion('velious') ?: $main->data->currentExpansion();
+$currentExpansion = $main->data->forceExpansion('luclin') ?: $main->data->currentExpansion();
 
 $zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
 $zoneFloor   = $input->get('floor','numeric,dash');
