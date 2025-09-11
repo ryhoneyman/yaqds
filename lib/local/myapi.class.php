@@ -29,8 +29,54 @@ class MyAPI extends LWPLib\APIBase
             'v1-item-description'          => '/v1/item/description/{{id}}',
             'v1-spell'                     => '/v1/spell/{{id}}',
             'v1-spell-data'                => '/v1/data/spell/',
+            'v1-map-list'                  => '/v1/map',
+            'v1-map'                       => '/v1/map/{{name}}',
         ]);
     }
+
+    /**
+     * v1Map
+     *
+     * @param  string $mapName
+     * @return bool|array
+     */
+    public function v1Map(string $mapName)
+    {
+        $request = [
+            'params' => ['name' => $mapName],
+            'options' => [
+                'method' => 'GET',
+            ],
+        ];
+
+        if (!$this->makeRequest('v1-map','auth,json',$request)) { 
+            $this->error($this->clientError());
+            return false; 
+        }
+
+        return $this->clientResponse();
+    }
+
+    /**
+     * v1Map
+     *
+     * @return bool|array
+     */
+    public function v1MapList()
+    {
+        $request = [
+            'options' => [
+                'method' => 'GET',
+            ],
+        ];
+
+        if (!$this->makeRequest('v1-map-list','auth,json',$request)) { 
+            $this->error($this->clientError());
+            return false; 
+        }
+
+        return $this->clientResponse();
+    }    
 
     /**
      * v1SpellData
