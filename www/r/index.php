@@ -33,11 +33,57 @@ $router = $main->obj('router');
 $router->process($main,[
     '/r/item/'       => ['function' => 'routeItem', 'method' => ['GET']],
     '/r/spell/'      => ['function' => 'routeSpell', 'method' => ['GET']],
+    '/r/maps'        => ['function' => 'routeMapList', 'method' => ['GET']],
     '/r/data/spell'  => ['function' => 'routeSpellData', 'method' => ['GET']],
+    '/r/map/'        => ['function' => 'routeMap', 'method' => ['GET']],
 ]);
  
 ?>
 <?php
+
+function routeMap($main)
+{
+    $api    = $main->obj('api');
+    $router = $main->obj('router');
+    $input  = $main->obj('input');
+
+    /** @var Cache $cache */
+    $cache  = $main->obj('cache');
+
+    $requestUri = $router->http->requestUri();
+
+    if (!preg_match('~/map/(\w+)$~',$requestUri,$match)) { $router->sendResponse(null,null,500,'html'); }
+
+    $mapName   = $match[1];
+    $mapFile   = sprintf("/maps/%s.map",$mapName);
+    $isBrowser = preg_match('~text/html~i',$_SERVER['HTTP_ACCEPT']) ? true : false;
+    $mapData   = $cache->readFile($mapFile,['onlyIfVersionMatch' => $main->quarmDb]) ?: $api->v1Map($mapName);
+
+    if (!$mapData || $mapData['error']) { $router->sendResponse($mapData['error'] ?: 'Map not found',null,404,'html'); }
+
+    if ($isBrowser) { print "<pre>\n"; }
+
+    print json_encode($mapData,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+
+    if ($isBrowser) { print "</pre>\n"; }
+
+    if (!$cache->cacheUsed) {
+        $cache->writeFile($mapFile,$mapData,['version' => $main->quarmDb]);
+    }
+}
+
+function routeMapList($main)
+{
+    $api    = $main->obj('api');
+    $router = $main->obj('router');
+
+    $mapList = $api->v1MapList();
+
+    if (!$mapList || $mapList['error']) { $router->sendResponse($mapList['error'] ?: 'Maps not found',null,404,'html'); }
+
+    print json_encode($mapList,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+}
+
 
 function routeSpellData($main)
 {
