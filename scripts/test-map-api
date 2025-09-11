@@ -1,0 +1,32 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main([
+    'debugLevel'     => 0,
+    'debugType'      => DEBUG_COMMENT,
+    'debugBuffer'    => true,
+    'debugLogDir'    => APP_LOGDIR,
+    'errorReporting' => false, 
+    'sessionStart'   => true,
+    'memoryLimit'    => null,
+    'sendHeaders'    => true,
+    'database'       => false,
+    'dbConfigDir'    => APP_CONFIGDIR,
+    'fileDefine'     => APP_CONFIGDIR.'/settings.json',
+    'dbDefine'       => null,
+    'input'          => true,
+    'html'           => false,
+    'adminlte'       => false,
+]);
+
+$apiOptions = ['baseUrl' => MY_API_URL, 'authToken' => MY_API_AUTH_TOKEN];
+
+if (!$main->buildClass('api','MyAPI',$apiOptions,'local/myapi.class.php')) { exit; }
+
+$result = $main->obj('api')->v1MapList();
+
+var_dump($result,$main->obj('api')->clientError());
+
+?>
