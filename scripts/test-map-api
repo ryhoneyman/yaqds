@@ -4,15 +4,15 @@ include_once 'yaqds-init.php';
 include_once 'local/main.class.php';
 
 $main = new Main([
-    'debugLevel'     => 0,
+    'debugLevel'     => 9,
     'debugType'      => DEBUG_COMMENT,
-    'debugBuffer'    => true,
+    'debugBuffer'    => false,
     'debugLogDir'    => APP_LOGDIR,
     'errorReporting' => false, 
-    'sessionStart'   => true,
+    'sessionStart'   => false,
     'memoryLimit'    => null,
     'sendHeaders'    => true,
-    'database'       => false,
+    'database'       => true,
     'dbConfigDir'    => APP_CONFIGDIR,
     'fileDefine'     => APP_CONFIGDIR.'/settings.json',
     'dbDefine'       => null,
