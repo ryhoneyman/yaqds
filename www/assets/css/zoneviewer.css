@@ -1,0 +1,30 @@
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden; /* Prevent scrollbars from appearing */
+}
+.tooltip {
+    position: absolute;
+    display: none;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none; /* So the tooltip doesn't interfere with mouse events on the canvas */
+    white-space: pre-wrap; /* To show newlines in the tooltip */
+    transition: opacity 0.2s;
+    z-index: 100;
+}
+#statsTooltip {
+    border: 2px solid rgb(59, 130, 246);
+    background-color: rgba(17, 24, 39, 0.9);
+}
+canvas {
+    cursor: grab;
+}
+canvas:active {
+    cursor: grabbing;
+}
+#mapDropdown a:hover, #npcDropdown a:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
