@@ -54,6 +54,9 @@
 
     <div id="tooltip" class="tooltip"></div>
     <div id="statsTooltip" class="tooltip"></div>
+    <div id="coordinateDisplay" class="fixed top-4 left-4 bg-black bg-opacity-75 text-white px-3 py-2 rounded text-sm font-mono hidden">
+        X: <span id="coordX">0</span>, Y: <span id="coordY">0</span>
+    </div>
 
     <!-- NPC Info Toggle and Slider -->
     <div id="npcInfoToggle" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer hidden">

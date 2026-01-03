@@ -15,6 +15,9 @@ const npcDropdown = document.getElementById('npcDropdown');
 const npcInfoToggle = document.getElementById('npcInfoToggle');
 const npcInfoSlider = document.getElementById('npcInfoSlider');
 const npcSliderContent = document.getElementById('npcSliderContent');
+const coordinateDisplay = document.getElementById('coordinateDisplay');
+const coordX = document.getElementById('coordX');
+const coordY = document.getElementById('coordY');
 
 // --- MAP DATA ---
 let mapsData = [];
@@ -26,6 +29,8 @@ let spawnPoints = [];
 let paths = new Map();
 let activeSpawnPoint = null;
 let highlightedSpawnPoints = [];
+let zoneConnections = [];
+let hoveredZoneConnection = null;
 
 // --- VIEWPORT & ANIMATION STATE ---
 let zoom = 0.8;
@@ -38,7 +43,70 @@ let maxZVisible = 0;
 let pulseRadius = 0;
 let pulseDirection = 1;
 let dragOccurred = false;
+let lastActiveSpawnPoint = null;
 
+
+function isPointOnLine(point, lineStart, lineEnd, threshold = 5) {
+    const A = point.x - lineStart.x;
+    const B = point.y - lineStart.y;
+    const C = lineEnd.x - lineStart.x;
+    const D = lineEnd.y - lineStart.y;
+    
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    
+    if (lenSq === 0) return Math.hypot(A, B) <= threshold;
+    
+    const param = Math.max(0, Math.min(1, dot / lenSq));
+    const closestX = lineStart.x + param * C;
+    const closestY = lineStart.y + param * D;
+    
+    const distance = Math.hypot(point.x - closestX, point.y - closestY);
+    return distance <= threshold;
+}
+
+/**
+ * Navigate to a different zone
+ */
+function navigateToZone(zoneName) {
+    const targetMap = mapsData.find(map => 
+        map.name.toLowerCase() === zoneName.toLowerCase() // Only match against short name
+    );
+    
+    if (targetMap) {
+        // Update URL with mapName parameter using the label for readability
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('mapName', targetMap.name);
+        window.history.pushState({}, '', newUrl);
+        
+        // Load the new map
+        loadAndDisplayMap(targetMap);
+    } else {
+        console.warn(`Zone '${zoneName}' not found`);
+        // Optionally show a user-friendly message
+    }
+}
+
+async function loadAndDisplayMap(mapData) {
+    console.log(`Loading map: ${mapData.label} (${mapData.name})`);
+    // Show loading state
+    mapSearch.value = `Loading ${mapData.label}...`;
+    mapSearch.disabled = true;
+    
+    try {
+        const data = await loadMapData(mapData.name); // Use 'name' for the API call
+        if (data) {
+            mapData.data = data;
+            parseData(data);
+            mapSearch.value = mapData.label; // Use 'label' for display
+            pageTitle.textContent = mapData.label; // Use 'label' for display
+        }
+    } catch (error) {
+        console.error('Error loading map:', error);
+    } finally {
+        mapSearch.disabled = false;
+    }
+}
 
 /**
  * Generates formatted HTML for NPC spawn information
@@ -54,12 +122,14 @@ function generateNpcSpawnHtml(npc) {
 
     let statsHtml = `<div class="mb-2"><span class="text-gray-500">${groupName} (${groupId})</span></div><hr class="mb-1">`;
 
-    npc.spawns.forEach(spawnText => {
-        const parts = spawnText.split(' ');
+    npc.spawns.forEach(spawn => {
+        const parts = spawn.text.split(' ');
         const chance = parts[0];
         const level = parts[parts.length - 1];
         const name = parts.slice(1, -1).join(' ');
-        statsHtml += `<div class="mb-1"><strong>${chance}</strong> ${name} <span class="text-red-600">${level}</span></div>`;
+        const displayText = spawn.id ? `<a href="#" class="npc-link" data-npc-id="${spawn.id}">${name}</a>` : name;
+
+        statsHtml += `<div class="mb-1"><strong>${chance}</strong> ${displayText} <span class="text-red-600">${level}</span></div>`;
     });
 
     // Add movement information
@@ -76,25 +146,45 @@ function generateNpcSpawnHtml(npc) {
 }
 
 function updateTooltips() {
-    if (activeSpawnPoint) {
-        const statsHtml = generateNpcSpawnHtml(activeSpawnPoint);
+    // Only update if the active spawn point has changed
+    if (lastActiveSpawnPoint !== activeSpawnPoint) {
+        lastActiveSpawnPoint = activeSpawnPoint;
         
-        if (statsHtml) {
-            // Show the toggle button and populate the slider content
-            npcInfoToggle.classList.remove('hidden');
-            npcSliderContent.innerHTML = statsHtml;
+        if (activeSpawnPoint) {
+            const statsHtml = generateNpcSpawnHtml(activeSpawnPoint);
             
-            // Auto-open the slider when an NPC is selected
-            npcInfoSlider.classList.remove('translate-y-full');
-            
-            // Hide the floating tooltip
+            if (statsHtml) {
+                // Show the toggle button and populate the slider content
+                npcInfoToggle.classList.remove('hidden');
+                npcSliderContent.innerHTML = statsHtml;
+                
+                // Add click listeners to all NPC links after they're created
+                const npcLinks = npcSliderContent.querySelectorAll('.npc-link');
+                console.log('Found', npcLinks.length, 'NPC links to attach listeners to');
+                
+                npcLinks.forEach(link => {
+                    link.addEventListener('click', (event) => {
+                        console.log('NPC link clicked:', link);
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const npcId = link.dataset.npcId;
+                        console.log('Opening NPC ID:', npcId);
+                        window.open(`https://pqdi.cc/npc/${npcId}`, '_blank');
+                    });
+                });
+                
+                // Auto-open the slider when an NPC is selected
+                npcInfoSlider.classList.remove('translate-y-full');
+                
+                // Hide the floating tooltip
+                statsTooltip.style.display = 'none';
+            }
+        } else {
+            // Hide the toggle button and slider when no NPC is selected
+            npcInfoToggle.classList.add('hidden');
+            npcInfoSlider.classList.add('translate-y-full');
             statsTooltip.style.display = 'none';
         }
-    } else {
-        // Hide the toggle button and slider when no NPC is selected
-        npcInfoToggle.classList.add('hidden');
-        npcInfoSlider.classList.add('translate-y-full');
-        statsTooltip.style.display = 'none';
     }
 }
 
@@ -175,8 +265,8 @@ function populateNpcDropdown() {
     const uniqueNpcs = new Set();
 
     spawnPoints.forEach(spawn => {
-        spawn.spawns.forEach(spawnText => {
-            const parts = spawnText.split(' ');
+        spawn.spawns.forEach(spawnData => {
+            const parts = spawnData.text.split(' ');
             const name = parts.slice(1, -1).join(' ');
             uniqueNpcs.add(name);
         });
@@ -196,7 +286,14 @@ function populateNpcDropdown() {
  * Calculates the optimal zoom and pan to fit all map content on screen
  */
 function fitMapToScreen() {
-    if (lines.length === 0 && pointsOfInterest.length === 0 && spawnPoints.length === 0) return;
+    console.log('fitMapToScreen called');
+    console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+    console.log('Data counts - Lines:', lines.length, 'POIs:', pointsOfInterest.length, 'NPCs:', spawnPoints.length);
+    
+    if (lines.length === 0 && pointsOfInterest.length === 0 && spawnPoints.length === 0) {
+        console.log('No data to fit');
+        return;
+    }
     
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
@@ -217,6 +314,8 @@ function fitMapToScreen() {
         maxY = Math.max(maxY, poi.y);
     });
     
+    console.log('Map bounds:', minX, minY, 'to', maxX, maxY);
+    
     // Add some padding
     const padding = 50;
     const mapWidth = maxX - minX + padding * 2;
@@ -225,13 +324,21 @@ function fitMapToScreen() {
     // Calculate zoom to fit the map in the canvas
     const zoomX = canvas.width / mapWidth;
     const zoomY = canvas.height / mapHeight;
-    zoom = Math.min(zoomX, zoomY, 2); // Cap at 2x zoom
+    const newZoom = Math.min(zoomX, zoomY, 2); // Cap at 2x zoom
+    
+    console.log('Calculated zoom:', newZoom, 'from zoomX:', zoomX, 'zoomY:', zoomY);
     
     // Center the map
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
-    pan.x = -centerX * zoom;
-    pan.y = -centerY * zoom;
+    const newPanX = -centerX * newZoom;
+    const newPanY = -centerY * newZoom;
+    
+    console.log('Setting zoom:', newZoom, 'pan:', newPanX, newPanY);
+    
+    zoom = newZoom;
+    pan.x = newPanX;
+    pan.y = newPanY;
 }
 
 /**
@@ -243,7 +350,9 @@ function parseData(data) {
     spawnPoints = [];
     paths.clear();
     activeSpawnPoint = null;
+    lastActiveSpawnPoint = null;
     highlightedSpawnPoints = [];
+    zoneConnections = [];
     let minZ = Infinity;
     let maxZ = -Infinity;
 
@@ -253,7 +362,8 @@ function parseData(data) {
     const lineHandlers = {
         'L ': 'L',
         'N ': 'N', 
-        'P ': 'P'
+        'P ': 'P',
+        'Z ': 'Z'
     };
 
     dataLines.forEach((line, index) => {
@@ -324,7 +434,16 @@ function parseData(data) {
                 }
             }
 
-            const spawns = spawnListString.split('|').map(s => s.trim());
+            const spawns = spawnListString.split('|').map(s => {
+                const trimmed = s.trim();
+                if (trimmed.includes('^')) {
+                    const [id, text] = trimmed.split('^', 2);
+                    return { id: id.trim(), text: text.trim() };
+                } else {
+                    // Fallback for old format
+                    return { id: '', text: trimmed };
+                }
+            });
             spawnPoints.push({
                 id: `spawn-${index}`,
                 x: x, y: y, z: z,
@@ -355,6 +474,41 @@ function parseData(data) {
             const pathId = parts.length > 11 ? parts[11] : null;
 
             lines.push({ start: { x: x1, y: y1, z: z1 }, end: { x: x2, y: y2, z: z2 }, color: color });
+            return;
+        }
+        else if (typeCode == 'Z') {
+            // Zone connection format: Z x1,y1,z1,x2,y2,z2,r,g,b,targetZone,description
+            if (parts.length < 10) return;
+            
+            const numericParts = parts.slice(0, 9).map(Number);
+            if (numericParts.some(isNaN)) return;
+            
+            const [x1, y1, z1, x2, y2, z2, r, g, b] = numericParts;
+            const targetZone = parts[9];
+            let description = parts[10] || `Zone to ${targetZone}`;
+
+            // Enhance description with full zone name if available
+            const targetMapData = mapsData.find(m => m.name === targetZone);
+            if (targetMapData) {
+                description = parts[10] || `Zone to ${targetMapData.label}`;
+            }
+            
+            minZ = Math.min(minZ, z1, z2);
+            maxZ = Math.max(maxZ, z1, z2);
+            
+            const color = `rgb(${r},${g},${b})`;
+            
+            // Store as a special zone connection line
+            zoneConnections.push({
+                id: `zone-${index}`,
+                start: { x: x1, y: y1, z: z1 },
+                end: { x: x2, y: y2, z: z2 },
+                color: color,
+                targetZone: targetZone,
+                description: description,
+                lineWidth: 4 
+            });
+            return;
         }
     });
     
@@ -372,7 +526,6 @@ function parseData(data) {
     
     zRangeLabel.textContent = `${minZVisible} to ${maxZVisible}`;
 
-    // Fit the map to screen after parsing
     fitMapToScreen();
 }
 
@@ -380,6 +533,12 @@ function project(point3D) {
     const x = (point3D.x * zoom) + pan.x;
     const y = (point3D.y * zoom) + pan.y;
     return { x: x + canvas.width / 2, y: y + canvas.height / 2 };
+}
+
+function unproject(screenPoint) {
+    const worldX = (screenPoint.x - canvas.width / 2 - pan.x) / zoom;
+    const worldY = (screenPoint.y - canvas.height / 2 - pan.y) / zoom;
+    return { x: worldX, y: worldY };
 }
 
 function drawArrowhead(ctx, from, to, headLength) {
@@ -522,6 +681,29 @@ function draw() {
         ctx.stroke();
         ctx.restore();
     });
+
+    // Draw zone connections with special styling
+    zoneConnections.forEach(connection => {
+        const lineMinZ = Math.min(connection.start.z, connection.end.z);
+        const lineMaxZ = Math.max(connection.start.z, connection.end.z);
+        if (lineMaxZ < minZVisible || lineMinZ > maxZVisible) return;
+
+        const p1 = project(connection.start);
+        const p2 = project(connection.end);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        
+        // Special styling for zone connections
+        ctx.strokeStyle = connection === hoveredZoneConnection ? 
+            'rgb(255, 215, 0)' : connection.color; // Gold when hovered
+        ctx.lineWidth = connection.lineWidth;
+        ctx.setLineDash([10, 5]); // Dashed line to distinguish from regular lines
+        ctx.stroke();
+        ctx.restore();
+    });
 }
 
 function resizeCanvas() {
@@ -540,7 +722,6 @@ function animate() {
     }
 
     draw();
-    updateTooltips();
     requestAnimationFrame(animate);
 }
 
@@ -608,12 +789,24 @@ canvas.addEventListener('mouseleave', () => {
 
 canvas.addEventListener('click', (event) => {
     if (dragOccurred) return;
-    
-    highlightedSpawnPoints = [];
+
     const rect = canvas.getBoundingClientRect();
     const mousePos = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 
+    // Check for zone connection clicks first
+    for (const connection of zoneConnections) {
+        if (connection.start.z >= minZVisible && connection.start.z <= maxZVisible) {
+            if (isPointOnLine(mousePos, project(connection.start), project(connection.end), 8)) {
+                // Zone connection clicked - navigate to new map
+                navigateToZone(connection.targetZone);
+                return;
+            }
+        }
+    }
+
+    highlightedSpawnPoints = [];
     let clickedOnObject = false;
+
     for (const spawn of spawnPoints) {
         const projectedNpc = project(spawn);
         const distance = Math.hypot(projectedNpc.x - mousePos.x, projectedNpc.y - mousePos.y);
@@ -637,11 +830,15 @@ canvas.addEventListener('click', (event) => {
                 
                 // Set new active spawn point and show its movement area
                 activeSpawnPoint = spawn;
+                updateTooltips();
                 if (spawn.pathId) {
                     spawn.pathVisible = true;
                 } else if (spawn.roambox) {
                     spawn.roamboxVisible = true;
                 }
+                
+                // Prevent event from bubbling to document click handler
+                event.stopPropagation();
             }
             break;
         }
@@ -653,6 +850,7 @@ canvas.addEventListener('click', (event) => {
             activeSpawnPoint.pathVisible = false;
             activeSpawnPoint.roamboxVisible = false;
             activeSpawnPoint = null;
+            updateTooltips();
         }
     }
 });
@@ -667,6 +865,28 @@ canvas.addEventListener('mousemove', (event) => {
 
     const rect = canvas.getBoundingClientRect();
     const mousePos = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+
+    // Update coordinate display
+    const worldPos = unproject(mousePos);
+    coordX.textContent = Math.round(worldPos.x);
+    coordY.textContent = Math.round(worldPos.y);
+    coordinateDisplay.classList.remove('hidden');
+
+    // Check for zone connection hover
+    hoveredZoneConnection = null;
+    for (const connection of zoneConnections) {
+        if (connection.start.z >= minZVisible && connection.start.z <= maxZVisible) {
+            if (isPointOnLine(mousePos, project(connection.start), project(connection.end), 8)) {
+                hoveredZoneConnection = connection;
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${event.clientX + 15}px`;
+                tooltip.style.top = `${event.clientY - 35}px`; // Changed from +15 to -35
+                tooltip.innerText = connection.description;
+                canvas.style.cursor = 'pointer';
+                return;
+            }
+        }
+    }
 
     let foundPoi = null;
     let foundNpc = null;
@@ -707,6 +927,14 @@ canvas.addEventListener('mousemove', (event) => {
     }
 });
 
+canvas.addEventListener('mouseleave', () => {
+    isPanning = false;
+    canvas.style.cursor = 'grab';
+    tooltip.style.display = 'none';
+    // Hide coordinate display when mouse leaves canvas
+    coordinateDisplay.classList.add('hidden');
+});
+
 window.addEventListener('resize', resizeCanvas);
 
 mapSearch.addEventListener('focus', () => {
@@ -725,9 +953,12 @@ document.addEventListener('click', (event) => {
         npcDropdown.classList.add('hidden');
     }
     
-    // Close NPC info slider when clicking outside
+    // Close NPC info slider when clicking outside, but allow NPC links to work
     if (!npcInfoSlider.contains(event.target) && !npcInfoToggle.contains(event.target)) {
-        npcInfoSlider.classList.add('translate-y-full');
+        // Don't close if clicking on an NPC link
+        if (!event.target.closest('a[href="#"]')) {
+            npcInfoSlider.classList.add('translate-y-full');
+        }
     }
 });
 
@@ -781,6 +1012,8 @@ mapDropdown.addEventListener('click', async (event) => {
                 if (mapData) {
                     // Store the loaded data in the map object
                     selectedMap.data = mapData;
+
+                    console.log(`Loaded map data for ${mapName} (${selectedMap.name}), parsing...`);
                     
                     // Parse and display the map
                     parseData(selectedMap.data);
@@ -815,8 +1048,8 @@ npcDropdown.addEventListener('click', (event) => {
 
         // Find spawn points that contain this exact NPC name
         highlightedSpawnPoints = spawnPoints.filter(spawn => 
-            spawn.spawns.some(spawnText => {
-                const parts = spawnText.split(' ');
+            spawn.spawns.some(spawnData => {
+                const parts = spawnData.text.split(' ');
                 const name = parts.slice(1, -1).join(' ');
                 return name === npcName; // Exact match instead of partial
             })
@@ -851,27 +1084,21 @@ async function init() {
     await loadMapsFromFiles();
     populateMapDropdown();
 
+    resizeCanvas();
+
     // Check for mapName query parameter
     const initialMapName = getQueryParameter('mapName');
 
     if (initialMapName && mapsData.length > 0) {
-        // Find the map by name and trigger the existing click handler
-        const selectedMap = mapsData.find(m => m.label === initialMapName);
+        // Find the map by both short name and label
+        const selectedMap = mapsData.find(m => 
+            m.name.toLowerCase() === initialMapName.toLowerCase() ||
+            m.label.toLowerCase() === initialMapName.toLowerCase()
+        );
 
         if (selectedMap) {
-            // Find the corresponding dropdown item and trigger a click event
-            const dropdownItems = mapDropdown.getElementsByTagName('a');
-            for (let item of dropdownItems) {
-                if (item.dataset.mapName === selectedMap.label) {
-                    // Create and dispatch a click event
-                    const clickEvent = new Event('click', {
-                        bubbles: true,
-                        cancelable: true
-                    });
-                    item.dispatchEvent(clickEvent);
-                    break;
-                }
-            }
+            // Load the map directly using the loadAndDisplayMap function
+            await loadAndDisplayMap(selectedMap);
         } else {
             console.warn(`Map with name '${initialMapName}' not found`);
             mapSearch.placeholder = `${mapsData.length} maps available - select one`;
@@ -881,6 +1108,5 @@ async function init() {
         mapSearch.placeholder = `${mapsData.length} maps available - select one`;
     }
 
-    resizeCanvas();
     animate();
 }
