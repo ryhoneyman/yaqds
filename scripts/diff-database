@@ -308,7 +308,14 @@ function processChanges($main)
 
             //if ($tableName == 'lootdrop') { print "NEW: $newDataJson\nOLD: $oldDataJson\n"; }
 
-            $newData = array_combine($newTableInfo['columns'],json_decode($newDataJson,true));
+            $decodedNew = json_decode($newDataJson,true);
+
+            if (!$newDataJson || !$decodedNew) {
+               $main->debug->trace(0,"MALFORMED/MISSING JSON: $tableName, primary/$newRowKey - $newDataJson");
+               continue;
+            }
+
+            $newData = array_combine($newTableInfo['columns'],$decodedNew);
    
             if ($newDataJson && $oldDataJson && (is_null($changesLeft) || $changesLeft > 0)) {
                $state = 'changed';
