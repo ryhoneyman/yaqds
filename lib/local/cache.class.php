@@ -46,7 +46,14 @@ class Cache extends LWPLib\Base
          if ($options['onlyIfVersionMatch']) {
             $currentVersion = $fileData['info']['version'] ?? null;
             if (!$currentVersion || ($currentVersion!= $options['onlyIfVersionMatch'])) {
-               $this->error("version mismatch for $fileName: {$currentVersion} != {$options['onlyIfVersionMatch']}");
+               $this->debug(7,"version mismatch for $fileName: {$currentVersion} != {$options['onlyIfVersionMatch']}");
+               return false;
+            }
+         }
+         if (isset($fileData['info']['updateTs']) && $options['maxAge']) {
+            $maxAge = time() - $options['maxAge'];
+            if ($fileData['info']['updateTs'] < $maxAge) {
+               $this->debug(7,"cached file $fileName is too old");
                return false;
             }
          }
