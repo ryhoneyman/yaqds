@@ -169,7 +169,7 @@ function updateTooltips() {
                         event.stopPropagation();
                         const npcId = link.dataset.npcId;
                         console.log('Opening NPC ID:', npcId);
-                        window.open(`https://pqdi.cc/npc/${npcId}`, '_blank');
+                        window.open(`https://www.pqdi.cc/npc/${npcId}`, '_blank');
                     });
                 });
                 
