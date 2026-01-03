@@ -1,0 +1,82 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+   'cliLongOpts'    => 'name:,npc,id:',
+));
+
+/** @var LWPLib\Options $opts */
+$opts = $main->obj('options');
+
+$spaId = $opts->getOption('id');
+
+$effectIdWhereList = [];
+foreach (range(1,12) as $effNum) {
+    $effectIdWhereList[] = "effectid{$effNum} = ?";
+}
+
+$statement = 'SELECT * FROM spells_new WHERE '.implode(' OR ',$effectIdWhereList);
+$types     = str_repeat('i', count($effectIdWhereList));
+$data      = array_fill(0,count($effectIdWhereList),(int)$spaId);
+
+$spellInfo = $main->db()->bindQuery($statement,$types,$data);
+
+if ($spellInfo === false) {
+    print "Error querying spell data for SPA ID {$spaId}\n";
+    exit(1);
+}
+
+print "Spell Data for SPA ID {$spaId}:\n";
+foreach ($spellInfo as $spell) {
+   // Find the effect that matches the SPA ID
+   $spellEffect = null;
+
+   for ($i = 1; $i <= 12; $i++) {
+       if ($spell["effectid{$i}"] == $spaId) {
+           $spellEffect = [
+               'effectNum' => $i,
+               'id'        => $spell['id'],
+               'name'      => $spell['name'],
+               'formula'   => $spell["formula{$i}"],
+               'base'      => $spell["effect_base_value{$i}"],
+               'limit'     => $spell["effect_limit_value{$i}"],
+               'max'       => $spell["max{$i}"],
+           ];
+           break;
+       }
+   }
+
+   if ($spellEffect === null) {
+       continue; // This should not happen
+   }
+
+   if ($spellEffect['base'] < 100 || ($spellEffect['max'] > 0 && $spellEffect['max'] < 100)) {
+       printf("!!! %s %s\n", $spellEffect['id'], $spellEffect['name']);
+   }
+
+   printf("%5s %30s  Effect[%3d] Formula(%3d) Base(%d) Limit(%d) Max(%d)\n",
+      $spellEffect['id'],
+      $spellEffect['name'],
+      $spellEffect['effectNum'],
+      $spellEffect['formula'],
+      $spellEffect['base'],
+      $spellEffect['limit'],
+      $spellEffect['max']
+   );
+}  
+
