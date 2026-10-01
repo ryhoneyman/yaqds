@@ -1,0 +1,103 @@
+#!/usr/bin/php
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
+
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'debugType'      => DEBUG_CLI,
+   'errorReporting' => false,
+   'sessionStart'   => false,
+   'memoryLimit'    => null,
+   'sendHeaders'    => false,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => false,
+   'data'           => APP_CONFIGDIR.'/global.json',
+   'cliLongOpts'    => 'type:,value:',
+));
+
+/** @var LWPLib\Options $opts */
+$opts = $main->obj('options');
+
+$inputType  = $opts->getOption('type');
+$inputValue = $opts->getOption('value');
+
+var_dump($inputType, $inputValue);
+
+$types = [
+    'spa'     => 'effectid',
+    'formula' => 'formula',
+];
+
+if ($inputType === null && $inputValue === null) {
+    print "Usage: spell-search [--type=<spa|formula> | --value=<value>]\n";
+    exit(1);
+}
+
+$inputType = strtolower($inputType);
+
+if (!isset($types[$inputType])) {
+    print "Invalid type specified. Valid types are: ".implode(',',array_keys($types))."\n";
+    exit(1);
+}
+
+$fieldName = $types[$inputType];
+
+$whereList = [];
+foreach (range(1,12) as $effNum) {
+    $whereList[] = "{$fieldName}{$effNum} = ?";
+}
+
+$statement = 'SELECT * FROM spells_new WHERE '.implode(' OR ',$whereList);
+$types     = str_repeat('i', count($whereList));
+$data      = array_fill(0,count($whereList),(int)$inputValue);
+
+$spellInfo = $main->db()->bindQuery($statement,$types,$data);
+
+if ($spellInfo === false) {
+    print "Error querying spell data for {$inputType} {$inputValue}\n";
+    exit(1);
+}
+
+print "Spell Data for {$inputType} {$inputValue}:\n";
+foreach ($spellInfo as $spell) {
+    // Find the effect that matches the SPA ID
+    $spellEffects = [];
+
+    for ($i = 1; $i <= 12; $i++) {
+        if ($spell["{$fieldName}{$i}"] == $inputValue) {
+            $spellEffects[] = [
+                'effectNum' => $i,
+                'id'        => $spell['id'],
+                'name'      => $spell['name'],
+                'formula'   => $spell["formula{$i}"],
+                'spa'       => $spell["effectid{$i}"],
+                'base'      => $spell["effect_base_value{$i}"],
+                'limit'     => $spell["effect_limit_value{$i}"],
+                'max'       => $spell["max{$i}"],
+            ];
+        }
+    }
+
+    if (empty($spellEffects)) {
+        continue; // This should not happen
+    }
+
+    foreach ($spellEffects as $spellEffect) {
+        printf("%5s %30s  Effect[%3d] SPA(%3d) Formula(%3d) Base(%d) Limit(%d) Max(%d)\n",
+            $spellEffect['id'],
+            $spellEffect['name'],
+            $spellEffect['effectNum'],
+            $spellEffect['spa'],
+            $spellEffect['formula'],
+            $spellEffect['base'],
+            $spellEffect['limit'],
+            $spellEffect['max']
+        );
+    }
+}  
+
