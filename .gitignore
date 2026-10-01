@@ -4,6 +4,7 @@
 /www/thj/** 
 /www/dynamic/**
 /quarmdb
+/www/maps/process/quail/**
 /var/cache/**
 !/var/cache/**/
 !/var/cache/**/.gitkeep
