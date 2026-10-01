@@ -24,7 +24,7 @@ $html  = $main->obj('html');
 
 $main->title('Zone Viewer');
 
-$currentExpansion = $main->data->forceExpansion('luclin') ?: $main->data->currentExpansion();
+$currentExpansion = $main->data->forceExpansion('planes') ?: $main->data->currentExpansion();
 
 $zoneName    = $input->get('zone','alphanumeric') ?: 'hateplane';
 $zoneFloor   = $input->get('floor','numeric,dash');
@@ -100,7 +100,7 @@ $entityRadius = $mapPresets['entityRadius'];
 $targetScale  = $mapPresets['targetScale'];
 $arrowSize    = floor($entityRadius / 2);
 $gridSize     = floor($entityRadius / 1.25); 
-$spawnLabels  = generateSpawnLabels($main,$spawnData,$spawnGrids,array('search' => $npcSearch, 'entityRadius' => $entityRadius));
+$spawnLabels  = generateSpawnLabels($main,$spawnData,$spawnGrids,array('search' => $npcSearch, 'entityRadius' => $entityRadius, 'zoneFloor' => $zoneFloor, 'zoneCeil' => $zoneCeil));
 
 //print "<pre class='text-black'>".json_encode($spawnData,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."</pre>";
 //printf("radius(%s) arrow(%s) grid(%s)<br>\n",$entityRadius,$arrowSize,$gridSize);
@@ -177,6 +177,8 @@ function generateSpawnLabels($main, $spawnData, $spawnGrids, $options = null)
 
    $entityRadius = $options['entityRadius'];
    $searchHash   = $options['search'] ?: null;
+   $zoneFloor    = $options['zoneFloor'] ?: null;
+   $zoneCeil     = $options['zoneCeil'] ?: null;
 
    $spawns = array();
    $grids  = array();
