@@ -1,78 +1,218 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PQ Zone Map Viewer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="/assets/css/zoneviewer.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 text-gray-900 flex flex-col items-center justify-center h-screen p-4">
+<?php
+include_once 'yaqds-init.php';
+include_once 'local/main.class.php';
 
-    <h1 id="pageTitle" class="text-3xl font-bold text-gray-800">Zone Map Viewer</h1>
+$main = new Main(array(
+   'debugLevel'     => 0,
+   'errorReporting' => false,
+   'sessionStart'   => true,
+   'memoryLimit'    => null,
+   'sendHeaders'    => true,
+   'dbConfigDir'    => APP_CONFIGDIR,
+   'fileDefine'     => APP_CONFIGDIR.'/defines.json',
+   'database'       => true,
+   'input'          => false,
+   'html'           => false,
+   'adminlte'       => true,
+   'data'           => APP_CONFIGDIR.'/global.json',
+));
 
-    <!-- Top Controls Area -->
-    <div class="my-4 w-full max-w-4xl flex items-end space-x-8">
-        <!-- Map Selector Dropdown -->
-        <div class="relative w-1/3">
-            <label for="mapSearch" class="text-sm font-medium text-gray-600">Select Map</label>
-            <input type="text" id="mapSearch" placeholder="Search maps..." class="w-full p-2 border border-gray-300 rounded-md mt-1">
-            <div id="mapDropdown" class="absolute hidden w-full bg-white border border-gray-300 rounded-md mt-1 z-20 max-h-48 overflow-y-auto">
-                <!-- Map items will be injected here by JS -->
+$main->title('Zone Viewer Plus');
+$main->pageDescription('Enhanced map and spawn data viewer');
+
+include 'ui/header.php';
+
+?>
+<!-- Tailwind (preflight disabled to avoid conflicting with AdminLTE) -->
+<script>tailwind = { config: { corePlugins: { preflight: false } } }</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="/assets/css/zoneviewer.css" rel="stylesheet">
+
+<style>
+/* Hide the AdminLTE content header (title + HR) to reclaim vertical space */
+.content-header { display: none !important; }
+
+.zoneviewer-wrapper {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 145px);
+    overflow: hidden;
+}
+
+/* Single compact toolbar row */
+.zv-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    flex-shrink: 0;
+}
+.zv-toolbar .zv-zone-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #ffc107;
+    min-width: 140px;
+}
+.zv-toolbar .zv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.zv-toolbar label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #d1d5db;
+    line-height: 1;
+}
+.zv-toolbar .zv-input-wrap {
+    position: relative;
+    display: inline-block;
+}
+.zv-toolbar input[type="text"] {
+    padding: 4px 24px 4px 8px;
+    font-size: 0.8rem;
+    border: 1px solid #6b7280;
+    border-radius: 4px;
+    width: 255px;
+    background: #1f2937;
+    color: #f3f4f6;
+}
+.zv-toolbar input[type="text"]::placeholder { color: #9ca3af; }
+.zv-clear-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+}
+.zv-clear-btn:hover { color: #f3f4f6; }
+.zv-toolbar .zv-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 100%;
+    width: max-content;
+    background: #1f2937;
+    border: 1px solid #6b7280;
+    border-radius: 4px;
+    margin-top: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.zv-toolbar .zv-dropdown a { color: #d1d5db !important; }
+.zv-toolbar .zv-dropdown a:hover { background: #374151 !important; }
+.zv-toolbar .zv-sliders {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.zv-toolbar .zv-slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.zv-toolbar input[type="range"] {
+    width: 110px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+.zv-toolbar label span {
+    color: #ffc107;
+    font-weight: 700;
+}
+
+.zoneviewer-wrapper .canvas-container {
+    flex: 1;
+    overflow: hidden;
+    border: 2px solid #4b5563;
+    border-radius: 6px;
+}
+</style>
+
+<div class="zoneviewer-wrapper p-2">
+
+    <!-- Compact single-row toolbar -->
+    <div class="zv-toolbar w-full">
+
+        <!-- Zone name (updated by JS) -->
+        <div id="pageTitle" class="zv-zone-name">Zone Map Viewer</div>
+
+        <!-- Map Selector -->
+        <div class="zv-field" style="position:relative;">
+            <label for="mapSearch">Select Map</label>
+            <div class="zv-input-wrap">
+                <input type="text" id="mapSearch" placeholder="Search maps...">
+                <button id="mapClear" class="zv-clear-btn hidden" title="Clear zone">&#x2715;</button>
+            </div>
+            <div id="mapDropdown" class="zv-dropdown hidden">
+                <!-- injected by JS -->
             </div>
         </div>
-        <!-- NPC Selector Dropdown -->
-        <div class="relative w-1/3">
-            <label for="npcSearch" class="text-sm font-medium text-gray-600">Find NPC</label>
-            <input type="text" id="npcSearch" placeholder="Search NPCs..." class="w-full p-2 border border-gray-300 rounded-md mt-1">
-            <div id="npcDropdown" class="absolute hidden w-full bg-white border border-gray-300 rounded-md mt-1 z-20 max-h-48 overflow-y-auto">
-                <!-- NPC items will be injected here by JS -->
+
+        <!-- NPC Selector -->
+        <div class="zv-field" style="position:relative;">
+            <label for="npcSearch">Find NPC</label>
+            <div class="zv-input-wrap">
+                <input type="text" id="npcSearch" placeholder="Search NPCs...">
+                <button id="npcClear" class="zv-clear-btn hidden" title="Clear NPC">&#x2715;</button>
+            </div>
+            <div id="npcDropdown" class="zv-dropdown hidden">
+                <!-- injected by JS -->
             </div>
         </div>
-        <!-- Z-Axis Sliders -->
-        <div class="flex-grow">
-            <label class="text-lg font-semibold text-gray-700 text-center block">Z-Range: <span id="z-range-label" class="font-bold">0 to 0</span></label>
-            <div class="flex items-center space-x-4 mt-2">
-                <div class="flex-1">
-                    <label for="zMinSlider" class="text-sm font-medium text-gray-600">Min Z</label>
-                    <input type="range" id="zMinSlider" min="0" max="100" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                </div>
-                <div class="flex-1">
-                    <label for="zMaxSlider" class="text-sm font-medium text-gray-600">Max Z</label>
-                    <input type="range" id="zMaxSlider" min="0" max="100" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                </div>
+
+        <!-- Z-Range sliders -->
+        <div class="zv-sliders">
+            <div class="zv-slider-group">
+                <label for="zMinSlider">Min Z (<span id="z-min-label">0</span>)</label>
+                <input type="range" id="zMinSlider" min="0" max="100" value="0">
+            </div>
+            <div class="zv-slider-group">
+                <label for="zMaxSlider">Max Z (<span id="z-max-label">0</span>)</label>
+                <input type="range" id="zMaxSlider" min="0" max="100" value="0">
             </div>
         </div>
+
     </div>
 
-    <div class="w-full max-w-7xl flex-grow">
-        <div class="w-full h-full border-2 border-gray-300 rounded-lg shadow-lg overflow-hidden">
-            <canvas id="mapCanvas"></canvas>
-        </div>
+    <div class="canvas-container">
+        <canvas id="mapCanvas"></canvas>
     </div>
 
-    <div id="tooltip" class="tooltip"></div>
-    <div id="statsTooltip" class="tooltip"></div>
-    <div id="coordinateDisplay" class="fixed top-4 left-4 bg-black bg-opacity-75 text-white px-3 py-2 rounded text-sm font-mono hidden">
-        X: <span id="coordX">0</span>, Y: <span id="coordY">0</span>
-    </div>
+</div>
 
-    <!-- NPC Info Toggle and Slider -->
-    <div id="npcInfoToggle" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer hidden">
-        <span>📍</span>
-    </div>
-    <div id="npcInfoSlider" class="fixed bottom-0 right-0 w-80 bg-white border-l border-t border-gray-300 rounded-tl-lg shadow-lg transform translate-y-full transition-transform duration-300">
-        <div class="p-4">
-            <h3 class="font-semibold text-gray-800 mb-2">NPC Information</h3>
-            <div id="npcSliderContent" class="text-sm text-gray-700"></div>
-        </div>
-    </div>
+<div id="tooltip" class="tooltip"></div>
+<div id="statsTooltip" class="tooltip"></div>
+<div id="coordinateDisplay" class="fixed top-4 left-4 bg-black bg-opacity-75 text-white px-3 py-2 rounded text-sm font-mono hidden">
+    X: <span id="coordX">0</span>, Y: <span id="coordY">0</span>
+</div>
 
-    <script src="/assets/js/zoneviewer.js"></script>
-    
-    <script>
-        init();
-    </script>
-</body>
-</html>
+<!-- NPC Info Toggle and Slider -->
+<div id="npcInfoToggle" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer hidden">
+    <span>📍</span>
+</div>
+<div id="npcInfoSlider" class="fixed bottom-0 right-0 w-80 bg-white border-l border-t border-gray-300 rounded-tl-lg shadow-lg transform translate-y-full transition-transform duration-300">
+    <div class="p-4">
+        <h3 class="font-semibold text-gray-800 mb-2">NPC Information</h3>
+        <div id="npcSliderContent" class="text-sm text-gray-700"></div>
+    </div>
+</div>
+
+<script src="/assets/js/zoneviewer.js"></script>
+
+<script>
+    init();
+</script>
+
+<?php include 'ui/footer.php'; ?>

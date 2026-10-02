@@ -16,6 +16,7 @@
 
 print insertHeader('ZONES').
       insertEntry('fa-map-marked-alt','/zone/viewer/','Zone Viewer').
+      insertEntry('fa-map-marked-alt','/zoneplus/viewer/','Zone Viewer Plus').
       insertHeader('NPCS').
       insertEntry('fa-gem','/loot/','Loot Viewer').
       insertHeader('DATASBASE').

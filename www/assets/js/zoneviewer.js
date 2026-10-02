@@ -7,11 +7,14 @@ const tooltip = document.getElementById('tooltip');
 const statsTooltip = document.getElementById('statsTooltip');
 const zMinSlider = document.getElementById('zMinSlider');
 const zMaxSlider = document.getElementById('zMaxSlider');
-const zRangeLabel = document.getElementById('z-range-label');
+const zMinLabel   = document.getElementById('z-min-label');
+const zMaxLabel   = document.getElementById('z-max-label');
 const mapSearch = document.getElementById('mapSearch');
 const mapDropdown = document.getElementById('mapDropdown');
+const mapClear = document.getElementById('mapClear');
 const npcSearch = document.getElementById('npcSearch');
 const npcDropdown = document.getElementById('npcDropdown');
+const npcClear = document.getElementById('npcClear');
 const npcInfoToggle = document.getElementById('npcInfoToggle');
 const npcInfoSlider = document.getElementById('npcInfoSlider');
 const npcSliderContent = document.getElementById('npcSliderContent');
@@ -243,6 +246,26 @@ async function loadMapData(mapName) {
 }
 
 /**
+ * Expands the dropdown's width to fit its longest item without resizing the input.
+ * The dropdown gets min-width:100% (stays at least as wide as the input) plus
+ * enough extra to show the longest label without truncation.
+ */
+function fitInputToDropdown(input, dropdown) {
+    const savedDisplay    = dropdown.style.display;
+    const savedVisibility = dropdown.style.visibility;
+    const savedWidth      = dropdown.style.width;
+    dropdown.style.visibility = 'hidden';
+    dropdown.style.display    = 'block';
+    dropdown.style.width      = 'max-content';
+    const naturalWidth = dropdown.scrollWidth;
+    dropdown.style.display    = savedDisplay;
+    dropdown.style.visibility = savedVisibility;
+    dropdown.style.width      = savedWidth;
+    // Store the measured width so the dropdown can use it when opened
+    if (naturalWidth > 0) dropdown.dataset.naturalWidth = naturalWidth;
+}
+
+/**
  * Populates the map selection dropdown.
  */
 function populateMapDropdown() {
@@ -255,6 +278,7 @@ function populateMapDropdown() {
         a.className = 'block px-4 py-2 text-sm text-gray-700';
         mapDropdown.appendChild(a);
     });
+    fitInputToDropdown(mapSearch, mapDropdown);
 }
 
 /**
@@ -280,6 +304,7 @@ function populateNpcDropdown() {
         a.className = 'block px-4 py-2 text-sm text-gray-700';
         npcDropdown.appendChild(a);
     });
+    fitInputToDropdown(npcSearch, npcDropdown);
 }
 
 /**
@@ -524,7 +549,8 @@ function parseData(data) {
     zMaxSlider.value = maxZ;
     maxZVisible = maxZ;
     
-    zRangeLabel.textContent = `${minZVisible} to ${maxZVisible}`;
+    zMinLabel.textContent = minZVisible;
+    zMaxLabel.textContent = maxZVisible;
 
     fitMapToScreen();
 }
@@ -733,7 +759,8 @@ zMinSlider.addEventListener('input', (event) => {
         maxZVisible = minZVisible;
         zMaxSlider.value = maxZVisible;
     }
-    zRangeLabel.textContent = `${minZVisible} to ${maxZVisible}`;
+    zMinLabel.textContent = minZVisible;
+    zMaxLabel.textContent = maxZVisible;
 });
 
 zMaxSlider.addEventListener('input', (event) => {
@@ -742,7 +769,8 @@ zMaxSlider.addEventListener('input', (event) => {
         minZVisible = maxZVisible;
         zMinSlider.value = minZVisible;
     }
-    zRangeLabel.textContent = `${minZVisible} to ${maxZVisible}`;
+    zMinLabel.textContent = minZVisible;
+    zMaxLabel.textContent = maxZVisible;
 });
 
 canvas.addEventListener('wheel', (event) => {
@@ -941,15 +969,70 @@ mapSearch.addEventListener('focus', () => {
     mapDropdown.classList.remove('hidden');
 });
 
+npcClear.addEventListener('click', () => {
+    // Clear the NPC selection, remove highlights, and reopen the list
+    npcSearch.value = '';
+    npcClear.classList.add('hidden');
+    highlightedSpawnPoints = [];
+    draw();
+
+    const options = npcDropdown.getElementsByTagName('a');
+    for (let i = 0; i < options.length; i++) {
+        options[i].style.display = '';
+    }
+
+    npcSearch.focus();
+    npcDropdown.classList.remove('hidden');
+});
+
+mapClear.addEventListener('click', () => {
+    // Clear the map selection and restore all dropdown items
+    mapSearch.value = '';
+    mapClear.classList.add('hidden');
+    pageTitle.textContent = 'Zone Map Viewer';
+
+    const options = mapDropdown.getElementsByTagName('a');
+    for (let i = 0; i < options.length; i++) {
+        options[i].style.display = '';
+    }
+
+    // Also clear the NPC selection and wipe the dropdown list
+    npcSearch.value = '';
+    npcClear.classList.add('hidden');
+    npcDropdown.innerHTML = '';
+
+    // Reset Z sliders and labels
+    minZVisible = 0;
+    maxZVisible = 0;
+    zMinSlider.min = 0; zMinSlider.max = 0; zMinSlider.value = 0;
+    zMaxSlider.min = 0; zMaxSlider.max = 0; zMaxSlider.value = 0;
+    zMinLabel.textContent = 0;
+    zMaxLabel.textContent = 0;
+
+    // Reset all map data and blank the canvas
+    lines = [];
+    pointsOfInterest = [];
+    spawnPoints = [];
+    paths.clear();
+    activeSpawnPoint = null;
+    lastActiveSpawnPoint = null;
+    highlightedSpawnPoints = [];
+    zoneConnections = [];
+    draw();
+
+    mapSearch.focus();
+    mapDropdown.classList.remove('hidden');
+});
+
 npcSearch.addEventListener('focus', () => {
     npcDropdown.classList.remove('hidden');
 });
 
 document.addEventListener('click', (event) => {
-    if (!mapSearch.contains(event.target) && !mapDropdown.contains(event.target)) {
+    if (!mapSearch.contains(event.target) && !mapDropdown.contains(event.target) && event.target !== mapClear) {
         mapDropdown.classList.add('hidden');
     }
-    if (!npcSearch.contains(event.target) && !npcDropdown.contains(event.target)) {
+    if (!npcSearch.contains(event.target) && !npcDropdown.contains(event.target) && event.target !== npcClear) {
         npcDropdown.classList.add('hidden');
     }
     
@@ -967,6 +1050,7 @@ mapSearch.addEventListener('input', (event) => {
     const options = mapDropdown.getElementsByTagName('a');
 
     mapDropdown.classList.remove('hidden');
+    mapClear.classList.add('hidden'); // hide X while user is typing a new search
 
     for (let i = 0; i < options.length; i++) {
         const txtValue = options[i].textContent || options[i].innerText;
@@ -983,6 +1067,7 @@ npcSearch.addEventListener('input', (event) => {
     const options = npcDropdown.getElementsByTagName('a');
 
     npcDropdown.classList.remove('hidden');
+    npcClear.classList.add('hidden'); // hide X while user is typing a new search
     
     for (let i = 0; i < options.length; i++) {
         const txtValue = options[i].textContent || options[i].innerText;
@@ -1019,7 +1104,13 @@ mapDropdown.addEventListener('click', async (event) => {
                     parseData(selectedMap.data);
                     mapSearch.value = mapName;
                     mapDropdown.classList.add('hidden');
-                    
+                    mapClear.classList.remove('hidden');
+
+                    // Clear any previous NPC selection
+                    npcSearch.value = '';
+                    npcClear.classList.add('hidden');
+                    highlightedSpawnPoints = [];
+
                     // Update the page title with the zone name
                     pageTitle.textContent = mapName;
                 } else {
@@ -1057,6 +1148,7 @@ npcDropdown.addEventListener('click', (event) => {
 
         if (highlightedSpawnPoints.length > 0) {
             npcSearch.value = npcName;
+            npcClear.classList.remove('hidden');
         }
         npcDropdown.classList.add('hidden');
     }
